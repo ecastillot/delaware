@@ -357,7 +357,7 @@ def get_rolling_stats(st, step=3600, starttime=None, endtime=None,
     str_id = ".".join((st[0].stats.network,
                 st[0].stats.station,
                 st[0].stats.location,
-                st[0].stats.channel
+                st[0].stats.channel[0:2]
             ))
 
     # Iterate over each time window and compute statistics
