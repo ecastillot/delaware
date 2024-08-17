@@ -353,9 +353,15 @@ def get_rolling_stats(st, step=3600, starttime=None, endtime=None,
     dates = pd.date_range(start=starttime, end=endtime, freq=f"{step}s")
 
     all_stats = []
+    
+    str_id = ".".join((st[0].stats.network,
+                st[0].stats.station,
+                st[0].stats.location,
+                st[0].stats.channel
+            ))
 
     # Iterate over each time window and compute statistics
-    for i in tqdm(range(len(dates) - 1), desc="Processing intervals"):
+    for i in tqdm(range(len(dates) - 1), desc=f"Processing intervals | {str_id}"):
         interval_starttime = dates[i]
         interval_endtime = dates[i + 1]
         

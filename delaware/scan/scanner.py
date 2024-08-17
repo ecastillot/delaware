@@ -9,6 +9,7 @@ import scan.utils as ut
 from scan.stats import get_rolling_stats
 import logging
 import pandas as pd
+import concurrent.futures as cf
 
 logger = logging.getLogger("delaware.scan.scanner")
 
@@ -311,7 +312,7 @@ class Scanner(object):
         self.db_folder_path = db_folder_path
         self.providers = providers
 
-    def scan(self, step, wav_length=86400, level="station"):
+    def scan(self, step, wav_length=86400, level="station", n_processor=1):
         """
         Scan the waveform data for each provider and save results to the database.
 
@@ -323,18 +324,20 @@ class Scanner(object):
             Length of each waveform chunk in seconds. Defaults to 86400 seconds (1 day).
         level : str, optional
             Level of information to query. Options are "station", "instrument", or "channel". Defaults to "station".
+        n_processor : int, optional
+            Number of parallel processors to use. Defaults to 1 for no parallelism.
         """
         for provider in self.providers:
-            logger.info(f"Provider {provider}")
+            logger.info(f"{provider}")
 
             starttime = provider.wav_restrictions.starttime
             endtime = provider.wav_restrictions.endtime
 
             # Generate chunk times for querying
             times = ut.get_chunktimes(starttime=starttime,
-                                      endtime=endtime,
-                                      chunklength_in_sec=wav_length,
-                                      overlap_in_sec=0)
+                                    endtime=endtime,
+                                    chunklength_in_sec=wav_length,
+                                    overlap_in_sec=0)
             logger.info(f"Number of queries per provider: {len(times)}")
 
             # Get query information based on the desired level
@@ -364,11 +367,11 @@ class Scanner(object):
                     try:
                         # Fetch waveform data from the client
                         st = client.get_waveforms(network=net,
-                                                  station=sta,
-                                                  location=loc,
-                                                  channel=cha,
-                                                  starttime=chunk_starttime,
-                                                  endtime=chunk_endtime)
+                                                station=sta,
+                                                location=loc,
+                                                channel=cha,
+                                                starttime=chunk_starttime,
+                                                endtime=chunk_endtime)
                     except Exception as e:
                         logger.error(e)
                         st = False
@@ -379,20 +382,25 @@ class Scanner(object):
 
                     # Process the stream to standardize channels
                     st = ut.process_stream_common_channels(st,
-                                                           location_preferences=wr.location_preferences,
-                                                           instrument_preferences=wr.instrument_preferences)
+                                                        location_preferences=wr.location_preferences,
+                                                        instrument_preferences=wr.instrument_preferences)
 
                     logger.info(f"Scanning the stream: {info}")
 
                     # Compute and save rolling statistics
                     get_rolling_stats(st, step=step,
-                                      starttime=chunk_starttime.datetime,
-                                      endtime=chunk_endtime.datetime,
-                                      sqlite_output=self.db_folder_path)
+                                    starttime=chunk_starttime.datetime,
+                                    endtime=chunk_endtime.datetime,
+                                    sqlite_output=self.db_folder_path)
 
                 # Perform the query for each set of parameters
-                for info in i2q:
-                    scan_query(info)   
+                if n_processor == 1:
+                    for info in i2q:
+                        scan_query(info)
+                else:
+                    with cf.ThreadPoolExecutor(n_processor) as executor:
+                        executor.map(scan_query, i2q)
+                 
                 
                 
                 
@@ -411,7 +419,8 @@ if __name__ == "__main__":
               instrument_preferences=["HH","","BH", "EH", "HN", "HL"],
               remove_networks=[], 
               remove_stations=[],
-              filter_domain=[-104.6,-104.4,31.6,31.8] #lonw,lone,lats,latn
+            #   filter_domain=[-104.6,-104.4,31.6,31.8] #lonw,lone,lats,latn #subregion
+              filter_domain=[-104.5,-103.5,31,32] #lonw,lone,lats,latn #big region
               )   
     client= Client("TEXNET")
     # print(client.__dict__)
@@ -420,7 +429,7 @@ if __name__ == "__main__":
     
     db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database"
     scanner = Scanner(db_path,providers=[provider])
-    scanner.scan(step=3600,wav_length=86400,level="station")
+    scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
     # i2q = provider.get_info_to_query(level="channel")
     # print(i2q)
     # print(provider.__str__(True))
