@@ -8,7 +8,7 @@
 # The idea of this script is to find the stations information using an IRIS client.
 
 import os
-import core.utils as ut
+import utils as ut
 from obspy.clients.fdsn import Client 
 
 
@@ -18,12 +18,13 @@ output_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_stat
 client =  Client(provider)
 
 # TX 2T 4T Texnet is the owner. # 4O from operators
-inventory = client.get_stations(network="TX,2T,4T,4O",station="*",level="response")
+inventory = client.get_stations(network="TX,2T,4T,4O",station="*",level="channel")
+print(inventory)
 inv_info = ut.get_inventory_info(inventory)
 
 if not os.path.isdir(os.path.dirname(output_path)):
     os.makedirs(os.path.dirname(output_path))
     
 print(inv_info)
-inv_info.to_csv(output_path,index=False)
+# inv_info.to_csv(output_path,index=False)
 

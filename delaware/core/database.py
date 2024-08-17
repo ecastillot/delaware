@@ -55,9 +55,9 @@ def load_dataframe_from_sqlite(db_name, table_name, starttime, endtime):
     return df
 
 if __name__ == "__main__":
-    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware.db"
-    # df = load_dataframe_from_sqlite(path, "availability", 
-    df = load_dataframe_from_sqlite(path, "gaps_duration", 
-                                    starttime="2024-01-22 01:30:00", 
-                                    endtime="2024-01-22 22:00:00")
+    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/large_database/TX.PB09.00.BH_ENZ.db"
+    df = load_dataframe_from_sqlite(path, "availability", 
+    # df = load_dataframe_from_sqlite(path, "gaps_duration", 
+                                    starttime="2024-08-05 01:30:00", 
+                                    endtime="2024-08-06 22:00:00")
     print(df)

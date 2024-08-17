@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 from obspy import read_inventory
 from openpyxl import Workbook
@@ -98,12 +99,15 @@ def get_inventory_info(inventory):
                     output_freq_gain = "ACC"
                 else:
                     output_freq_gain = "VEL"
+                if not channel.response.response_stages:
+                    freq,gain = np.nan,np.nan
+                else:
+                    channel.response.recalculate_overall_sensitivity()
+                    freq,gain = channel.response._get_overall_sensitivity_and_gain(frequency=1.0,output = output_freq_gain)
                 
-                channel.response.recalculate_overall_sensitivity()
-                freq,gain = channel.response._get_overall_sensitivity_and_gain(frequency=1.0,output = output_freq_gain)
                 channel_info["sensitivity"].append(gain)
                 channel_info["frequency"].append(freq)
-                
+               
                 channel_info["azimuth"].append(channel.azimuth)
                 channel_info["dip"].append(channel.dip)
 
