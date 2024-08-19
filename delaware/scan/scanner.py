@@ -187,6 +187,8 @@ class WaveformRestrictions:
         List of stations to be excluded.
     filter_domain : list
         Geographic domain for filtering results in the format [lonw, lone, lats, latn].
+    minimumlength: int
+            Limit results to continuous data segments of a minimum length specified in seconds.
     """
 
     def __init__(self, network, station, location, channel, starttime, endtime,
@@ -350,7 +352,7 @@ class Scanner(object):
         # Prevent log messages from being passed to higher loggers
         logger.propagate = 0
 
-    def scan(self, step, wav_length=86400, level="station", n_processor=1):
+    def scan(self, step, wav_length=86400, max_traces=1000, level="station", n_processor=1):
         """
         Scan the waveform data for each provider and save results to the database.
 
@@ -360,6 +362,8 @@ class Scanner(object):
             The step size for rolling statistics calculation.
         wav_length : int, optional
             Length of each waveform chunk in seconds. Defaults to 86400 seconds (1 day).
+        max_traces: int,
+            Maximum number of traces allowed per request. It prevents to spend a lot of time in corrupted data.
         level : str, optional
             Level of information to query. Options are "station", "instrument", or "channel". Defaults to "station".
         n_processor : int, optional
@@ -416,12 +420,13 @@ class Scanner(object):
                         st = False
 
                     if not st:
-                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+f"\n{e}")
+                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+f"\tNo strem to process.")
+                        return
+                    elif len(st) > max_traces:
+                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+\
+                            f"\tStream no consider because exceeds number of traces allowed: {len(st)}/{max_traces}")
                         return
                     
-                    
-
-
 
                     try:
                         logger.info(f"Checking the stream: {info}|{chunk_starttime}-{chunk_endtime}")
@@ -518,7 +523,7 @@ class Scanner(object):
 if __name__ == "__main__":   
     from obspy import UTCDateTime
     from obspy.clients.fdsn import Client
-    starttime = UTCDateTime("2024-04-18T23:00:00")
+    starttime = UTCDateTime("2024-04-19T23:00:00")
     endtime = UTCDateTime("2024-08-01T00:00:00")
     wav_restrictions = WaveformRestrictions(
                 "TX,2T,4T,4O",
