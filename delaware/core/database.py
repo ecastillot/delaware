@@ -49,15 +49,18 @@ def load_dataframe_from_sqlite(db_name, table_name, starttime, endtime):
         df['starttime'] = pd.to_datetime(df['starttime'])
         df['endtime'] = pd.to_datetime(df['endtime'])
 
+        df = df.drop_duplicates(subset=["starttime","endtime"],ignore_index=True)
+
         # Sort DataFrame by 'starttime'
         df = df.sort_values(by=["starttime"], ignore_index=True)
 
     return df
 
 if __name__ == "__main__":
-    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/large_database/TX.PB09.00.BH_ENZ.db"
+    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database/TX.PB55.00.CH_ENZ.db"
+    # path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database/4O.WB10.00.HH_ENZ.db"
     df = load_dataframe_from_sqlite(path, "availability", 
     # df = load_dataframe_from_sqlite(path, "gaps_duration", 
-                                    starttime="2024-08-05 01:30:00", 
-                                    endtime="2024-08-06 22:00:00")
+                                    starttime="2024-01-01 00:00:00", 
+                                    endtime="2024-08-01 00:00:00")
     print(df)

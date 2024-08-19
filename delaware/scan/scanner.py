@@ -9,7 +9,10 @@ import scan.utils as ut
 from scan.stats import get_rolling_stats
 import logging
 import pandas as pd
+import os
+import glob
 import concurrent.futures as cf
+from core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
 logger = logging.getLogger("delaware.scan.scanner")
 
@@ -312,6 +315,9 @@ class Scanner(object):
         self.db_folder_path = db_folder_path
         self.providers = providers
 
+    # def scanned_paths(self):
+
+
     def scan(self, step, wav_length=86400, level="station", n_processor=1):
         """
         Scan the waveform data for each provider and save results to the database.
@@ -401,14 +407,64 @@ class Scanner(object):
                     with cf.ThreadPoolExecutor(n_processor) as executor:
                         executor.map(scan_query, i2q)
                  
+    def get_stats(self,network,station,location,instrument,
+             starttime, endtime,stats=["availability","gaps_counts"]):
+        
+        db_name = ".".join((network,station,location,instrument))
+        key = os.path.join(self.db_folder_path,db_name+"**")
+        db_paths = glob.glob(key)
+        
+        if not db_paths:
+            logger.info(f"No paths using this key in a glob search: {key} paths")
+        
+        logger.info(f"Loading: {len(db_paths)} paths")
+        
+        format = "%Y-%m-%d %H:%M:%S"
+        all_dfs = []
+        for i,db_path in enumerate(db_paths,1):
+            logger.info(f"Loading: {i}/{len(db_paths)} {db_path}")
+            dfs_stats = []
+            for stat in stats:
+                starttime_str = starttime.strftime(format)
+                endtime_str = endtime.strftime(format)
+                df = load_dataframe_from_sqlite(db_name=db_path,
+                                                table_name=stat,
+                                                starttime=starttime_str,
+                                                endtime=endtime_str
+                                                )
+                df.set_index(['starttime', 'endtime'], inplace=True)
+
+                stat_columns = [stat]*len(df.columns.tolist())
+                multi_columns = list(zip(stat_columns,df.columns.tolist()))
+                multi_columns = pd.MultiIndex.from_tuples(
+                                multi_columns,
+                                    )
+
+                # Assign MultiIndex to DataFrame columns
+                df.columns = multi_columns
                 
+                dfs_stats.append(df)
+            
+            df = pd.concat(dfs_stats,axis=1)
+            all_dfs.append(df)
+            
+        df = pd.concat(all_dfs,axis=1)
+        df = (df
+            .sort_values(by='starttime')  # Sort the DataFrame by 'starttime'
+            .reset_index()       # Reset the index and drop the old index
+            .set_index(['starttime', 'endtime'])  # Set 'starttime' and 'endtime' as the new index
+            )
+        
+        return df
+                
+                        
                 
                 
             
 if __name__ == "__main__":   
     from obspy import UTCDateTime
     from obspy.clients.fdsn import Client
-    starttime = UTCDateTime("2024-01-01T00:00:00")
+    starttime = UTCDateTime("2024-04-16T23:00:00")
     endtime = UTCDateTime("2024-08-01T00:00:00")
     wav_restrictions = WaveformRestrictions(
                 "TX,2T,4T,4O",
@@ -429,7 +485,19 @@ if __name__ == "__main__":
     
     db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database"
     scanner = Scanner(db_path,providers=[provider])
-    scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
+    
+    # scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
+    
+    stats =scanner.get_stats(network="TX",station="PB*",
+                      location="*",instrument="HH?",
+                      starttime=UTCDateTime("2024-01-01 00:00:00"),
+                      endtime=UTCDateTime("2024-08-01 00:00:00"),
+                      stats=["availability"]
+                      )
+    print(stats)
+    
+    
+    
     # i2q = provider.get_info_to_query(level="channel")
     # print(i2q)
     # print(provider.__str__(True))

@@ -8,6 +8,88 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+def get_colorbar_info(boundaries,labels,
+                    #   cmap_name="Reds",
+                      cmap_name="viridis_r",
+                      bad_colorname="gray",zero_colorname="white"):
+    """
+    
+    """
+    ncolors = len(boundaries)-1
+    cmap_reds = plt.get_cmap(cmap_name,ncolors)
+
+    if bad_colorname != None:
+        cmap_reds.set_bad(color=bad_colorname)
+    # print(ncolors)
+    # print(cmap_reds)
+    colors = list(cmap_reds(np.arange(ncolors)))
+
+    if zero_colorname != None:
+       colors[0] = zero_colorname
+       
+    from_list = mpl.colors.LinearSegmentedColormap.from_list
+    cm = from_list(None, colors, ncolors)
+
+    norm = mpl.colors.BoundaryNorm(boundaries, ncolors=ncolors, 
+                                clip=True)
+
+    fmt = mpl.ticker.FuncFormatter(lambda x, pos: labels[norm(x)])
+
+    boundaries = np.array(boundaries)
+    diff = boundaries[1:] - boundaries[:-1]
+    ticks = boundaries[:-1] + diff / 2
+
+    colorbar_info = {"cmap":cm,"format":fmt,"ticks":ticks,"norm":norm}
+    return colorbar_info
+
+def sort_yaxis_info(stat,availability={}):
+
+    group = {"station":[],"location":[]}
+    strid_names = {}
+    strid_mask = {}
+    columns = stat.columns.to_list()
+    columns.reverse()
+    for strid in columns:
+        net,sta,loc,cha = strid.split(".")
+        new_strid = strid
+        trigger = 1
+        if net+"."+sta in group["station"]:
+            new_strid = ".".join((loc,cha))
+            trigger = 0
+        else:
+            group["station"].append(net+"."+sta)
+        if net+"."+sta+"."+loc in group["location"]:
+            new_strid = cha
+            trigger = 0
+        else:
+            group["location"].append(net+"."+sta+"."+loc)
+
+        
+        strid_names[strid] = new_strid
+        strid_mask[strid] = trigger
+
+    
+    y_names = [ strid_names[strid] for strid in stat.columns.to_list()]
+    if availability :
+        y_availability = [ f"{round(availability[strid],1)}%" for strid in stat.columns.to_list()]
+    else:
+        y_availability = []
+
+    y_mask = [strid_mask[strid] for strid in stat.columns.to_list()]
+    y_mask = np.where(np.array(y_mask)==1)[0] +1
+
+    yaxis_info = {"labels":y_names,"availability":y_availability,"ticks":y_mask}
+    return yaxis_info
+
+def sort_xaxis_info(stat,major_step):
+    minor_dates = stat.index.get_level_values('starttime').to_list() + \
+            [stat.index.get_level_values('endtime').to_list()[-1]]
+    major_dates = [ minor_dates[i].round("S") for i in range(0,len(minor_dates),major_step)]
+    xaxis_info = {"minor":minor_dates,"major":major_dates}
+    return xaxis_info
 
 def process_stream_common_channels(st, location_preferences, instrument_preferences):
     """

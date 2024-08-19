@@ -15,6 +15,7 @@ import concurrent.futures as cf
 from tqdm import tqdm
 from obspy import UTCDateTime
 from core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
+import scan.utils as ut
 
 class StatValues:
     def __init__(self,
@@ -88,7 +89,7 @@ class StatValues:
 def get_stats_by_instrument(instrument_strid, stream,
                              channels=["HHZ", "HHE", "HHN"],
                              starttime=None, endtime=None,
-                             debug=True, workers=3):
+                             debug=True, workers=1):
     """
     Calculate statistics for seismic data from specified channels and time range.
 
@@ -416,32 +417,131 @@ def get_rolling_stats(st, step=3600, starttime=None, endtime=None,
 
     return all_stats
 
+
+
+def plot_rolling_stats(stats,strid_list=[],stat_type="gaps_duration",
+                       boundaries = [0,1e-5,1,60,60*60,
+                                     60*60*60*24,(60*60*60*24)+1],
+                        labels = [r"No gaps",r"$\leq 1$ s",r"$\leq 1$ min",
+                                r"$\leq 1$ hour",r"$< 1$ day",r"$\geq 1$ day"],
+                       major_step=7,
+                       plot_availability=True,
+                       show=True,
+                       out = None):
+    
+    if not strid_list:
+        strid_list = stats.columns.to_list()
+    
+    strid_list.reverse()
+
+    if plot_availability:
+        availability = stats.loc[["availability"],strid_list].mean()
+        availability = availability.to_dict()
+    else:
+        availability = {}
+
+    stat = stats.loc[[stat_type],strid_list]
+
+    yaxis_info = ut.sort_yaxis_info(stat=stat,availability=availability)
+    xaxis_info = ut.sort_xaxis_info(stat=stat,major_step=major_step)
+
+    cbar_info = ut.get_colorbar_info(boundaries=boundaries,labels=labels)
+
+    fig = plt.figure(figsize=(12,12))
+    ax = host_subplot(111)
+    ax.set_facecolor('lightgray')
+    ax1 = ax.twinx()
+
+    ax1.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
+    ax.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
+
+    im = ax.pcolormesh(stat.T, cmap=cbar_info["cmap"], alpha=1,
+                       norm = cbar_info["norm"])
+
+    ax.set_yticks(np.arange(stat.shape[1]) + 0.5, minor=False)
+    ax.set_yticks(np.arange(stat.shape[1]) , minor=True)
+
+    ax.set_xticks(range(0,len(xaxis_info["minor"])), minor=True)
+    ax.set_xticks(range(0,len(xaxis_info["minor"]),major_step), minor=False)
+
+
+    ax.set_yticklabels(yaxis_info["labels"],minor=False)
+    ax.set_xticklabels(xaxis_info["minor"], minor=True)
+    ax.set_xticklabels(xaxis_info["major"], minor=False)
+
+    #minor ticks false
+    [t.label1.set_visible(False) for t in ax.xaxis.get_minor_ticks()]
+
+    plt.tick_params(left = False)
+
+    ax.grid(linestyle='--',zorder=12,which='minor')
+    ax.grid(linestyle='-',linewidth=1.45,zorder=24,which='major',axis="x",color="black")
+    ax.grid(linestyle='--',zorder=12,which='minor',axis="x")
+
+    ## Rotate date labels automatically
+    fig.autofmt_xdate()
+
+    
+    ax1.set_yticks(np.arange(stat.shape[1]) + 0.5, minor=False)
+    ax1.set_yticks(yaxis_info["ticks"] , minor=True)
+
+    if yaxis_info["availability"]:
+        ax1.set_yticklabels(yaxis_info["availability"],minor=False,fontdict={"fontsize":8})
+        ax1.set_ylabel("Average availability")
+        pad = 0.2
+    else:
+        ax1.set_yticks([])
+        ax1.yaxis.set_tick_params(labelleft=False,labelright=False)
+        pad = 0.1
+
+    ax1.grid(linestyle='-',linewidth=1.5,zorder=24,which='minor',axis="y",color="black")
+    
+    #minor ticks false
+    [t.label1.set_visible(False) for t in ax1.xaxis.get_minor_ticks()]
+
+    cbar = fig.colorbar(im,shrink=0.7,format=cbar_info["format"],
+                        ticks=cbar_info["ticks"], pad=pad,ax=ax)
+    cbar.set_label(f"{stat_type}")
+    cbar.ax.tick_params(size=0)
+
+
+    plt.tight_layout()
+
+    if out != None:
+        if not os.path.isdir(os.path.dirname(out)):
+            os.makedirs(os.path.dirname(out))
+        fig.savefig(out)
+        # fig.savefig(out,bbox_inches='tight')
+    if show:
+        plt.show()
+    return fig,ax,ax1
+
 if __name__ == "__main__":
     from obspy import read, UTCDateTime
     from core.client import LocalClient
     import os 
     
-    archive = r"/home/emmanuel/ecp_archive/APIAY/seedfiles"
-    archive_fmt = os.path.join("{year}-{month:02d}", 
-                    "{year}-{month:02d}-{day:02d}", 
-                    "{network}.{station}.{location}.{channel}.{year}.{julday:03d}")
-    client = LocalClient(archive,archive_fmt)
+    # archive = r"/home/emmanuel/ecp_archive/APIAY/seedfiles"
+    # archive_fmt = os.path.join("{year}-{month:02d}", 
+    #                 "{year}-{month:02d}-{day:02d}", 
+    #                 "{network}.{station}.{location}.{channel}.{year}.{julday:03d}")
+    # client = LocalClient(archive,archive_fmt)
 
-    st = client.get_waveforms(network="EY",
-                        station="AP0[12]B",
-                        location="*",
-                        channel="HH*",
-                        starttime=UTCDateTime("2024-08-06T00:00:00"),
-                        endtime=UTCDateTime("2024-08-06T12:00:00"))
-    print(st)
+    # st = client.get_waveforms(network="EY",
+    #                     station="AP0[12]B",
+    #                     location="*",
+    #                     channel="HH*",
+    #                     starttime=UTCDateTime("2024-08-06T00:00:00"),
+    #                     endtime=UTCDateTime("2024-08-06T12:00:00"))
+    # print(st)
     
     
-    # st = read("/home/emmanuel/ecp_archive/APIAY/seedfiles/2024-08/2024-08-06/EY.AP01B.00.HHE.2024.219")
-    starttime = UTCDateTime("2024-08-06T00:00:00")
-    endtime = UTCDateTime("2024-08-06T12:00:00")
+    # # st = read("/home/emmanuel/ecp_archive/APIAY/seedfiles/2024-08/2024-08-06/EY.AP01B.00.HHE.2024.219")
+    # starttime = UTCDateTime("2024-08-06T00:00:00")
+    # endtime = UTCDateTime("2024-08-06T12:00:00")
     
-    stats = get_rolling_stats(st, step=3600, 
-                              starttime=starttime.datetime, 
-                              endtime=endtime.datetime,
-                              sqlite_output=None)
+    # stats = get_rolling_stats(st, step=3600, 
+    #                           starttime=starttime.datetime, 
+    #                           endtime=endtime.datetime,
+    #                           sqlite_output=None)
     # print(stats.loc["availability"])

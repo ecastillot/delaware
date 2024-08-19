@@ -113,3 +113,29 @@ def get_inventory_info(inventory):
 
     channel_info = pd.DataFrame.from_dict(channel_info)
     return channel_info
+
+if __name__ == "__main__":
+    print("others")
+    
+    import glob
+    import os
+    db_folder = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database"
+    network = "4O"
+    station = "*"
+    location = "00"
+    instrument = "HH"
+    db_name = ".".join((network,station,location,instrument))
+    
+    x = glob.glob(os.path.join(db_folder,db_name+"**"))
+    print(x)
+    
+    # import pandas as pd
+    
+    # path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_stations_160824.csv"
+    # outpath = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_onlystations_160824.csv"
+    # df =pd.read_csv(path)
+    # print(df)
+    # df = df.drop_duplicates(subset=["network","station","station_latitude",
+    #                                 "station_longitude"])
+    # print(df)
+    # df.to_csv(outpath,index=False)
