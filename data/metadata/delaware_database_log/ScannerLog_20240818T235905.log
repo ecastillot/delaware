@@ -19016,3 +19016,140 @@ msr_unpack_data(4O_WB12_00_HHZ_D): only decoded 262 samples of 14336 expected
 [2024-08-19 00:03:16,874] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'LWM3', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
 [2024-08-19 00:03:17,384] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'LWM3', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
 [2024-08-19 00:03:18,609] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB10', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:03:59,832] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB11', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:03:59,976] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB11', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:02,005] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB12', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:30,831] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB10', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:30,945] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB10', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:34,152] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PCOS', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:41,886] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB12', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:41,958] - delaware.scan.scanner - ERROR: ('TX', 'PB12', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+float modulo
+[2024-08-19 00:04:41,979] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:04:52,036] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'WB09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:01,209] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PECS', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:01,388] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PECS', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:05,875] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PCOS', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:06,080] - delaware.scan.scanner - ERROR: ('TX', 'PCOS', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+float modulo
+[2024-08-19 00:05:06,096] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB13', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:06,897] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB02', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:33,360] - delaware.scan.scanner - ERROR: ('TX', 'PB02', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+No data available for request.
+HTTP Status code: 204
+Detailed response of server:
+
+
+[2024-08-19 00:05:33,360] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB33', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:37,828] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB13', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:37,836] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB13', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:05:38,955] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB34', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:03,691] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB33', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:03,843] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB33', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:09,069] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB03', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:18,942] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:19,062] - delaware.scan.scanner - ERROR: ('TX', 'PB09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+float modulo
+[2024-08-19 00:06:19,076] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:25,851] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB34', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:25,944] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB34', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:30,021] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB31', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:52,784] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB03', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:52,925] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB03', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:06:56,343] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB35', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:19,485] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:19,697] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:22,934] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB38', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:50,222] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB31', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:50,338] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB31', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:07:53,500] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB40', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:08:15,830] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB35', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:08:16,446] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB35', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:08:19,866] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB42', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:11,968] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB38', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:12,176] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB38', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:15,552] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB43', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:29,832] - delaware.scan.scanner - ERROR: ('TX', 'PB43', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+Service responds: Bad gateway 
+HTTP Status code: 502
+Detailed response of server:
+
+
+[2024-08-19 00:09:29,832] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB20', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:33,979] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB40', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:34,093] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB40', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:38,200] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB23', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:38,326] - delaware.scan.scanner - ERROR: ('TX', 'PB23', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+Service responds: Bad gateway 
+HTTP Status code: 502
+Detailed response of server:
+
+
+[2024-08-19 00:09:38,339] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB24', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:47,341] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB42', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:50,040] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB42', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:53,915] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB24', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:09:55,036] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB24', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:02,081] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB25', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:07,767] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB26', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:07,833] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB20', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:09,203] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB20', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:18,295] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB36', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:27,081] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB25', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:28,637] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB25', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:31,497] - delaware.scan.scanner - ERROR: ('TX', 'PB36', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+No data available for request.
+HTTP Status code: 204
+Detailed response of server:
+
+
+[2024-08-19 00:10:31,521] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB44', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:32,868] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB26', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:34,483] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB26', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:38,778] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB39', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:46,522] - delaware.scan.scanner - ERROR: ('TX', 'PB39', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+No data available for request.
+HTTP Status code: 204
+Detailed response of server:
+
+
+[2024-08-19 00:10:46,534] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB17', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:47,565] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'DG02', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:52,115] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB44', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:53,556] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB44', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:10:58,841] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB17', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:00,759] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB17', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:01,937] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'DG07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:11,704] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'DG02', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:12,848] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'DG02', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:14,815] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'DG08', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:18,573] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'DG09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:31,560] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'DG08', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:33,351] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'DG08', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:11:44,230] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB56', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:06,204] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB56', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:12,329] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'DG07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:13,898] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'DG07', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:18,984] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB56', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:22,680] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB55', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:33,710] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'DG09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:34,864] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'DG09', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:12:40,551] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB57', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:13:14,063] - delaware.scan.scanner - INFO: Loading the stream: ('TX', 'PB58', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:13:41,298] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB58', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:13:42,595] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB58', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:13:49,577] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'LWM1', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:14:54,173] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'LWM1', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:14:55,169] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'LWM1', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:15:01,232] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'LWM2', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:15:20,582] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'LWM2', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:15:20,678] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'LWM2', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:15:21,696] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB55', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:15:47,554] - delaware.scan.scanner - INFO: Checking the stream: ('TX', 'PB57', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:16:09,528] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB55', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:16:32,719] - delaware.scan.scanner - INFO: Scanning the stream: ('TX', 'PB57', '*', '*')|2024-04-18T23:00:00.000000Z-2024-04-19T23:00:00.000000Z
+[2024-08-19 00:35:55,530] - delaware.scan.scanner - INFO: ############ Starttime: 2024-04-19T23:00:00.000000Z - Endtime: 2024-04-20T23:00:00.000000Z ############
+[2024-08-19 00:35:55,531] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CT01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:35:55,534] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CT02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:35:55,535] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CV01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:35:55,536] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'BP01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z

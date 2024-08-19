@@ -1,0 +1,58 @@
+[2024-08-19 00:36:40,207] - delaware.scan.scanner - INFO: Provider: http://rtserve.beg.utexas.edu  
+	Restrictions: Waveform Restrictions
+	TX,2T,4T,4O.*.*.*|20240419T23:00:00-20240801T00:00:00
+[2024-08-19 00:36:40,208] - delaware.scan.scanner - INFO: Number of queries per provider: 104
+[2024-08-19 00:36:42,140] - delaware.scan.scanner - INFO: Number of queries per station: 59
+[2024-08-19 00:36:42,140] - delaware.scan.scanner - INFO: Total number of queries: 6136
+[2024-08-19 00:36:42,140] - delaware.scan.scanner - INFO: ############ Starttime: 2024-04-19T23:00:00.000000Z - Endtime: 2024-04-20T23:00:00.000000Z ############
+[2024-08-19 00:36:42,140] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CT01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:36:42,141] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CT02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:36:42,142] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'CV01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:36:42,142] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'BP01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:36:59,426] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'CT02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:00,321] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'CT02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:02,810] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'WB01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:08,525] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'CT01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:08,576] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'CT01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:11,849] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'SA02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:20,665] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'CV01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:20,742] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'CV01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:24,149] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'SA04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:29,259] - delaware.scan.scanner - ERROR: ('4O', 'WB01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+No data available for request.
+HTTP Status code: 204
+Detailed response of server:
+
+
+[2024-08-19 00:37:29,259] - delaware.scan.scanner - ERROR: ('4O', 'WB01', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z	No strem to process.
+[2024-08-19 00:37:29,260] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'SA06', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:37,598] - delaware.scan.scanner - ERROR: ('4O', 'SA02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+Service responds: Bad gateway 
+HTTP Status code: 502
+Detailed response of server:
+
+
+[2024-08-19 00:37:37,598] - delaware.scan.scanner - ERROR: ('4O', 'SA02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z	No strem to process.
+[2024-08-19 00:37:37,598] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'WB02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:37,701] - delaware.scan.scanner - ERROR: ('4O', 'WB02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+Service responds: Bad gateway 
+HTTP Status code: 502
+Detailed response of server:
+
+
+[2024-08-19 00:37:37,701] - delaware.scan.scanner - ERROR: ('4O', 'WB02', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z	No strem to process.
+[2024-08-19 00:37:37,701] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'WB03', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:40,431] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'SA04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:41,054] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'SA04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:42,146] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'SA07', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:56,306] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'WB03', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:57,289] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'WB03', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:59,382] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'SA09', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:37:59,730] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'SA06', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:00,409] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'SA06', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:01,839] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'WB04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:05,875] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'SA09', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:07,056] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'SA09', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:10,045] - delaware.scan.scanner - INFO: Loading the stream: ('4O', 'WB05', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:15,025] - delaware.scan.scanner - INFO: Checking the stream: ('4O', 'WB04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
+[2024-08-19 00:38:15,567] - delaware.scan.scanner - INFO: Scanning the stream: ('4O', 'WB04', '*', '*')|2024-04-19T23:00:00.000000Z-2024-04-20T23:00:00.000000Z
