@@ -57,10 +57,24 @@ def load_dataframe_from_sqlite(db_name, table_name, starttime, endtime):
     return df
 
 if __name__ == "__main__":
-    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database/TX.PB55.00.CH_ENZ.db"
+    path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database/TX.PB5.00.CH_ENZ.db"
     # path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database/4O.WB10.00.HH_ENZ.db"
-    df = load_dataframe_from_sqlite(path, "availability", 
-    # df = load_dataframe_from_sqlite(path, "gaps_duration", 
-                                    starttime="2024-01-01 00:00:00", 
-                                    endtime="2024-08-01 00:00:00")
-    print(df)
+    # df = load_dataframe_from_sqlite(path, "availability", 
+    #                                 starttime="2024-01-01 00:00:00", 
+    #                                 endtime="2024-08-01 00:00:00")
+    # print(df)
+    
+    import sqlite3
+
+    def list_tables(db_name):
+        """List all tables in the SQLite database."""
+        with sqlite3.connect(db_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            print(tables)
+            for table in tables:
+                print(table[0])
+
+    # Example usage
+    list_tables(path)

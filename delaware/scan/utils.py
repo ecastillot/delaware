@@ -111,7 +111,7 @@ def process_stream_common_channels(st, location_preferences, instrument_preferen
             'location': v[2],
             'instrument': v[3][0:2]
         }
-        for v in st._get_common_channels_info().keys()
+        for v in st.copy().merge()._get_common_channels_info().keys()
     ]
 
     # Convert the list of dictionaries to a DataFrame

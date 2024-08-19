@@ -11,6 +11,7 @@ import logging
 import pandas as pd
 import os
 import glob
+import datetime
 import concurrent.futures as cf
 from core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
@@ -192,7 +193,8 @@ class WaveformRestrictions:
                  location_preferences=["", "00", "20", "10", "40"],
                  instrument_preferences=["HH", "BH", "EH", "HN", "HL"],
                  remove_networks=[], remove_stations=[], 
-                 filter_domain=[-180, 180, -90, 90]):
+                 filter_domain=[-180, 180, -90, 90],
+                 minimumlength=None):
         """
         Initialize the WaveformRestrictions with specified parameters.
 
@@ -220,6 +222,8 @@ class WaveformRestrictions:
             List of stations to exclude. Defaults to an empty list.
         filter_domain : list, optional
             Geographic domain for filtering in the format [lonw, lone, lats, latn]. Defaults to [-180, 180, -90, 90].
+        minimumlength: int
+            Limit results to continuous data segments of a minimum length specified in seconds.
         """
         self.network = network
         self.station = station
@@ -232,6 +236,7 @@ class WaveformRestrictions:
         self.remove_networks = remove_networks
         self.remove_stations = remove_stations
         self.filter_domain = filter_domain
+        self.minimumlength = minimumlength
 
     def __str__(self, extended=False) -> str:
         """
@@ -260,7 +265,8 @@ class WaveformRestrictions:
                    f"\n\tinstrument_preferences: {self.instrument_preferences}"
                    f"\n\tremove_networks: {self.remove_networks}"
                    f"\n\tremove_stations: {self.remove_stations}"
-                   f"\n\tfilter_domain: {self.filter_domain}")
+                   f"\n\tfilter_domain: {self.filter_domain}",
+                   f"\n\tminimumlength: {self.minimumlength}")
         else:
             msg = (f"Waveform Restrictions"
                    f"\n\t{self.network}.{self.station}.{self.location}.{self.channel}|"
@@ -295,28 +301,54 @@ class Scanner(object):
         configure_logging : bool, optional
             Flag to configure logging. Defaults to True.
         """
+            
+        self.logging_path = None
+        
         if configure_logging:
-            # Set up logging configuration
-            logger.setLevel(logging.DEBUG)
-            logger.propagate = 0  # Prevent log messages from being passed to higher loggers.
-
-            # Console log handler
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.INFO)
-
-            # Formatter for log messages
-            formatter = logging.Formatter(
-                "[%(asctime)s] - %(name)s - %(levelname)s: %(message)s")
-            ch.setFormatter(formatter)
-
-            # Add the handler to the logger
-            logger.addHandler(ch)
+            self._setup_logging(db_folder_path)
 
         self.db_folder_path = db_folder_path
         self.providers = providers
 
-    # def scanned_paths(self):
+    def _setup_logging(self, db_folder_path):
+        """
+        Set up logging configuration for the Scanner.
 
+        Parameters:
+        -----------
+        db_folder_path : str
+            Path to the SQLite database folder used to determine the logging folder.
+        """
+        logging_folder_path = os.path.join(os.path.dirname(db_folder_path),
+                                           os.path.basename(db_folder_path) + "_log")
+        if not os.path.isdir(logging_folder_path):
+            os.makedirs(logging_folder_path)
+
+        timenow = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+        self.logging_path = os.path.join(logging_folder_path, f"ScannerLog_{timenow}.log")
+
+        # Create a logger instance for this class
+        logger.setLevel(logging.DEBUG)  # Set the log level to DEBUG for the logger
+
+        # Console log handler
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)  # Console handler logs INFO level and above
+
+        # File log handler
+        fh = logging.FileHandler(self.logging_path)
+        fh.setLevel(logging.DEBUG)  # File handler logs DEBUG level and above
+
+        # Formatter for log messages
+        formatter = logging.Formatter("[%(asctime)s] - %(name)s - %(levelname)s: %(message)s")
+        ch.setFormatter(formatter)
+        fh.setFormatter(formatter)
+
+        # Add handlers to the logger
+        logger.addHandler(ch)
+        logger.addHandler(fh)
+
+        # Prevent log messages from being passed to higher loggers
+        logger.propagate = 0
 
     def scan(self, step, wav_length=86400, level="station", n_processor=1):
         """
@@ -368,7 +400,7 @@ class Scanner(object):
                         A tuple containing network, station, location, and channel codes.
                     """
                     net, sta, loc, cha = info
-                    logger.info(f"Loading the stream: {info}")
+                    logger.info(f"Loading the stream: {info}|{chunk_starttime}-{chunk_endtime}")
 
                     try:
                         # Fetch waveform data from the client
@@ -377,27 +409,35 @@ class Scanner(object):
                                                 location=loc,
                                                 channel=cha,
                                                 starttime=chunk_starttime,
-                                                endtime=chunk_endtime)
+                                                endtime=chunk_endtime,
+                                                minimumlength=wr.minimumlength)
                     except Exception as e:
-                        logger.error(e)
+                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+f"\n{e}")
                         st = False
 
                     if not st:
-                        logger.error(f"No stream: {info}")
+                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+f"\n{e}")
                         return
+                    
+                    
 
-                    # Process the stream to standardize channels
-                    st = ut.process_stream_common_channels(st,
-                                                        location_preferences=wr.location_preferences,
-                                                        instrument_preferences=wr.instrument_preferences)
 
-                    logger.info(f"Scanning the stream: {info}")
 
-                    # Compute and save rolling statistics
-                    get_rolling_stats(st, step=step,
-                                    starttime=chunk_starttime.datetime,
-                                    endtime=chunk_endtime.datetime,
-                                    sqlite_output=self.db_folder_path)
+                    try:
+                        logger.info(f"Checking the stream: {info}|{chunk_starttime}-{chunk_endtime}")
+                        # Process the stream to standardize channels
+                        st = ut.process_stream_common_channels(st,
+                                                            location_preferences=wr.location_preferences,
+                                                            instrument_preferences=wr.instrument_preferences)
+                        logger.info(f"Scanning the stream: {info}|{chunk_starttime}-{chunk_endtime}")
+                        # Compute and save rolling statistics
+                        get_rolling_stats(st, step=step,
+                                        starttime=chunk_starttime.datetime,
+                                        endtime=chunk_endtime.datetime,
+                                        sqlite_output=self.db_folder_path)
+                    except Exception as e:
+                        logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+f"\n{e}")
+                        return
 
                 # Perform the query for each set of parameters
                 if n_processor == 1:
@@ -427,11 +467,17 @@ class Scanner(object):
             for stat in stats:
                 starttime_str = starttime.strftime(format)
                 endtime_str = endtime.strftime(format)
-                df = load_dataframe_from_sqlite(db_name=db_path,
-                                                table_name=stat,
-                                                starttime=starttime_str,
-                                                endtime=endtime_str
-                                                )
+                
+                try:
+                    df = load_dataframe_from_sqlite(db_name=db_path,
+                                                    table_name=stat,
+                                                    starttime=starttime_str,
+                                                    endtime=endtime_str
+                                                    )
+                except Exception as e:
+                    logger.error(e)
+                    continue
+                
                 df.set_index(['starttime', 'endtime'], inplace=True)
 
                 stat_columns = [stat]*len(df.columns.tolist())
@@ -445,8 +491,16 @@ class Scanner(object):
                 
                 dfs_stats.append(df)
             
+            if not dfs_stats:
+                logger.error(f"No data recorded in {db_path}")
+                continue
+            
             df = pd.concat(dfs_stats,axis=1)
             all_dfs.append(df)
+        
+        if not all_dfs:
+            logger.error(f"No data recorded")
+            return None
             
         df = pd.concat(all_dfs,axis=1)
         df = (df
@@ -464,7 +518,7 @@ class Scanner(object):
 if __name__ == "__main__":   
     from obspy import UTCDateTime
     from obspy.clients.fdsn import Client
-    starttime = UTCDateTime("2024-04-16T23:00:00")
+    starttime = UTCDateTime("2024-04-18T23:00:00")
     endtime = UTCDateTime("2024-08-01T00:00:00")
     wav_restrictions = WaveformRestrictions(
                 "TX,2T,4T,4O",
@@ -475,8 +529,8 @@ if __name__ == "__main__":
               instrument_preferences=["HH","","BH", "EH", "HN", "HL"],
               remove_networks=[], 
               remove_stations=[],
-            #   filter_domain=[-104.6,-104.4,31.6,31.8] #lonw,lone,lats,latn #subregion
-              filter_domain=[-104.5,-103.5,31,32] #lonw,lone,lats,latn #big region
+            #   filter_domain=[-104.6,-104.4,31.6,31.8], #lonw,lone,lats,latn #subregion
+              filter_domain=[-104.5,-103.5,31,32], #lonw,lone,lats,latn #big region
               )   
     client= Client("TEXNET")
     # print(client.__dict__)
@@ -486,15 +540,15 @@ if __name__ == "__main__":
     db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database"
     scanner = Scanner(db_path,providers=[provider])
     
-    # scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
+    scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
     
-    stats =scanner.get_stats(network="TX",station="PB*",
-                      location="*",instrument="HH?",
-                      starttime=UTCDateTime("2024-01-01 00:00:00"),
-                      endtime=UTCDateTime("2024-08-01 00:00:00"),
-                      stats=["availability"]
-                      )
-    print(stats)
+    # stats =scanner.get_stats(network="TX",station="PB*",
+    #                   location="*",instrument="HH?",
+    #                   starttime=UTCDateTime("2024-01-01 00:00:00"),
+    #                   endtime=UTCDateTime("2024-08-01 00:00:00"),
+    #                 #   stats=["availability"]
+    #                   )
+    # print(stats)
     
     
     
