@@ -11,47 +11,105 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-def get_colorbar_info(boundaries,labels,
-                    #   cmap_name="Reds",
-                      cmap_name="viridis_r",
-                      bad_colorname="gray",zero_colorname="white"):
-    """
-    
-    """
-    ncolors = len(boundaries)-1
-    cmap_reds = plt.get_cmap(cmap_name,ncolors)
 
-    if bad_colorname != None:
-        cmap_reds.set_bad(color=bad_colorname)
-    # print(ncolors)
-    # print(cmap_reds)
-    colors = list(cmap_reds(np.arange(ncolors)))
+class StatsColorBar():
+    def __init__(self,
+                 stat,
+                 label_dict = None,
+                 cmap_name="viridis_iris",
+                 bad_colorname="gray",
+                zero_colorname="white") -> None:
+        
+        self.stat = stat
+        self.label_dict = label_dict
+        self.cmap_name = cmap_name
+        self.bad_colorname = bad_colorname
+        self.zero_colorname = zero_colorname
+        
+    def get_label_dict(self):
+        
+        if self.label_dict is None:
+            if self.stat == "availability":
+                label_dict = {"No gaps":[0,1e-5],
+                              r"$\leq 1$ s":[1e-5,1],
+                              r"$\leq 1$ min":[1,60],
+                            r"$\leq 1$ hour":[60,60**2],
+                            r"$< 1$ day":[60**2,(60**3)*24],
+                            r"$\geq 1$ day":[(60**3)*24,
+                                             ((60**3)*24)+1]
+                            }
+        else:
+            label_dict = self.label_dict   
+        return label_dict
+                
+        
 
-    if zero_colorname != None:
-       colors[0] = zero_colorname
-       
-    from_list = mpl.colors.LinearSegmentedColormap.from_list
-    cm = from_list(None, colors, ncolors)
+    def get_colorbar_info(self,
+                        #   cmap_name="Reds",
+                        cmap_name="viridis_r",
+                        bad_colorname="gray",
+                        zero_colorname="white"):
+        """
+        
+        """
+        label_dict = self.get_label_dict()
+        labels = list(label_dict.keys())
+        flattened_list = [item for sublist in label_dict.values() for item in sublist]
+        boundaries = sorted(list(set(flattened_list)))
+        
+        ncolors = len(boundaries)-1
+        cmap_reds = plt.get_cmap(cmap_name,ncolors)
 
-    norm = mpl.colors.BoundaryNorm(boundaries, ncolors=ncolors, 
-                                clip=True)
+        if bad_colorname != None:
+            cmap_reds.set_bad(color=bad_colorname)
+        # print(ncolors)
+        # print(cmap_reds)
+        colors = list(cmap_reds(np.arange(ncolors)))
 
-    fmt = mpl.ticker.FuncFormatter(lambda x, pos: labels[norm(x)])
+        if zero_colorname != None:
+            colors[0] = zero_colorname
+        
+        from_list = mpl.colors.LinearSegmentedColormap.from_list
+        cm = from_list(None, colors, ncolors)
 
-    boundaries = np.array(boundaries)
-    diff = boundaries[1:] - boundaries[:-1]
-    ticks = boundaries[:-1] + diff / 2
+        norm = mpl.colors.BoundaryNorm(boundaries, ncolors=ncolors, 
+                                    clip=True)
 
-    colorbar_info = {"cmap":cm,"format":fmt,"ticks":ticks,"norm":norm}
-    return colorbar_info
+        fmt = mpl.ticker.FuncFormatter(lambda x, pos: labels[norm(x)])
 
-def sort_yaxis_info(stat,availability={}):
+        boundaries = np.array(boundaries)
+        diff = boundaries[1:] - boundaries[:-1]
+        ticks = boundaries[:-1] + diff / 2
+
+        colorbar_info = {"cmap":cm,"format":fmt,"ticks":ticks,"norm":norm}
+        return colorbar_info
+
+def sort_yaxis_info(stat,perc=True):
 
     group = {"station":[],"location":[]}
     strid_names = {}
     strid_mask = {}
+    # columns.reverse()
+    
+    # Custom sorting function
+    def sort_key(item):
+        network, station, location, channel = item.split('.')
+        return (network, station, location, channel)
+
+    # Sorting the list
     columns = stat.columns.to_list()
-    columns.reverse()
+    columns = sorted(columns, key=sort_key)
+    
+    if perc:
+        # availability = stat[columns].fillna(0)
+        availability = stat[columns]
+        availability = availability.mean()
+        availability = availability.to_dict()
+    else:
+        availability = {}
+    
+    # exit()
+    y_availability = []
     for strid in columns:
         net,sta,loc,cha = strid.split(".")
         new_strid = strid
@@ -71,17 +129,23 @@ def sort_yaxis_info(stat,availability={}):
         strid_names[strid] = new_strid
         strid_mask[strid] = trigger
 
+        if availability :
+            y_availability.append(f"{round(availability[strid],1)}%")
+            
     
-    y_names = [ strid_names[strid] for strid in stat.columns.to_list()]
-    if availability :
-        y_availability = [ f"{round(availability[strid],1)}%" for strid in stat.columns.to_list()]
-    else:
-        y_availability = []
+    # print(strid)
+    y_names = [ strid_names[strid] for strid in columns]
+    
+    # print(y_names)
+    # exit()
+    
+    y_mask = [strid_mask[strid] for strid in columns]
+    y_mask = np.where(np.array(y_mask)==1)[0] +3
+    # y_mask = np.where(np.array(y_mask)==1)[0] 
 
-    y_mask = [strid_mask[strid] for strid in stat.columns.to_list()]
-    y_mask = np.where(np.array(y_mask)==1)[0] +1
-
-    yaxis_info = {"labels":y_names,"availability":y_availability,"ticks":y_mask}
+    yaxis_info = {"labels":y_names,"availability":y_availability,"ticks":y_mask,
+                  "order":columns}
+    print(yaxis_info)
     return yaxis_info
 
 def sort_xaxis_info(stat,major_step):

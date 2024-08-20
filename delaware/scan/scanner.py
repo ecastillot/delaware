@@ -424,7 +424,7 @@ class Scanner(object):
                         return
                     elif len(st) > max_traces:
                         logger.error(f"{info}|{chunk_starttime}-{chunk_endtime}"+\
-                            f"\tStream no consider because exceeds number of traces allowed: {len(st)}/{max_traces}")
+                            f"\tStream no considered because exceeds number of traces allowed: {len(st)}/{max_traces}")
                         return
                     
 
@@ -516,14 +516,180 @@ class Scanner(object):
         
         return df
                 
-                        
+def plot_rolling_stats(stats,freq,strid_list=[],
+                       stat_type="availability",
+                       starttime = None,
+                       endtime = None,
+                       colorbar = None,
+                       major_step=7,
+                    #    plot_availability=True,
+                       show=True,
+                       out = None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import matplotlib as mpl
+    from mpl_toolkits.axes_grid1 import host_subplot
+    
+    stats_columns =  stats.columns.to_list()
+    
+    right_columns = []
+    for stat,strid in stats_columns:
+        if stat_type != stat:
+            continue
+        if not strid_list:
+            right_columns.append((stat,strid))
+        else:
+            if strid in strid_list:
+                right_columns.append((stat,strid))
+                
+    if not right_columns:
+        raise ValueError("No data to analize")
+    else:
+        print(f"Data to analyze: {right_columns}")
+        
+
+    stat = stats[right_columns]
+    stat =stat.fillna(0)
+    stat.columns = stat.columns.droplevel()
+    
+    # Filter based on index values 
+    if starttime != None:
+        stat = stat.loc[
+            (stat.index.get_level_values('starttime') >= starttime) ]
+    else:
+        starttime = stat.index.get_level_values('starttime').min()
+    if endtime != None:
+        stat = stat.loc[
+            (stat.index.get_level_values('endtime') <= endtime)]
+    else:
+        endtime = stat.index.get_level_values('endtime').max()
+    
+    # Reset index to make 'starttime' a column
+    stat = stat.reset_index(level='endtime',drop=True)
+    # Resample the data over 7-day bins and calculate the mean
+    stat =stat.resample(freq).mean()
+    
+    # Calculate endtime by adding the frequency to starttime
+    stat['endtime'] = stat.index + pd.to_timedelta(freq)
+
+    # Set a new MultiIndex with starttime and endtime
+    stat = stat.reset_index(level='starttime',drop=False)
+    stat.set_index(['starttime', 'endtime'], inplace=True)
+    
+    
+    if stat_type == "availability":
+        perc = True
+        
+    yaxis_info = ut.sort_yaxis_info(stat=stat,perc=perc)
+    xaxis_info = ut.sort_xaxis_info(stat=stat,major_step=major_step)
+    
+    
+    if colorbar is None:
+        cbar_info = ut.StatsColorBar(stat_type).get_colorbar_info()
+    else:
+        cbar_info = colorbar.get_colorbar_info(cmap_name=colorbar.cmap_name,
+                                               bad_colorname=colorbar.bad_colorname,
+                                               zero_colorname=colorbar.zero_colorname)
+        
+    # print(cbar_info)
+        
+    # print(range(0,len(xaxis_info["minor"]),major_step))
+    # exit()
+    # exit()
+
+
+    fig = plt.figure(figsize=(12,12))
+    ax = host_subplot(111)
+    # ax.set_facecolor('lightgray')
+    ax1 = ax.twinx()
+
+    ax1.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
+    ax.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
+
+    print(stat[yaxis_info["order"]].T.iloc[::-1])
+    # print(stat[yaxis_info["order"]].T.info())
+    im = ax.pcolormesh(stat[yaxis_info["order"]].T.iloc[::-1], 
+                       cmap=cbar_info["cmap"], alpha=1,
+                       norm = cbar_info["norm"])
+    
+    # plt.show()
+    # exit()
+
+    ax.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
+    ax.set_yticks(np.arange(stat.shape[1])[::-1] , minor=True)
+
+    ax.set_xticks(range(0,len(xaxis_info["minor"])), minor=True)
+    ax.set_xticks(range(0,len(xaxis_info["minor"]),major_step), minor=False)
+
+
+    ax.set_yticklabels(yaxis_info["labels"],minor=False)
+    # print(np.arange(stat.shape[1]) + 0.5)
+    # print(yaxis_info["labels"])
+    # plt.show()
+    # exit() 
+    ax.set_xticklabels(xaxis_info["minor"], minor=True)
+    ax.set_xticklabels(xaxis_info["major"], minor=False)
+
+    #minor ticks false
+    [t.label1.set_visible(False) for t in ax.xaxis.get_minor_ticks()]
+
+    plt.tick_params(left = False)
+
+    ax.grid(linestyle='--',zorder=12,which='minor')
+    ax.grid(linestyle='-',linewidth=1.45,zorder=24,which='major',axis="x",color="black")
+    ax.grid(linestyle='--',zorder=12,which='minor',axis="x")
+
+    ## Rotate date labels automatically
+    fig.autofmt_xdate()
+
+    
+    # ax1.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
+    ax1.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
+    ax1.set_yticks(yaxis_info["ticks"] , minor=True)
+
+    # print(yaxis_info)
+    # exit()
+
+    if yaxis_info["availability"]:
+        ax1.set_yticklabels(yaxis_info["availability"],minor=False,
+                            fontdict={"fontsize":8})
+        ax1.set_ylabel("Average availability")
+        pad = 0.2
+    else:
+        ax1.set_yticks([])
+        ax1.yaxis.set_tick_params(labelleft=False,labelright=False)
+        pad = 0.1
+
+    ax1.grid(linestyle='-',linewidth=1.5,zorder=24,which='minor',axis="y",color="black")
+    
+    #minor ticks false
+    [t.label1.set_visible(False) for t in ax1.xaxis.get_minor_ticks()]
+
+
+    cbar = fig.colorbar(im,shrink=0.7,format=cbar_info["format"],
+                        ticks=cbar_info["ticks"], pad=pad,ax=ax)
+    cbar.set_label(f"{stat_type}")
+    cbar.ax.tick_params(size=0)
+
+
+    plt.tight_layout()
+
+    if out != None:
+        if not os.path.isdir(os.path.dirname(out)):
+            os.makedirs(os.path.dirname(out))
+        fig.savefig(out)
+        # fig.savefig(out,bbox_inches='tight')
+    if show:
+        plt.show()
+    return fig,ax,ax1                       
                 
                 
             
 if __name__ == "__main__":   
     from obspy import UTCDateTime
     from obspy.clients.fdsn import Client
-    starttime = UTCDateTime("2024-04-19T23:00:00")
+    import matplotlib.colors as mcolors
+    starttime = UTCDateTime("2024-07-22T23:00:00")
     endtime = UTCDateTime("2024-08-01T00:00:00")
     wav_restrictions = WaveformRestrictions(
                 "TX,2T,4T,4O",
@@ -543,17 +709,47 @@ if __name__ == "__main__":
                         wav_restrictions=wav_restrictions)
     
     db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database"
-    scanner = Scanner(db_path,providers=[provider])
+    # scanner = Scanner(db_path,providers=[provider])
+    scanner = Scanner(db_path,providers=[provider],configure_logging=False)
     
-    scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
+    # scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
     
-    # stats =scanner.get_stats(network="TX",station="PB*",
-    #                   location="*",instrument="HH?",
-    #                   starttime=UTCDateTime("2024-01-01 00:00:00"),
-    #                   endtime=UTCDateTime("2024-08-01 00:00:00"),
-    #                 #   stats=["availability"]
-    #                   )
-    # print(stats)
+    stats =scanner.get_stats(network="4O",station="*",
+                      location="*",instrument="HH?",
+                      starttime=UTCDateTime("2024-01-01 00:00:00"),
+                      endtime=UTCDateTime("2024-08-01 00:00:00"),
+                    #   stats=["availability"]
+                      )
+    print(stats)
+    
+    min = 60
+    hour = 3600
+    day = 86400
+    # colorbar = ut.StatsColorBar(stat="availability",
+    #                             label_dict={"No gaps":[0,1e-5],
+    #                                         r"$\leq 1$ hour":[1e-5,hour],
+    #                                         r"$\leq 12$ hours":[hour,hour*12],
+    #                                         r"$\leq 1$ day":[hour*12,day],
+    #                                         r"$\geq 1$ day":[day,day+0.1],
+    #                                         }
+    #                             )
+    # cmap = mcolors.LinearSegmentedColormap.from_list('red_to_green', ['red', 'green'])
+    colorbar = ut.StatsColorBar(stat="availability",
+                                # cmap_name='Greens',
+                                cmap_name='YlGn',
+                                bad_colorname="red",
+                                label_dict={"[0,20]":[0,20],
+                                            r"[20,40]":[20,40],
+                                            r"[40,60]":[40,60],
+                                            r"[60,80]":[60,80],
+                                            r"[80,100]":[80,100],
+                                            # r"100":[99.5,100],
+                                            }
+                                )
+    plot_rolling_stats(stats=stats,freq="7D",major_step=4,
+                       colorbar=colorbar
+                    #    starttime=UTCDateTime("2024-06-01 00:00:00").datetime
+                       )
     
     
     
