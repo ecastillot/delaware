@@ -110,7 +110,9 @@ def sort_yaxis_info(stat,perc=True):
     
     # exit()
     y_availability = []
-    for strid in columns:
+    y_mask = []
+    mask = 0
+    for i,strid in enumerate(columns):
         net,sta,loc,cha = strid.split(".")
         new_strid = strid
         trigger = 1
@@ -124,8 +126,11 @@ def sort_yaxis_info(stat,perc=True):
             trigger = 0
         else:
             group["location"].append(net+"."+sta+"."+loc)
-
-        
+            
+        if trigger == 1:
+            mask =+ i
+            y_mask.append(mask)
+            
         strid_names[strid] = new_strid
         strid_mask[strid] = trigger
 
@@ -139,9 +144,7 @@ def sort_yaxis_info(stat,perc=True):
     # print(y_names)
     # exit()
     
-    y_mask = [strid_mask[strid] for strid in columns]
-    y_mask = np.where(np.array(y_mask)==1)[0] +3
-    # y_mask = np.where(np.array(y_mask)==1)[0] 
+    y_mask = np.array(y_mask+[len(columns)])
 
     yaxis_info = {"labels":y_names,"availability":y_availability,"ticks":y_mask,
                   "order":columns}

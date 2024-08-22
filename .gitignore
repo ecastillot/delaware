@@ -1,2 +1,2 @@
-data/metadata/delaware_database/**
-data/metadata/delaware_database_log/**
+data/metadata/delaware_database*/**
+data/metadata/delaware_database*_log/**
