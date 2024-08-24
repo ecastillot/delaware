@@ -95,14 +95,20 @@ class StatsColorBar:
         """
         if self.label_dict is None:
             if self.stat == "availability":
-                label_dict = {
-                    "No gaps": [0, 1e-5],
-                    r"$\leq 1$ s": [1e-5, 1],
-                    r"$\leq 1$ min": [1, 60],
-                    r"$\leq 1$ hour": [60, 60**2],
-                    r"$< 1$ day": [60**2, (60**3) * 24],
-                    r"$\geq 1$ day": [(60**3) * 24, ((60**3) * 24) + 1]
-                }
+                # label_dict = {
+                #     "No gaps": [0, 1e-5],
+                #     r"$\leq 1$ s": [1e-5, 1],
+                #     r"$\leq 1$ min": [1, 60],
+                #     r"$\leq 1$ hour": [60, 60**2],
+                #     r"$< 1$ day": [60**2, (60**3) * 24],
+                #     r"$\geq 1$ day": [(60**3) * 24, ((60**3) * 24) + 1]
+                # }
+                label_dict={"[0,20)":[0,20],
+                            r"[20,40)":[20,40],
+                            r"[40,60)":[40,60],
+                            r"[60,80)":[60,80],
+                            r"[80,100]":[80,100],
+                            }
             else:
                 raise Exception("label_dict must be specified for the given statistic type.")
         else:
