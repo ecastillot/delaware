@@ -270,7 +270,7 @@ def sort_xaxis_info(stat, major_step, major_format="%Y-%m-%d %H:%M:%S"):
 
     # Generate major ticks by rounding minor ticks to the nearest second and selecting every `major_step` interval
     major_dates = [
-        minor_dates[i].round("S")
+        minor_dates[i].round("s")
         for i in range(0, len(minor_dates), major_step)
     ]
 
