@@ -10,152 +10,274 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import glob
+import os
 
+def get_db_paths(providers, db_folder_path, network, station, location, instrument):
+    """
+    Generate a list of database paths that match the specified criteria.
 
-class StatsColorBar():
-    def __init__(self,
-                 stat,
-                 label_dict = None,
-                 cmap_name="viridis_iris",
-                 bad_colorname="gray",
-                zero_colorname="white") -> None:
-        
+    Args:
+        providers (list): List of provider objects, each with an 'info' attribute containing station information.
+        db_folder_path (str): Path to the folder containing database files.
+        network (str): Network identifier.
+        station (str): Station identifier.
+        location (str): Location identifier.
+        instrument (str): Instrument identifier.
+
+    Returns:
+        list: List of paths to the database files that match the given criteria.
+    """
+    # Construct the base name for the database files
+    db_name = ".".join((network, station, location, instrument))
+    
+    # Create the search pattern for the database files
+    key = os.path.join(db_folder_path, db_name + "**")
+    
+    # Find all files that match the search pattern
+    db_paths = glob.glob(key)
+    
+    # Extract the unique station identifiers from the database paths
+    stainpaths = [x.split(".")[1] for x in db_paths]
+    
+    # Gather all unique stations from the provider information
+    stations2scan = []
+    for provider in providers:
+        prov_info = provider.info["station"].drop_duplicates()
+        for prov_sta in prov_info.tolist():
+            stations2scan.append(prov_sta)
+    
+    # Find the intersection of station identifiers between providers and database paths
+    intersection = list(set(stations2scan) & set(stainpaths))
+    
+    # Filter the database paths to include only those with stations in the intersection
+    db_paths = [x for x in db_paths if x.split(".")[1] in intersection]
+    
+    return db_paths
+    
+class StatsColorBar:
+    """
+    A class to create and manage a color bar for visualizing statistical data.
+
+    Attributes:
+        stat (str): The type of statistic being visualized (e.g., "availability").
+        label_dict (dict): Dictionary mapping labels to value ranges.
+        cmap_name (str): Name of the colormap to use for the color bar.
+        bad_colorname (str): Color to use for "bad" or missing values.
+        zero_colorname (str): Color to use for zero values.
+    """
+    def __init__(self, stat, label_dict, cmap_name="viridis_r", bad_colorname="gray", zero_colorname="white") -> None:
+        """
+        Initializes the StatsColorBar with the given parameters.
+
+        Args:
+            stat (str): The type of statistic being visualized.
+            label_dict (dict): Dictionary mapping labels to value ranges.
+            cmap_name (str): Name of the colormap.
+            bad_colorname (str): Color for bad or missing values.
+            zero_colorname (str): Color for zero values.
+        """
         self.stat = stat
         self.label_dict = label_dict
         self.cmap_name = cmap_name
         self.bad_colorname = bad_colorname
         self.zero_colorname = zero_colorname
-        
+
     def get_label_dict(self):
-        
+        """
+        Retrieves the label dictionary. If not provided, generates a default one based on the statistic type.
+
+        Returns:
+            dict: Dictionary mapping labels to their corresponding value ranges.
+
+        Raises:
+            Exception: If `label_dict` is not provided and `stat` is not "availability".
+        """
         if self.label_dict is None:
             if self.stat == "availability":
-                label_dict = {"No gaps":[0,1e-5],
-                              r"$\leq 1$ s":[1e-5,1],
-                              r"$\leq 1$ min":[1,60],
-                            r"$\leq 1$ hour":[60,60**2],
-                            r"$< 1$ day":[60**2,(60**3)*24],
-                            r"$\geq 1$ day":[(60**3)*24,
-                                             ((60**3)*24)+1]
-                            }
+                label_dict = {
+                    "No gaps": [0, 1e-5],
+                    r"$\leq 1$ s": [1e-5, 1],
+                    r"$\leq 1$ min": [1, 60],
+                    r"$\leq 1$ hour": [60, 60**2],
+                    r"$< 1$ day": [60**2, (60**3) * 24],
+                    r"$\geq 1$ day": [(60**3) * 24, ((60**3) * 24) + 1]
+                }
+            else:
+                raise Exception("label_dict must be specified for the given statistic type.")
         else:
-            label_dict = self.label_dict   
+            label_dict = self.label_dict
         return label_dict
-                
-        
 
-    def get_colorbar_info(self,
-                        #   cmap_name="Reds",
-                        cmap_name="viridis_r",
-                        bad_colorname="gray",
-                        zero_colorname="white"):
+    def get_colorbar_info(self, cmap_name="viridis_r", bad_colorname="gray", zero_colorname="white"):
         """
-        
+        Generates information required to create a color bar including colormap, formatter, ticks, and normalization.
+
+        Args:
+            cmap_name (str): Name of the colormap.
+            bad_colorname (str): Color for bad or missing values.
+            zero_colorname (str): Color for zero values.
+
+        Returns:
+            dict: Dictionary containing colormap, format function, ticks, and normalization.
         """
+        # Retrieve the label dictionary
         label_dict = self.get_label_dict()
+        
+        # Extract labels and boundaries from the dictionary
         labels = list(label_dict.keys())
         flattened_list = [item for sublist in label_dict.values() for item in sublist]
         boundaries = sorted(list(set(flattened_list)))
         
-        ncolors = len(boundaries)-1
-        cmap_reds = plt.get_cmap(cmap_name,ncolors)
+        # Create the colormap with the number of colors needed
+        ncolors = len(boundaries) - 1
+        cmap = plt.get_cmap(cmap_name, ncolors)
 
-        if bad_colorname != None:
-            cmap_reds.set_bad(color=bad_colorname)
-        # print(ncolors)
-        # print(cmap_reds)
-        colors = list(cmap_reds(np.arange(ncolors)))
+        # Set the color for bad values
+        if bad_colorname is not None:
+            cmap.set_bad(color=bad_colorname)
+        
+        # Retrieve colors from the colormap
+        colors = list(cmap(np.arange(ncolors)))
 
-        if zero_colorname != None:
+        # Set the color for zero values
+        if zero_colorname is not None:
             colors[0] = zero_colorname
         
+        # Create a colormap from the list of colors
         from_list = mpl.colors.LinearSegmentedColormap.from_list
         cm = from_list(None, colors, ncolors)
 
-        norm = mpl.colors.BoundaryNorm(boundaries, ncolors=ncolors, 
-                                    clip=True)
+        # Create a normalization object for the colorbar
+        norm = mpl.colors.BoundaryNorm(boundaries, ncolors=ncolors, clip=True)
 
+        # Create a formatter for the colorbar ticks
         fmt = mpl.ticker.FuncFormatter(lambda x, pos: labels[norm(x)])
-
+        
+        # Calculate tick positions
         boundaries = np.array(boundaries)
         diff = boundaries[1:] - boundaries[:-1]
         ticks = boundaries[:-1] + diff / 2
 
-        colorbar_info = {"cmap":cm,"format":fmt,"ticks":ticks,"norm":norm}
+        # Compile all the colorbar information into a dictionary
+        colorbar_info = {
+            "cmap": cm,
+            "format": fmt,
+            "ticks": ticks,
+            "norm": norm
+        }
         return colorbar_info
 
-def sort_yaxis_info(stat,perc=True):
 
-    group = {"station":[],"location":[]}
+
+
+
+def sort_yaxis_info(stat, perc=True):
+    """
+    Sorts and organizes the y-axis information for a plot based on statistical data.
+
+    Args:
+        stat (pd.DataFrame): DataFrame containing statistical data, with columns formatted as 'network.station.location.channel'.
+        perc (bool): If True, calculates the percentage availability of each column. Defaults to True.
+
+    Returns:
+        dict: Dictionary containing sorted y-axis labels, availability information, tick positions, and column order.
+    """
+    # Initialize dictionaries to group by station and location
+    group = {"station": [], "location": []}
     strid_names = {}
-    strid_mask = {}
-    # columns.reverse()
+    y_availability = []
+    y_mask = []
     
-    # Custom sorting function
+    # Custom sorting function to extract and sort based on network, station, location, and channel
     def sort_key(item):
         network, station, location, channel = item.split('.')
         return (network, station, location, channel)
 
-    # Sorting the list
+    # Retrieve and sort columns based on the custom sort key
     columns = stat.columns.to_list()
     columns = sorted(columns, key=sort_key)
     
     if perc:
-        # availability = stat[columns].fillna(0)
-        availability = stat[columns]
-        availability = availability.mean()
+        # Calculate mean availability for each column, handle NaN values by filling with 0
+        availability = stat[columns].mean()
         availability = availability.to_dict()
     else:
         availability = {}
-    
-    # exit()
-    y_availability = []
-    y_mask = []
-    mask = 0
-    for i,strid in enumerate(columns):
-        net,sta,loc,cha = strid.split(".")
+
+    # Iterate over sorted columns to build the y-axis information
+    for i, strid in enumerate(columns):
+        net, sta, loc, cha = strid.split('.')
         new_strid = strid
-        trigger = 1
-        if net+"."+sta in group["station"]:
-            new_strid = ".".join((loc,cha))
-            trigger = 0
+        
+        # Check if the station has already been processed
+        if net + "." + sta in group["station"]:
+            new_strid = ".".join((loc, cha))
         else:
-            group["station"].append(net+"."+sta)
-        if net+"."+sta+"."+loc in group["location"]:
+            group["station"].append(net + "." + sta)
+            y_mask.append(len(columns) - i)
+        
+        # Check if the location has already been processed
+        if net + "." + sta + "." + loc in group["location"]:
             new_strid = cha
-            trigger = 0
         else:
-            group["location"].append(net+"."+sta+"."+loc)
-            
-        if trigger == 1:
-            mask =+ i
-            y_mask.append(mask)
-            
+            group["location"].append(net + "." + sta + "." + loc)
+        
         strid_names[strid] = new_strid
-        strid_mask[strid] = trigger
 
-        if availability :
-            y_availability.append(f"{round(availability[strid],1)}%")
-            
-    
-    # print(strid)
-    y_names = [ strid_names[strid] for strid in columns]
-    
-    # print(y_names)
-    # exit()
-    
-    y_mask = np.array(y_mask+[len(columns)])
+        # Append availability information if requested
+        if availability:
+            y_availability.append(f"{round(availability[strid], 1)}%")
 
-    yaxis_info = {"labels":y_names,"availability":y_availability,"ticks":y_mask,
-                  "order":columns}
-    print(yaxis_info)
+    # Prepare y-axis labels, mask, and order
+    y_names = [strid_names[strid] for strid in columns]
+    y_mask = np.array(y_mask + [0])  # Append 0 to ensure the mask covers all ticks
+
+    # Compile the y-axis information into a dictionary
+    yaxis_info = {
+        "labels": y_names,
+        "availability": y_availability,
+        "ticks": y_mask,
+        "order": columns
+    }
+    
     return yaxis_info
 
-def sort_xaxis_info(stat,major_step):
-    minor_dates = stat.index.get_level_values('starttime').to_list() + \
-            [stat.index.get_level_values('endtime').to_list()[-1]]
-    major_dates = [ minor_dates[i].round("S") for i in range(0,len(minor_dates),major_step)]
-    xaxis_info = {"minor":minor_dates,"major":major_dates}
+def sort_xaxis_info(stat, major_step, major_format="%Y-%m-%d %H:%M:%S"):
+    """
+    Sorts and organizes x-axis information for a plot based on statistical data with datetime indices.
+
+    Args:
+        stat (pd.DataFrame): DataFrame with a MultiIndex where one level is 'starttime' and another level is 'endtime'.
+        major_step (int): Number of intervals between major ticks, specified in seconds.
+        major_format (str, optional): Format string for major tick labels. Defaults to "%Y-%m-%d %H:%M:%S".
+
+    Returns:
+        dict: Dictionary containing lists of minor and major dates for x-axis ticks.
+    """
+    # Retrieve the start and end times from the DataFrame index
+    start_times = stat.index.get_level_values('starttime').to_list()
+    end_times = stat.index.get_level_values('endtime').to_list()
+
+    # Combine start times and the last end time to create a continuous list of minor ticks
+    minor_dates = start_times + [end_times[-1]]
+
+    # Generate major ticks by rounding minor ticks to the nearest second and selecting every `major_step` interval
+    major_dates = [
+        minor_dates[i].round("S")
+        for i in range(0, len(minor_dates), major_step)
+    ]
+
+    # Convert minor and major dates to Python datetime objects and format major dates
+    minor_dates = [ts.to_pydatetime() for ts in minor_dates]
+    major_dates = [ts.to_pydatetime().strftime(major_format) for ts in major_dates]
+
+    # Compile the x-axis information into a dictionary
+    xaxis_info = {
+        "minor": minor_dates,
+        "major": major_dates
+    }
+
     return xaxis_info
 
 def process_stream_common_channels(st, location_preferences, instrument_preferences):

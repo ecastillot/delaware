@@ -7,11 +7,16 @@
 #  */
 import scan.utils as ut
 from scan.stats import get_rolling_stats
+from matplotlib.ticker import MaxNLocator
 import logging
+import matplotlib.dates as mdates
 import pandas as pd
 import os
 import glob
 import datetime
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.axes_grid1 import host_subplot
 import concurrent.futures as cf
 from core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
@@ -452,34 +457,47 @@ class Scanner(object):
                     with cf.ThreadPoolExecutor(n_processor) as executor:
                         executor.map(scan_query, i2q)
                  
-    def get_stats(self,network,station,location,instrument,
-             starttime, endtime,stats=["availability","gaps_counts"]):
+    def get_stats(self, network, station, location, instrument,
+              starttime, endtime, stats=["availability", "gaps_counts"]):
+        """
+        Retrieve statistical data from database files based on the provided criteria.
+
+        Args:
+            network (str): Network identifier.
+            station (str): Station identifier.
+            location (str): Location identifier.
+            instrument (str): Instrument identifier.
+            starttime (datetime): Start time for the data retrieval.
+            endtime (datetime): End time for the data retrieval.
+            stats (list): List of statistical metrics to retrieve from the database.
+
+        Returns:
+            pd.DataFrame: DataFrame containing concatenated statistical data, or None if no data is found.
+        """
+        # Get the database paths matching the criteria
+        db_paths = ut.get_db_paths(providers=self.providers,
+                                db_folder_path=self.db_folder_path,
+                                network=network, station=station,
+                                location=location, instrument=instrument)
         
-        db_name = ".".join((network,station,location,instrument))
-        key = os.path.join(self.db_folder_path,db_name+"**")
-        db_paths = glob.glob(key)
-        
-        stainpaths = [x.split(".")[1] for x in db_paths]
-        
-        stations2scan = []
-        for provider in self.providers:
-            prov_info = provider.info["station"].drop_duplicates()
-            for prov_sta in prov_info.tolist():
-                stations2scan.append(prov_sta)
-        
-        intersection = list(set(stations2scan ) & set(stainpaths))
-        db_paths = [x for x in db_paths if x.split(".")[1] in intersection]
-                
         if not db_paths:
-            logger.info(f"No paths using this key in a glob search: {key} paths")
+            logger.info(f"No paths found using the provided key in the glob search.")
         
         logger.info(f"Loading: {len(db_paths)} paths")
         
         format = "%Y-%m-%d %H:%M:%S"
-        all_dfs = []
-        for i,db_path in enumerate(db_paths,1):
+        all_dfs = {}
+        
+        # Process each database path
+        for i, db_path in enumerate(db_paths, 1):
             logger.info(f"Loading: {i}/{len(db_paths)} {db_path}")
+            
+            # Extract network and station path components
+            netstainpath = os.path.basename("_".join(db_path.split(".")[0:2]))
+            
             dfs_stats = []
+            
+            # Load statistics for each specified metric
             for stat in stats:
                 starttime_str = starttime.strftime(format)
                 endtime_str = endtime.strftime(format)
@@ -488,22 +506,16 @@ class Scanner(object):
                     df = load_dataframe_from_sqlite(db_name=db_path,
                                                     table_name=stat,
                                                     starttime=starttime_str,
-                                                    endtime=endtime_str
-                                                    )
+                                                    endtime=endtime_str)
                 except Exception as e:
-                    logger.error(e)
+                    logger.error(f"Error loading data from {db_path}: {e}")
                     continue
                 
-                
+                # Set the DataFrame index and create a MultiIndex for columns
                 df.set_index(['starttime', 'endtime'], inplace=True)
-
-                stat_columns = [stat]*len(df.columns.tolist())
-                multi_columns = list(zip(stat_columns,df.columns.tolist()))
-                multi_columns = pd.MultiIndex.from_tuples(
-                                multi_columns,
-                                    )
-
-                # Assign MultiIndex to DataFrame columns
+                stat_columns = [stat] * len(df.columns.tolist())
+                multi_columns = list(zip(stat_columns, df.columns.tolist()))
+                multi_columns = pd.MultiIndex.from_tuples(multi_columns)
                 df.columns = multi_columns
                 
                 dfs_stats.append(df)
@@ -512,188 +524,240 @@ class Scanner(object):
                 logger.error(f"No data recorded in {db_path}")
                 continue
             
-            df = pd.concat(dfs_stats,axis=1)
-            all_dfs.append(df)
+            # Concatenate dataframes for the current path
+            df = pd.concat(dfs_stats, axis=1)
+            
+            # Store or append DataFrame to the collection
+            if netstainpath not in all_dfs:
+                all_dfs[netstainpath] = [df]
+            else:
+                all_dfs[netstainpath].append(df)
+        
+        # Process all collected DataFrames
+        for key, sta_dfs in all_dfs.items():
+            df = pd.concat(sta_dfs, axis=0)
+            
+            # Remove duplicated dates and clean up DataFrame
+            df.reset_index(inplace=True)
+            conversion = {('starttime', ''): "starttime",
+                        ('endtime', ''): "endtime"}
+            df = df.drop_duplicates(subset=list(conversion.keys()))
+            df.set_index(list(conversion.keys()), inplace=True)
+            df = df.rename_axis(index=conversion)
+            all_dfs[key] = df
         
         if not all_dfs:
-            logger.error(f"No data recorded")
+            logger.error("No data recorded")
             return None
-            
-        df = pd.concat(all_dfs,axis=1)
+        
+        # Concatenate all DataFrames and sort by 'starttime'
+        df = pd.concat(list(all_dfs.values()), axis=1)
         df = (df
             .sort_values(by='starttime')  # Sort the DataFrame by 'starttime'
-            .reset_index()       # Reset the index and drop the old index
+            .reset_index()                # Reset the index and drop the old index
             .set_index(['starttime', 'endtime'])  # Set 'starttime' and 'endtime' as the new index
-            )
+        )
         
         return df
-                
-def plot_rolling_stats(stats,freq,strid_list=[],
+
+               
+def plot_rolling_stats(stats, freq, strid_list=[],
                        stat_type="availability",
-                       starttime = None,
-                       endtime = None,
-                       colorbar = None,
+                       starttime=None,
+                       endtime=None,
+                       colorbar=None,
                        major_step=7,
-                    #    plot_availability=True,
+                       major_format = "%Y-%m-%d %H:%M:%S",
                        show=True,
-                       out = None):
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import matplotlib as mpl
-    from mpl_toolkits.axes_grid1 import host_subplot
+                       out=None):
+    """
+    Plots rolling statistics data as a heatmap with optional color bar and time axis customization.
+
+    Args:
+        stats (pd.DataFrame): DataFrame containing statistical data with a MultiIndex of 'starttime' and 'endtime'.
+        freq (str): Frequency string for resampling, e.g., '7D' for 7-day intervals.
+                    See here: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#timeseries-offset-aliases
+        strid_list (list): List of specific identifiers to include in the plot. Defaults to empty list.
+        stat_type (str): Type of statistic to plot. Defaults to "availability".
+        starttime (pd.Timestamp or None): Start time for filtering the data. Defaults to None.
+        endtime (pd.Timestamp or None): End time for filtering the data. Defaults to None.
+        colorbar (StatsColorBar or None): Optional color bar configuration. Defaults to None.
+        major_step (int): Interval between major ticks on the x-axis, specified in seconds. Defaults to 7.
+        major_format (str, optional): Format string for major tick labels. Defaults to "%Y-%m-%d %H:%M:%S".
+        show (bool): Whether to display the plot. Defaults to True.
+        out (str or None): File path to save the plot. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing the figure, primary axis, and secondary axis objects.
+    """
     
-    stats_columns =  stats.columns.to_list()
-    
+    # Extract column names and filter based on stat_type and strid_list
+    stats_columns = stats.columns.to_list()
     right_columns = []
-    for stat,strid in stats_columns:
+    for stat, strid in stats_columns:
         if stat_type != stat:
             continue
-        if not strid_list:
-            right_columns.append((stat,strid))
-        else:
-            if strid in strid_list:
-                right_columns.append((stat,strid))
-                
-    if not right_columns:
-        raise ValueError("No data to analize")
-    else:
-        print(f"Data to analyze: {right_columns}")
-        
-
-    stat = stats[right_columns]
-    stat =stat.fillna(0)
-    stat.columns = stat.columns.droplevel()
+        if not strid_list or strid in strid_list:
+            right_columns.append((stat, strid))
     
-    # Filter based on index values 
-    if starttime != None:
-        stat = stat.loc[
-            (stat.index.get_level_values('starttime') >= starttime) ]
+    if not right_columns:
+        raise ValueError("No data to analyze.")
+    else:
+        # print(f"Data to analyze: {right_columns}")
+        print(f"Compiling data...")
+
+    # Filter and prepare the DataFrame
+    stat = stats[right_columns]
+    stat = stat.fillna(0)
+    stat.columns = stat.columns.droplevel()
+
+    # Filter based on provided starttime and endtime
+    if starttime is not None:
+        stat = stat.loc[stat.index.get_level_values('starttime') >= starttime]
+        tmp_starttime_row0 = stat.index.get_level_values('starttime').min()
+        tmp_endtime_row0 = stat.index.get_level_values('endtime').min()
+        tmp_deltatime = tmp_endtime_row0 - tmp_starttime_row0
+        # print(starttime+tmp_deltatime)
+        # exit()
+        
+        if tmp_starttime_row0 != starttime:
+            # Create a new row with NaN values for every column
+            new_row = pd.DataFrame(index=pd.MultiIndex.from_tuples([(starttime, starttime+tmp_deltatime)], 
+                                                                   names=['starttime', 'endtime']),
+                                columns=stat.columns)
+
+            # Append new row
+            stat = pd.concat([stat, new_row])
+            stat = stat.fillna(0)
     else:
         starttime = stat.index.get_level_values('starttime').min()
-    if endtime != None:
-        stat = stat.loc[
-            (stat.index.get_level_values('endtime') <= endtime)]
+
+    if endtime is not None:
+        stat = stat.loc[stat.index.get_level_values('endtime') <= endtime]
+        tmp_endtime_lastrow = stat.index.get_level_values('endtime').max()
+        tmp_starttime_lastrow  = stat.index.get_level_values('starttime').max()
+        tmp_deltatime = tmp_endtime_lastrow - tmp_starttime_lastrow
+        
+        if tmp_endtime_lastrow != endtime:
+            # Create a new row with NaN values for every column
+            new_row = pd.DataFrame(index=pd.MultiIndex.from_tuples([(endtime-tmp_deltatime, endtime)], 
+                                                                   names=['starttime', 'endtime']),
+                                columns=stat.columns)
+
+            # Append new row
+            stat = pd.concat([stat, new_row])
+            stat = stat.fillna(0)
     else:
         endtime = stat.index.get_level_values('endtime').max()
-    
-    # Reset index to make 'starttime' a column
-    stat = stat.reset_index(level='endtime',drop=True)
-    # Resample the data over 7-day bins and calculate the mean
-    stat =stat.resample(freq).mean()
-    
-    # Calculate endtime by adding the frequency to starttime
+
+    # Sort by index levels
+    stat = stat.sort_index(level=['starttime', 'endtime'])
+    # Reset index and resample data to specified frequency
+    stat = stat.reset_index(level='endtime', drop=True)
+    stat = stat.resample(freq).mean()
+
+    # Calculate endtime based on the frequency
     stat['endtime'] = stat.index + pd.to_timedelta(freq)
 
-    # Set a new MultiIndex with starttime and endtime
-    stat = stat.reset_index(level='starttime',drop=False)
+    # Set a new MultiIndex with 'starttime' and 'endtime'
+    stat = stat.reset_index(level='starttime', drop=False)
     stat.set_index(['starttime', 'endtime'], inplace=True)
-    
-    
-    if stat_type == "availability":
-        perc = True
-        
-    yaxis_info = ut.sort_yaxis_info(stat=stat,perc=perc)
-    xaxis_info = ut.sort_xaxis_info(stat=stat,major_step=major_step)
-    
-    
+
+    # Prepare y-axis and x-axis information
+    perc = stat_type == "availability"
+    yaxis_info = ut.sort_yaxis_info(stat=stat, perc=perc)
+    xaxis_info = ut.sort_xaxis_info(stat=stat, major_step=major_step,major_format=major_format)
+
+    # Configure the color bar
     if colorbar is None:
         cbar_info = ut.StatsColorBar(stat_type).get_colorbar_info()
     else:
-        cbar_info = colorbar.get_colorbar_info(cmap_name=colorbar.cmap_name,
-                                               bad_colorname=colorbar.bad_colorname,
-                                               zero_colorname=colorbar.zero_colorname)
-        
-    # print(cbar_info)
-        
-    # print(range(0,len(xaxis_info["minor"]),major_step))
-    # exit()
-    # exit()
+        cbar_info = colorbar.get_colorbar_info(
+            cmap_name=colorbar.cmap_name,
+            bad_colorname=colorbar.bad_colorname,
+            zero_colorname=colorbar.zero_colorname
+        )
 
-
-    fig = plt.figure(figsize=(12,12))
+    # Create the figure and axes
+    fig = plt.figure(figsize=(12, 12))
     ax = host_subplot(111)
-    # ax.set_facecolor('lightgray')
     ax1 = ax.twinx()
 
-    ax1.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
-    ax.set(xlim=(0, len(stat.index)),ylim=(0, len(stat.columns)))
+    # Set limits for both axes
+    ax.set(xlim=(0, len(stat.index)), ylim=(0, len(stat.columns)))
+    ax1.set(xlim=(0, len(stat.index)), ylim=(0, len(stat.columns)))
 
-    print(stat[yaxis_info["order"]].T.iloc[::-1])
-    # print(stat[yaxis_info["order"]].T.info())
-    im = ax.pcolormesh(stat[yaxis_info["order"]].T.iloc[::-1], 
-                       cmap=cbar_info["cmap"], alpha=1,
-                       norm = cbar_info["norm"])
-    
-    # plt.show()
-    # exit()
+    # Plot the heatmap
+    im = ax.pcolormesh(
+        stat[yaxis_info["order"]].T.iloc[::-1],
+        cmap=cbar_info["cmap"], alpha=1,
+        norm=cbar_info["norm"]
+    )
 
+    # Configure x-axis and y-axis ticks and labels
     ax.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
-    ax.set_yticks(np.arange(stat.shape[1])[::-1] , minor=True)
-
-    ax.set_xticks(range(0,len(xaxis_info["minor"])), minor=True)
-    ax.set_xticks(range(0,len(xaxis_info["minor"]),major_step), minor=False)
-
-
-    ax.set_yticklabels(yaxis_info["labels"],minor=False)
-    # print(np.arange(stat.shape[1]) + 0.5)
-    # print(yaxis_info["labels"])
-    # plt.show()
-    # exit() 
+    ax.set_yticks(np.arange(stat.shape[1])[::-1], minor=True)
+    ax.set_xticks(range(len(xaxis_info["minor"])), minor=True)
+    ax.set_xticks(range(0, len(xaxis_info["minor"]), major_step), minor=False)
+    ax.set_yticklabels(yaxis_info["labels"], minor=False)
     ax.set_xticklabels(xaxis_info["minor"], minor=True)
     ax.set_xticklabels(xaxis_info["major"], minor=False)
+    
+    # Increase size of major ticks on x-axis
+    ax.tick_params(axis='x', which='major', size=8)  
 
-    #minor ticks false
+    # Hide minor ticks on the x-axis
     [t.label1.set_visible(False) for t in ax.xaxis.get_minor_ticks()]
 
-    plt.tick_params(left = False)
-
-    ax.grid(linestyle='--',zorder=12,which='minor')
-    ax.grid(linestyle='-',linewidth=1.45,zorder=24,which='major',axis="x",color="black")
-    ax.grid(linestyle='--',zorder=12,which='minor',axis="x")
-
-    ## Rotate date labels automatically
-    fig.autofmt_xdate()
-
+    # Configure grid lines
+    ax.grid(linestyle='--', zorder=12, which='minor')
+    ax.grid(linestyle='-', linewidth=1.45, zorder=24, which='major', axis="x", color="black")
+    ax.grid(linestyle='--', zorder=12, which='minor', axis="x")
     
-    # ax1.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
+    # Rotate x-axis date labels
+    fig.autofmt_xdate()
+    
+    # Configure the secondary y-axis for availability data
     ax1.set_yticks(np.arange(stat.shape[1])[::-1] + 0.5, minor=False)
-    ax1.set_yticks(yaxis_info["ticks"] , minor=True)
-
-    # print(yaxis_info)
-    # exit()
+    ax1.set_yticks(yaxis_info["ticks"], minor=True)
 
     if yaxis_info["availability"]:
-        ax1.set_yticklabels(yaxis_info["availability"],minor=False,
-                            fontdict={"fontsize":8})
+        ax1.set_yticklabels(yaxis_info["availability"], minor=False, fontdict={"fontsize": 8})
         ax1.set_ylabel("Average availability")
-        pad = 0.2
+        pad = 0.1
     else:
         ax1.set_yticks([])
-        ax1.yaxis.set_tick_params(labelleft=False,labelright=False)
-        pad = 0.1
+        ax1.yaxis.set_tick_params(labelleft=False, labelright=False)
+        pad = 0.05
 
-    ax1.grid(linestyle='-',linewidth=1.5,zorder=24,which='minor',axis="y",color="black")
-    
-    #minor ticks false
+    ax1.grid(linestyle='-', linewidth=1.5, zorder=24, which='minor', axis="y", color="black")
+
+    # Hide minor ticks on the x-axis of the secondary y-axis
     [t.label1.set_visible(False) for t in ax1.xaxis.get_minor_ticks()]
 
-
-    cbar = fig.colorbar(im,shrink=0.7,format=cbar_info["format"],
-                        ticks=cbar_info["ticks"], pad=pad,ax=ax)
-    cbar.set_label(f"{stat_type}")
+    # Add the color bar
+    cbar = fig.colorbar(im, shrink=0.7, format=cbar_info["format"],
+                        ticks=cbar_info["ticks"], pad=pad, ax=ax)
+    cbar_name = stat_type.split()
+    cbar_name[0] = cbar_name[0].capitalize()
+    cbar_name = ''.join(cbar_name)
+    cbar.set_label(f"{cbar_name}")
     cbar.ax.tick_params(size=0)
 
-
+    # Adjust layout
     plt.tight_layout()
 
-    if out != None:
+    # Save the figure if output path is provided
+    if out is not None:
         if not os.path.isdir(os.path.dirname(out)):
             os.makedirs(os.path.dirname(out))
         fig.savefig(out)
-        # fig.savefig(out,bbox_inches='tight')
+
+    # Show the plot if requested
     if show:
         plt.show()
-    return fig,ax,ax1                       
+
+    return fig, ax, ax1            
                 
                 
             
@@ -702,8 +766,8 @@ if __name__ == "__main__":
     from obspy.clients.fdsn import Client
     import matplotlib.colors as mcolors
     
-    starttime = UTCDateTime("2023-06-12T00:00:00")
-    endtime = UTCDateTime("2024-01-01T00:00:00")
+    starttime = UTCDateTime("2017-01-01T00:00:00")
+    endtime = UTCDateTime("2018-01-01T00:00:00")
     
     # starttime = UTCDateTime("2024-01-01T00:00:00")
     # endtime = UTCDateTime("2024-08-01T00:00:00")
@@ -723,19 +787,13 @@ if __name__ == "__main__":
               
               )   
     client= Client("TEXNET")
-    # print(client.__dict__)
     provider = Provider(client=client,
                         wav_restrictions=wav_restrictions)
     
-    # print(provider.info)
-    # exit()
-    
-    db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database2023"
-    scanner = Scanner(db_path,providers=[provider],configure_logging=True)
-    
-    scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
-    
-    
+    ### TO SCAN    
+    # db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database2017"
+    # scanner = Scanner(db_path,providers=[provider],configure_logging=True)
+    # scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
     
     
     # ## plotting results
@@ -775,6 +833,40 @@ if __name__ == "__main__":
     #                    colorbar=colorbar
     #                 #    starttime=UTCDateTime("2024-06-01 00:00:00").datetime
     #                    )
+    
+    ## plotting results 2
+    db_path = "/home/emmanuel/ecastillo/dev/delaware/data/database/delaware_database*"
+    scanner = Scanner(db_path,providers=[provider],configure_logging=False)
+    stats =scanner.get_stats(network="TX",station="*",
+                      location="*",instrument="[CH]H",
+                      starttime=UTCDateTime("2019-01-01 00:00:00"),
+                      endtime=UTCDateTime("2024-08-01 00:00:00")
+                      
+                    #   stats=["availability"]
+                      )
+    min = 60
+    hour = 3600
+    day = 86400
+    colorbar = ut.StatsColorBar(stat="availability",
+                                # cmap_name='Greens',
+                                cmap_name='YlGn',
+                                bad_colorname="red",
+                                label_dict={"[0,20]":[0,20],
+                                            r"[20,40]":[20,40],
+                                            r"[40,60]":[40,60],
+                                            r"[60,80]":[60,80],
+                                            r"[80,100]":[80,100],
+                                            # r"100":[99.5,100],
+                                            }
+                                )
+    plot_rolling_stats(stats=stats,freq="1MS",major_step=4,
+                       colorbar=colorbar,
+                       major_format="%Y-%m-%d"
+                    #    starttime=datetime.datetime.strptime("2019-01-01 00:00:00", 
+                    #                                         "%Y-%m-%d %H:%M:%S"),
+                    #    endtime=datetime.datetime.strptime("2025-01-01 00:00:00", 
+                    #                                         "%Y-%m-%d %H:%M:%S")
+                       )
     
     
     
