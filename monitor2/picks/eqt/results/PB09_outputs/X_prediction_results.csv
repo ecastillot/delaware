@@ -1,0 +1,3 @@
+file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
+PB09/TX.PB09.00.BHN__20231207T040300Z__20231207T040800Z.mseed,TX,PB09,BH,31.774145,-104.301444,1139.0,2023-12-07 04:05:54.190000,2023-12-07 04:06:01.050000,0.74,,2023-12-07 04:05:54.980000,0.79,,3.3,2023-12-07 04:05:58.570000,0.52,,8.8
+PB09/TX.PB09.00.BHN__20231207T040300Z__20231207T040800Z.mseed,TX,PB09,BH,31.774145,-104.301444,1139.0,2023-12-07 04:06:07.350000,2023-12-07 04:06:15.440000,0.14,,2023-12-07 04:06:08.790000,0.04,,3.3,2023-12-07 04:06:12.950000,0.07,,8.8

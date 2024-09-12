@@ -1,0 +1,2 @@
+file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
+PB34/TX.PB34.00.HH2__20231207T040300Z__20231207T040800Z.mseed,TX,PB34,HH,31.676667,-104.037778,969.3,2023-12-07 04:05:50.330000,2023-12-07 04:05:51.750000,0.71,,2023-12-07 04:05:50.550000,0.88,,30.2,2023-12-07 04:05:51.320000,0.85,,10.6

@@ -1,0 +1,2 @@
+file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
+PB25/TX.PB25.00.HHZ__20221116T212959Z__20221116T213459Z.mseed,TX,PB25,HH,31.58308,-104.07019,1037.0,2022-11-16 21:32:46.679000,2022-11-16 21:32:50.059000,0.06,,2022-11-16 21:32:46.939000,0.07,,25.8,2022-11-16 21:32:48.609000,0.03,,9.1

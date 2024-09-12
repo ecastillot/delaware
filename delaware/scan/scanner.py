@@ -568,6 +568,7 @@ def plot_rolling_stats(stats, freq, strid_list=[],
                        colorbar=None,
                        major_step=7,
                        major_format = "%Y-%m-%d %H:%M:%S",
+                       filter_stations=None,
                        show=True,
                        out=None):
     """
@@ -584,6 +585,7 @@ def plot_rolling_stats(stats, freq, strid_list=[],
         colorbar (StatsColorBar or None): Optional color bar configuration. Defaults to None.
         major_step (int): Interval between major ticks on the x-axis, specified in seconds. Defaults to 7.
         major_format (str, optional): Format string for major tick labels. Defaults to "%Y-%m-%d %H:%M:%S".
+        filter_stations (list or None,optional): List of stations to remove 
         show (bool): Whether to display the plot. Defaults to True.
         out (str or None): File path to save the plot. Defaults to None.
 
@@ -597,6 +599,10 @@ def plot_rolling_stats(stats, freq, strid_list=[],
     for stat, strid in stats_columns:
         if stat_type != stat:
             continue
+        if filter_stations is not None:
+            net,sta,loc,cha = strid.split(".")
+            if sta in filter_stations:
+                continue
         if not strid_list or strid in strid_list:
             right_columns.append((stat, strid))
     
@@ -766,8 +772,8 @@ if __name__ == "__main__":
     from obspy.clients.fdsn import Client
     import matplotlib.colors as mcolors
     
-    starttime = UTCDateTime("2017-01-01T00:00:00")
-    endtime = UTCDateTime("2018-01-01T00:00:00")
+    starttime = UTCDateTime("2024-08-01T00:00:00")
+    endtime = UTCDateTime("2024-08-24T00:00:00")
     
     # starttime = UTCDateTime("2024-01-01T00:00:00")
     # endtime = UTCDateTime("2024-08-01T00:00:00")
@@ -790,8 +796,8 @@ if __name__ == "__main__":
     provider = Provider(client=client,
                         wav_restrictions=wav_restrictions)
     
-    ### TO SCAN    
-    # db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database2017"
+    # ### TO SCAN    
+    # db_path = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_database2024"
     # scanner = Scanner(db_path,providers=[provider],configure_logging=True)
     # scanner.scan(step=3600,wav_length=86400,level="station",n_processor=4)
     
@@ -837,10 +843,11 @@ if __name__ == "__main__":
     ## plotting results 2
     db_path = "/home/emmanuel/ecastillo/dev/delaware/data/database/delaware_database*"
     scanner = Scanner(db_path,providers=[provider],configure_logging=False)
-    stats =scanner.get_stats(network="TX",station="*",
+    stats =scanner.get_stats(network="*",station="*",
                       location="*",instrument="[CH]H",
                       starttime=UTCDateTime("2019-01-01 00:00:00"),
-                      endtime=UTCDateTime("2024-08-01 00:00:00")
+                      endtime=UTCDateTime("2024-08-01 00:00:00"),
+                      
                       
                     #   stats=["availability"]
                       )
@@ -862,7 +869,8 @@ if __name__ == "__main__":
                                 )
     plot_rolling_stats(stats=stats,freq="1MS",major_step=4,
                        colorbar=colorbar,
-                       major_format="%Y-%m-%d"
+                       major_format="%Y-%m-%d",
+                       filter_stations=["PB17"],
                     #    starttime=datetime.datetime.strptime("2019-01-01 00:00:00", 
                     #                                         "%Y-%m-%d %H:%M:%S"),
                     #    endtime=datetime.datetime.strptime("2025-01-01 00:00:00", 

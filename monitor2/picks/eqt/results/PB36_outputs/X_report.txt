@@ -1,0 +1,21 @@
+================== PREDICTION FROM MSEED ====================
+================== Overal Info ==============================
+date of report: 2024-09-12 00:30:19.180213
+input_model: /home/emmanuel/ecastillo/dev/picking_models/EQTransformer_models/EqT_model.h5
+input_dir: /home/emmanuel/ecastillo/dev/delaware/monitor2/downloads
+output_dir: /home/emmanuel/ecastillo/dev/delaware/monitor2/picks/eqt/results/PB36_outputs
+================== Prediction Parameters =====================
+finished the prediction in:  0 hours and 0 minutes and 0.14 seconds 
+detected: 4 events.
+loss_types: ['binary_crossentropy', 'binary_crossentropy', 'binary_crossentropy']
+loss_weights: [0.03, 0.4, 0.58]
+================== Other Parameters ==========================
+normalization_mode: std
+overlap: 0.3
+batch_size: 1
+detection_threshold: 0.01
+P_threshold: 0.01
+S_threshold: 0.01
+number_of_plots: 0
+gpuid: None
+gpu_limit: None

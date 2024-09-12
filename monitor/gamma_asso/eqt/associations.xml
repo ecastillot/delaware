@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<seiscomp xmlns="http://geofon.gfz-potsdam.de/ns/seiscomp3-schema/0.12" version="0.12">
+  <EventParameters publicID="smi:local/catalog/623dd881-0acf-4ec1-af39-2b6ffcb25a63">
+    <pick publicID="smi:local/20221116.213015.83-P-TX.PB28.00.HH">
+      <time>
+        <value>2022-11-16T21:30:15.830000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>87.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB28" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB28.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.959211Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.87, "GaMMA_probability": 0.13408978711474756, "snr": 28.1, "detection_probability": 0.92, "event_start_time": "2022-11-16 21:30:15.770000", "event_end_time": "2022-11-16 21:30:17.490000"}</text>
+        <id>smi:local/8e69531b-d9a6-404e-a2a8-4a16811b8e6d</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213015.97-P-TX.PB37.00.HH">
+      <time>
+        <value>2022-11-16T21:30:15.970000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>86.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB37" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB37.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.959501Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.86, "GaMMA_probability": 0.13239993182287418, "snr": 38.3, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:15.850000", "event_end_time": "2022-11-16 21:30:17.850000"}</text>
+        <id>smi:local/f568fee0-4108-4443-90cc-0c5a9cd45319</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213016.59-P-TX.PB29.00.HH">
+      <time>
+        <value>2022-11-16T21:30:16.590000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>83.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB29" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB29.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.959729Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.83, "GaMMA_probability": 0.12778535599418522, "snr": 21.1, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:16.550000", "event_end_time": "2022-11-16 21:30:18.910000"}</text>
+        <id>smi:local/3951078d-d3e3-4ec0-8225-33eefc2c6800</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213016.68-P-TX.PB35.00.HH">
+      <time>
+        <value>2022-11-16T21:30:16.680000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>78.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB35" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB35.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.959971Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.78, "GaMMA_probability": 0.12020630716548289, "snr": 22.3, "detection_probability": 0.87, "event_start_time": "2022-11-16 21:30:16.600000", "event_end_time": "2022-11-16 21:30:19.230000"}</text>
+        <id>smi:local/20e2d111-f725-4077-9aca-185eefe22c34</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213016.80-P-TX.PB36.00.HH">
+      <time>
+        <value>2022-11-16T21:30:16.800000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>75.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB36" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB36.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.960199Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.75, "GaMMA_probability": 0.1340762300655038, "snr": 14.4, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:16.730000", "event_end_time": "2022-11-16 21:30:19.430000"}</text>
+        <id>smi:local/e9e6aebc-010e-4818-9a2c-4af495066daa</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213016.97-S-TX.PB28.00.HH">
+      <time>
+        <value>2022-11-16T21:30:16.970000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>83.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB28" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB28.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.960420Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.83, "GaMMA_probability": 0.1155985715588204, "snr": 12.7, "detection_probability": 0.92, "event_start_time": "2022-11-16 21:30:15.770000", "event_end_time": "2022-11-16 21:30:17.490000"}</text>
+        <id>smi:local/f3da91a0-4abe-46d6-9367-5a279e3f85fb</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213017.08-P-TX.PB38.00.HH">
+      <time>
+        <value>2022-11-16T21:30:17.080000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>73.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB38" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB38.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>P</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.960631Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.73, "GaMMA_probability": 0.12790371751061008, "snr": 12.4, "detection_probability": 0.85, "event_start_time": "2022-11-16 21:30:16.910000", "event_end_time": "2022-11-16 21:30:20.060000"}</text>
+        <id>smi:local/f42583d8-86c2-423d-a301-27883dd6d035</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213017.28-S-TX.PB37.00.HH">
+      <time>
+        <value>2022-11-16T21:30:17.280000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>83.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB37" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB37.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.961331Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.83, "GaMMA_probability": 0.11249705614544647, "snr": 15.0, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:15.850000", "event_end_time": "2022-11-16 21:30:17.850000"}</text>
+        <id>smi:local/26342ad7-d6f0-45de-bdc3-e6618566d22e</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213018.20-S-TX.PB29.00.HH">
+      <time>
+        <value>2022-11-16T21:30:18.200000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>80.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB29" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB29.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.961581Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.8, "GaMMA_probability": 0.12783020661921912, "snr": 9.6, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:16.550000", "event_end_time": "2022-11-16 21:30:18.910000"}</text>
+        <id>smi:local/d8802555-981f-43ca-b121-d8f02a4fe5ec</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213018.45-S-TX.PB35.00.HH">
+      <time>
+        <value>2022-11-16T21:30:18.450000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>75.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB35" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB35.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.961800Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.75, "GaMMA_probability": 0.12331036885029124, "snr": 6.7, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:16.670000", "event_end_time": "2022-11-16 21:30:19.230000"}</text>
+        <id>smi:local/c9976637-556e-45ef-976d-d445b7a5142b</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213018.66-S-TX.PB36.00.HH">
+      <time>
+        <value>2022-11-16T21:30:18.660000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>80.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB36" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB36.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.962008Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.8, "GaMMA_probability": 0.09384477659901674, "snr": 6.4, "detection_probability": 0.93, "event_start_time": "2022-11-16 21:30:16.730000", "event_end_time": "2022-11-16 21:30:19.430000"}</text>
+        <id>smi:local/8da5b542-d312-4c2e-be4d-8f05e4ee1cfd</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213019.12-S-TX.PB38.00.HH">
+      <time>
+        <value>2022-11-16T21:30:19.120000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>70.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB38" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB38.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.962208Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.7, "GaMMA_probability": 0.11560364753774774, "snr": 9.2, "detection_probability": 0.85, "event_start_time": "2022-11-16 21:30:16.910000", "event_end_time": "2022-11-16 21:30:20.060000"}</text>
+        <id>smi:local/0b2df6c7-d597-4b22-84bf-e4dcddbf353d</id>
+      </comment>
+    </pick>
+    <pick publicID="smi:local/20221116.213026.95-S-TX.PB26.00.HH">
+      <time>
+        <value>2022-11-16T21:30:26.953000Z</value>
+        <uncertainty>0.2</uncertainty>
+        <confidenceLevel>8.0</confidenceLevel>
+      </time>
+      <waveformID networkCode="TX" stationCode="PB26" locationCode="00" channelCode="HHZ">
+        <resourceURI>smi:local/TX.PB26.00.HHZ</resourceURI>
+      </waveformID>
+      <methodID>smi:local/EQTransformer</methodID>
+      <phaseHint>S</phaseHint>
+      <evaluationMode>automatic</evaluationMode>
+      <creationInfo>
+        <author>EQTransformer</author>
+        <creationTime>2024-09-11T18:12:59.962400Z</creationTime>
+      </creationInfo>
+      <comment>
+        <text>{"probability": 0.08, "GaMMA_probability": 0.12329076465868703, "snr": 6.9, "detection_probability": 0.15, "event_start_time": "2022-11-16 21:30:14.493000", "event_end_time": "2022-11-16 21:30:34.183000"}</text>
+        <id>smi:local/ed4cd0fc-230e-4e2c-bd0e-f6a1882ed646</id>
+      </comment>
+    </pick>
+    <origin publicID="smi:local/20221116.213014.356000">
+      <time>
+        <value>2022-11-16T21:30:14.356000Z</value>
+        <uncertainty>0.027118739108360216</uncertainty>
+      </time>
+      <latitude>
+        <value>31.66036306320353</value>
+      </latitude>
+      <longitude>
+        <value>-104.56072357632654</value>
+      </longitude>
+      <depth>
+        <value>0.00667784761847873</value>
+      </depth>
+      <methodID>smi:local/GaMMA</methodID>
+      <quality>
+        <associatedPhaseCount>0</associatedPhaseCount>
+      </quality>
+      <evaluationMode>automatic</evaluationMode>
+      <evaluationStatus>preliminary</evaluationStatus>
+      <creationInfo>
+        <author>SeisMonitor</author>
+        <creationTime>2024-09-11T18:12:59.958109Z</creationTime>
+      </creationInfo>
+    </origin>
+    <origin publicID="smi:local/20221116.213244.845000">
+      <time>
+        <value>2022-11-16T21:32:44.845000Z</value>
+        <uncertainty>0.40909977501211187</uncertainty>
+      </time>
+      <latitude>
+        <value>31.656506074762657</value>
+      </latitude>
+      <longitude>
+        <value>-103.99363373918797</value>
+      </longitude>
+      <depth>
+        <value>0.00844167711470059</value>
+      </depth>
+      <methodID>smi:local/GaMMA</methodID>
+      <quality>
+        <associatedPhaseCount>13</associatedPhaseCount>
+      </quality>
+      <evaluationMode>automatic</evaluationMode>
+      <evaluationStatus>preliminary</evaluationStatus>
+      <creationInfo>
+        <author>SeisMonitor</author>
+        <creationTime>2024-09-11T18:12:59.966212Z</creationTime>
+      </creationInfo>
+      <arrival>
+        <pickID>smi:local/20221116.213015.83-P-TX.PB28.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.87</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.959211Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213015.97-P-TX.PB37.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.86</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.959501Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213016.59-P-TX.PB29.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.83</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.959729Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213016.68-P-TX.PB35.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.78</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.959971Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213016.80-P-TX.PB36.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.75</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.960199Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213016.97-S-TX.PB28.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.83</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.960420Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213017.08-P-TX.PB38.00.HH</pickID>
+        <phase>P</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.73</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.960631Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213017.28-S-TX.PB37.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.83</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.961331Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213018.20-S-TX.PB29.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.8</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.961581Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213018.45-S-TX.PB35.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.75</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.961800Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213018.66-S-TX.PB36.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.8</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.962008Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213019.12-S-TX.PB38.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.7</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.962208Z</creationTime>
+        </creationInfo>
+      </arrival>
+      <arrival>
+        <pickID>smi:local/20221116.213026.95-S-TX.PB26.00.HH</pickID>
+        <phase>S</phase>
+        <timeUsed>true</timeUsed>
+        <weight>0.08</weight>
+        <creationInfo>
+          <author>EQTransformer</author>
+          <creationTime>2024-09-11T18:12:59.962400Z</creationTime>
+        </creationInfo>
+      </arrival>
+    </origin>
+    <event publicID="smi:local/20221116.213014.356000">
+      <preferredOriginID>smi:local/20221116.213014.356000</preferredOriginID>
+      <type>earthquake</type>
+      <typeCertainty>known</typeCertainty>
+      <creationInfo>
+        <author>SeisMonitor</author>
+        <creationTime>2024-09-11T18:12:59.958442Z</creationTime>
+      </creationInfo>
+      <originReference>smi:local/20221116.213014.356000</originReference>
+    </event>
+    <event publicID="smi:local/20221116.213244.845000">
+      <preferredOriginID>smi:local/20221116.213244.845000</preferredOriginID>
+      <type>earthquake</type>
+      <typeCertainty>known</typeCertainty>
+      <creationInfo>
+        <author>SeisMonitor</author>
+        <creationTime>2024-09-11T18:12:59.966334Z</creationTime>
+      </creationInfo>
+      <originReference>smi:local/20221116.213244.845000</originReference>
+    </event>
+  </EventParameters>
+</seiscomp>

@@ -1,0 +1,2 @@
+file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
+WB03/4O.WB03.00.HHZ__20231207T040259Z__20231207T040759Z.mseed,4O,WB03,HH,31.6107215,-103.9688386,994.0,2023-12-07 04:05:50.628500,2023-12-07 04:05:54.008500,0.06,,2023-12-07 04:05:51.478500,0.04,,4.3,2023-12-07 04:05:53.078500,0.14,,9.1

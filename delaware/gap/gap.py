@@ -136,12 +136,15 @@ def run_gap(sta_csv, out_folder, grid, step):
 
 if __name__ == "__main__":
 
-    step = 0.01
-    grid = [-104.84329,-103.79942,31.39610,31.91505]
+    step = 0.01 
+
+    # grid = [-104.84329,-103.79942,31.39610,31.91505] # AOI
+    # grid = [-103.9989,-102.9081,30.7996,31.7140] #aux
+    grid = [-104.84329,-102.9081,30.7996,31.91505] #total
     # sta_csv = "/home/emmanuel/Ecopetrol/ISOGAP/data/akacias.csv"
     # sta_csv = "/home/emmanuel/Ecopetrol/ISOGAP/data/akacias_2.csv"
     sta_csv = "/home/emmanuel/ecastillo/dev/delaware/data/metadata/delaware_onlystations_160824.csv"
-    out_folder = "/home/emmanuel/ecastillo/dev/delaware/data/gap"
+    out_folder = "/home/emmanuel/ecastillo/dev/delaware/data/gap_total"
     run_gap(sta_csv,out_folder,grid,
                 step)
 
