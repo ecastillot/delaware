@@ -1,3 +1,0 @@
-file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
-SA04/4O.SA04.00.HHZ__20231207T040259Z__20231207T040759Z.mseed,4O,SA04,HH,31.75593,-104.25458,1092.1,2023-12-07 04:05:53.039000,2023-12-07 04:05:59.239000,0.04,,2023-12-07 04:05:54.009000,0.04,,9.9,2023-12-07 04:05:57.529000,0.05,,7.9
-SA04/4O.SA04.00.HHZ__20231207T040259Z__20231207T040759Z.mseed,4O,SA04,HH,31.75593,-104.25458,1092.1,2023-12-07 04:06:09.779000,2023-12-07 04:06:16.169000,0.23,,2023-12-07 04:06:10.239000,0.14,,10.2,2023-12-07 04:06:13.759000,0.18,,9.2

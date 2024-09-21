@@ -1,3 +1,0 @@
-file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
-PB37/TX.PB37.00.HHZ__20221116T213000Z__20221116T213500Z.mseed,TX,PB37,HH,31.71847,-104.528416,1263.0,2022-11-16 21:30:15.780000,2022-11-16 21:30:17.980000,0.84,,2022-11-16 21:30:15.950000,0.89,,38.4,2022-11-16 21:30:17.280000,0.8,,15.0
-PB37/TX.PB37.00.HHZ__20221116T213000Z__20221116T213500Z.mseed,TX,PB37,HH,31.71847,-104.528416,1263.0,2022-11-16 21:32:52.900000,2022-11-16 21:33:03.700000,0.78,,2022-11-16 21:32:54,0.78,,21.2,2022-11-16 21:32:59.940000,0.38,,3.1

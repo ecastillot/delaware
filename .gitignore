@@ -1,3 +1,4 @@
 data/database/delaware_database*/**
 data/metadata/delaware_database*_log/**
+data/seismonitor/**
 **.mseed

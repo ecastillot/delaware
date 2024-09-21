@@ -1,3 +1,0 @@
-file_name,network,station,instrument_type,station_lat,station_lon,station_elv,event_start_time,event_end_time,detection_probability,detection_uncertainty,p_arrival_time,p_probability,p_uncertainty,p_snr,s_arrival_time,s_probability,s_uncertainty,s_snr
-WB05/4O.WB05.00.HHE__20231207T040300Z__20231207T040759Z.mseed,4O,WB05,HH,31.7537807,-103.8329479,854.81,2023-12-07 04:05:48.002500,2023-12-07 04:06:04.852500,0.31,,2023-12-07 04:05:52.132500,0.06,,0.5,2023-12-07 04:05:58.322500,0.08,,2.2
-WB05/4O.WB05.00.HHE__20231207T040300Z__20231207T040759Z.mseed,4O,WB05,HH,31.7537807,-103.8329479,854.81,2023-12-07 04:06:11.112500,2023-12-07 04:06:47.992500,0.13,,2023-12-07 04:06:20.352500,0.02,,0.5,2023-12-07 04:06:25.712500,0.02,,2.2
