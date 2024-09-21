@@ -10,3 +10,8 @@
 4. GrowClust 1D
     -	Start with nonlinloc as input catalog
     -	Start with GrowClust 3D as input catalog 
+
+# Rep Updates
+
+- **01082024**: It corresponds to the first analysis done to the TX high resolution catalog. It was previous to present the results to Alexandor's meetings.
+- **21092024**: After first Alexandros meeting on Sep 19.
