@@ -1,6 +1,7 @@
 
 from obspy.clients.fdsn import Client 
 import pandas as pd
+import os
 
 def get_custom_picks(event):
     """
@@ -221,8 +222,11 @@ def get_custom_origin(event):
         ("loc", "earth_model_id"): origin.earth_model_id.id,
     }
     
+    
     # Prepare method information from origin uncertainty
-    method_info = {("method", x): y for x, y in dict(origin.origin_uncertainty).items()}
+    method_info = {("method", x): y for x, y in dict(origin.origin_uncertainty).items() if x != "confidence_ellipsoid"}
+    method_info2 = {("method", x): y for x, y in dict(origin.origin_uncertainty.confidence_ellipsoid).items()}
+    method_info.update(method_info2)
     
     # Prepare creation information
     creation_info = {("creation", x): y for x, y in dict(origin.creation_info).items()}
@@ -232,6 +236,9 @@ def get_custom_origin(event):
     info.update(loc_info)
     info.update(method_info)
     info.update(creation_info)
+    
+    # for x, y in info.items():
+    #     print(x, y)
     
     return info
     
@@ -257,6 +264,7 @@ def get_custom_info(event):
     # Retrieve custom origin information from the event
     origin_info = get_custom_origin(event)
     
+    
     # Retrieve picks information and contributions from the event
     picks_info, picks_contributions = get_custom_arrivals(event)
     
@@ -275,8 +283,13 @@ def get_custom_info(event):
     # Update the origin information with magnitude information
     origin_info.update(mag_info)
     
+    # for x, y in origin_info.items():
+    #     print(x, y)
+    
     # Convert the combined origin information into a Pandas DataFrame
-    origin_info = pd.DataFrame.from_dict(origin_info)
+    origin_info = pd.DataFrame([origin_info])
+    # Create a MultiIndex for the columns using the dictionary keys (tuples)
+    origin_info.columns = pd.MultiIndex.from_tuples(origin_info.keys())
     
     return origin_info, picks_contributions, mag_contributions
 
@@ -311,6 +324,26 @@ def get_event_ids(catalog):
     return ev_ids
         
 
+def save_info(path,info):
+    
+    for key, value in info.items():
+        
+        
+        info_path = os.path.join(path,f"{key}.csv")
+        # Save the dataframes to files, appending if they already exist
+        value.to_csv(info_path, mode='a', 
+                    header=not pd.io.common.file_exists(info_path), 
+                    index=False)
+        # print(f"{info_path}")
+    # picks_path = os.path.join(path,"picks.csv")
+    # mags_path = os.path.join(path,"mags.csv")
+    # picks.to_csv(picks_path, mode='a', 
+    #              header=not pd.io.common.file_exists(picks_path), 
+    #              index=False)
+    # mags.to_csv(mags_path, mode='a', 
+    #             header=not pd.io.common.file_exists(mags_path), 
+    #             index=False)
+
 class CustomClient(Client):
     """
     A custom client class that extends the base Client class to 
@@ -333,7 +366,7 @@ class CustomClient(Client):
         """
         super().__init__(*args, **kwargs)
         
-    def get_custom_events(self, *args, **kwargs):
+    def get_custom_events(self, *args, output_folder=None, **kwargs):
         """
         Retrieves custom seismic event data including origins, picks, 
         and magnitudes.
@@ -372,10 +405,22 @@ class CustomClient(Client):
             # Extract custom information for the event
             origin, picks, mags = get_custom_info(event)
             
+            info = {"origin":origin,
+                    "picks":picks,
+                    "mags":mags}
+            
+            if output_folder is not None:
+                if not os.path.isdir(output_folder):
+                    os.makedirs(output_folder)
+                    
+                save_info(output_folder,info=info)
+            
+            
             # Append the retrieved information to respective lists
             all_origins.append(origin)
             all_picks.append(picks)
             all_mags.append(mags)
+        
         
         # Concatenate the data from all events if multiple events are found
         if len(ev_ids) > 1:
@@ -390,4 +435,20 @@ class CustomClient(Client):
             
         return all_origins, all_picks, all_mags
         
-        
+if __name__=="__main__":
+    from obspy import UTCDateTime
+
+
+    provider = "USGS"
+    client =  CustomClient(provider)
+    region = [-104.84329,-103.79942,31.39610,31.91505]
+    cat = client.get_custom_events(starttime=UTCDateTime("2024-04-18T23:00:00"),
+                            endtime=UTCDateTime("2024-04-19T23:00:00"),
+                            minlatitude=region[2], maxlatitude=region[3], 
+                            minlongitude=region[0], maxlongitude=region[1],
+                            includeallorigins=True,
+                            #eventid="tx2024hstr",
+                            #includeallmagnitudes=True,
+                            )
+    print(cat)
+    
