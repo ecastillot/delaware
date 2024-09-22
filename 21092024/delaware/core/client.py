@@ -2,6 +2,7 @@
 from obspy.clients.fdsn import Client 
 import pandas as pd
 import os
+import sqlite3
 
 def get_custom_picks(event):
     """
@@ -21,17 +22,17 @@ def get_custom_picks(event):
     # Loop through each pick in the event
     for pick in event.picks:
         picks[pick.resource_id.id] = {
-            "network_code": pick.waveform_id.network_code,
-            "station_code": pick.waveform_id.station_code,
-            "location_code": pick.waveform_id.location_code,
-            "channel_code": pick.waveform_id.channel_code,
+            "network_code": pick.waveform_id.network_code if pick.waveform_id is not None else None,
+            "station_code": pick.waveform_id.station_code if pick.waveform_id is not None else None,
+            "location_code": pick.waveform_id.location_code if pick.waveform_id is not None else None,
+            "channel_code": pick.waveform_id.channel_code if pick.waveform_id is not None else None,
             "phase_hint": pick.phase_hint,
             "time": pick.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f"),
-            "time_lower_error": pick.time_errors.lower_uncertainty,
-            "time_upper_error": pick.time_errors.upper_uncertainty,
-            "author": pick.creation_info.author,
-            "filter_id": pick.filter_id,
-            "method_id": pick.method_id,
+            "time_lower_error": pick.time_errors.lower_uncertainty if pick.time_errors is not None else None,
+            "time_upper_error": pick.time_errors.upper_uncertainty if pick.time_errors is not None else None,
+            "author": pick.creation_info.author if pick.creation_info is not None else None,
+            "filter_id": pick.filter_id.id if pick.filter_id is not None else None ,
+            "method_id": pick.method_id.id if pick.method_id is not None else None,
             "polarity": pick.polarity,
             "evaluation_mode": pick.evaluation_mode,
             "evaluation_status": pick.evaluation_status
@@ -57,10 +58,10 @@ def get_custom_station_magnitudes(event):
     # Loop through each station magnitude in the event
     for sta_mag in event.station_magnitudes:
         sta_mags[sta_mag.resource_id.id] = {
-            "network_code": sta_mag.waveform_id.network_code,
-            "station_code": sta_mag.waveform_id.station_code,
-            "location_code": sta_mag.waveform_id.location_code,
-            "channel_code": sta_mag.waveform_id.channel_code,
+            "network_code": sta_mag.waveform_id.network_code if sta_mag.waveform_id is not None else None,
+            "station_code": sta_mag.waveform_id.station_code if sta_mag.waveform_id is not None else None,
+            "location_code": sta_mag.waveform_id.location_code if sta_mag.waveform_id is not None else None,
+            "channel_code": sta_mag.waveform_id.channel_code if sta_mag.waveform_id is not None else None,
             "mag": sta_mag.mag,
             "mag_type": sta_mag.station_magnitude_type
         }
@@ -81,6 +82,7 @@ def get_custom_arrivals(event):
         A tuple containing origin quality information and a DataFrame of 
         arrival contributions with associated picks.
     """
+    ev_id = event.resource_id.id.split("/")[-1]
     origin = event.preferred_origin()
     
     # Get origin quality information
@@ -93,7 +95,14 @@ def get_custom_arrivals(event):
     
     # Loop through each arrival in the origin
     for arrival in origin.arrivals:
-        pick_info = picks[arrival.pick_id.id]
+        
+        try:
+            pick_info = picks[arrival.pick_id.id]
+        except Exception as e:
+            print(f"Event: {ev_id} | Pick not found:",e)
+            continue
+        
+        
         pick_info["time_correction"] = arrival.time_correction
         pick_info["azimuth"] = arrival.azimuth
         pick_info["distance"] = arrival.distance
@@ -139,14 +148,15 @@ def get_custom_pref_mag(event):
         A tuple containing preferred magnitude information and a DataFrame of 
         station magnitude contributions.
     """
+    ev_id = event.resource_id.id.split("/")[-1]
     magnitude = event.preferred_magnitude()
     
     # Get preferred magnitude information
     info = {
         "mag": magnitude.mag,
-        "uncertainty": magnitude.mag_errors.uncertainty,
+        "uncertainty": magnitude.mag_errors.uncertainty if magnitude.mag_errors is not None else None,
         "type": magnitude.magnitude_type,
-        "method_id": magnitude.method_id.id.split("/")[-1],
+        "method_id": magnitude.method_id.id.split("/")[-1] if magnitude.method_id is not None else None,
         "station_count": magnitude.station_count,
         "evaluation_status": magnitude.evaluation_status,
     }
@@ -158,11 +168,16 @@ def get_custom_pref_mag(event):
     
     # Loop through each station magnitude contribution
     for used_sta_mag in magnitude.station_magnitude_contributions:
-        sta_info = sta_mags[used_sta_mag.station_magnitude_id.id]
+        
+        try:
+            sta_info = sta_mags[used_sta_mag.station_magnitude_id.id]
+        except Exception as e:
+            print(f"Event: {ev_id} | StationMagnitude not found:",e)
+            continue
+            
         sta_info["residual"] = used_sta_mag.residual
         sta_info["weight"] = used_sta_mag.weight
         sta_info["used"] = True
-        
         mag_contributions[used_sta_mag.station_magnitude_id.id] = sta_info
     
     # Identify station magnitudes not used in contributions
@@ -201,7 +216,7 @@ def get_custom_origin(event):
     
     # Prepare event information
     ev_info = {
-        ("event", "id"): event.resource_id.id.split("/")[-1],
+        ("event", "id"): event.resource_id.id.split("/")[-1] if event.resource_id is not None else None,
         ("event", "type"): event.event_type,
         ("event", "type_certainty"): event.event_type_certainty,
         ("event", "agency"): origin.creation_info.agency_id,
@@ -211,15 +226,15 @@ def get_custom_origin(event):
     
     # Prepare location information
     loc_info = {
-        ("loc", "origin_time"): origin.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f"),
+        ("loc", "origin_time"): origin.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f") if origin.time is not None else None,
         ("loc", "longitude"): origin.longitude,
         ("loc", "longitude_error"): origin.longitude_errors.uncertainty,
         ("loc", "latitude"): origin.latitude,
         ("loc", "latitude_error"): origin.latitude_errors.uncertainty,
         ("loc", "depth"): origin.depth,
-        ("loc", "depth_error"): origin.depth_errors.uncertainty,
-        ("loc", "method_id"): origin.method_id.id,
-        ("loc", "earth_model_id"): origin.earth_model_id.id,
+        ("loc", "depth_error"): origin.depth_errors.uncertainty if origin.depth_errors is not None else None,
+        ("loc", "method_id"): origin.method_id.id if origin.method_id is not None else None,
+        ("loc", "earth_model_id"): origin.earth_model_id.id if origin.earth_model_id is not None else None,
     }
     
     
@@ -328,22 +343,40 @@ def save_info(path,info):
     
     for key, value in info.items():
         
-        
-        info_path = os.path.join(path,f"{key}.csv")
-        # Save the dataframes to files, appending if they already exist
-        value.to_csv(info_path, mode='a', 
-                    header=not pd.io.common.file_exists(info_path), 
-                    index=False)
-        # print(f"{info_path}")
-    # picks_path = os.path.join(path,"picks.csv")
-    # mags_path = os.path.join(path,"mags.csv")
-    # picks.to_csv(picks_path, mode='a', 
-    #              header=not pd.io.common.file_exists(picks_path), 
-    #              index=False)
-    # mags.to_csv(mags_path, mode='a', 
-    #             header=not pd.io.common.file_exists(mags_path), 
-    #             index=False)
-
+        if key == "origin":
+            info_path = os.path.join(path,f"{key}.csv")
+            # Save the dataframes to files, appending if they already exist
+            value.to_csv(info_path, mode='a', 
+                        header=not pd.io.common.file_exists(info_path), 
+                        index=False)
+        else:
+            info_path = os.path.join(path,f"{key}.db")
+            
+            for ev_id,df_by_evid in value.groupby("ev_id").__iter__():
+                with sqlite3.connect(info_path) as conn:
+                    # Save DataFrame to SQLite database, appending if the table exists
+                    df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
+                        
+                # testing...        
+                # try:
+                
+                #     with sqlite3.connect(info_path) as conn:
+                #         # if "time" in list(df_by_evid.columns):
+                #         #     df_by_evid['time'] = df_by_evid['time'].astype(str)
+                #         # df_by_evid.fillna(value='NULL', inplace=True)
+                #         # print(key,df_by_evid.info())
+                #         # for i,row in df_by_evid.iterrows():
+                #         #     print(i,row)
+                #         # Save DataFrame to SQLite database, appending if the table exists
+                #         # df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
+                #         df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
+                # except:
+                #     print(ev_id)
+                #     with sqlite3.connect(os.path.join(path,f"{key}.bad")) as conn:
+                #         df_by_evid.to_csv(os.path.join(path,f"{key}.csv"))
+                #         df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
+                #     # exit()
+                        
 class CustomClient(Client):
     """
     A custom client class that extends the base Client class to 
@@ -366,7 +399,7 @@ class CustomClient(Client):
         """
         super().__init__(*args, **kwargs)
         
-    def get_custom_events(self, *args, output_folder=None, **kwargs):
+    def get_custom_events(self, *args, max_events_in_ram=1e6, output_folder=None, **kwargs):
         """
         Retrieves custom seismic event data including origins, picks, 
         and magnitudes.
@@ -374,6 +407,12 @@ class CustomClient(Client):
         Parameters:
         *args : variable length argument list
             Positional arguments passed to the get_events method.
+        max_events_in_ram : int, optional, default=1e6
+            Maximum number of events to hold in memory (RAM) before stopping or 
+            prompting to save the data to disk.
+        output_folder : str, optional, default=None
+            Folder path where the event data will be saved if provided. If not 
+            specified, data will only be stored in memory.
         **kwargs : variable length keyword arguments
             Keyword arguments passed to the get_events method.
 
@@ -386,53 +425,62 @@ class CustomClient(Client):
         """
         # Retrieve the catalog of events using the get_events method
         catalog = self.get_events(*args, **kwargs)
-        
+
         # Extract event IDs from the catalog
         ev_ids = get_event_ids(catalog)
-        
+
         # Initialize lists to store origins, picks, and magnitudes
         all_origins, all_picks, all_mags = [], [], []
-        
+
         # Loop through each event ID to gather detailed event information
         for ev_id in ev_ids:
             # Catalog with arrivals. This is a workaround to retrieve 
             # arrivals by specifying the event ID.
             cat = self.get_events(eventid=ev_id)
-            
+
             # Get the first event from the catalog
             event = cat[0]
-            
+
             # Extract custom information for the event
             origin, picks, mags = get_custom_info(event)
-            
-            info = {"origin":origin,
-                    "picks":picks,
-                    "mags":mags}
-            
+
+            info = {
+                "origin": origin,
+                "picks": picks,
+                "mags": mags
+            }
+
+            # Save information to the output folder, if specified
             if output_folder is not None:
                 if not os.path.isdir(output_folder):
                     os.makedirs(output_folder)
-                    
-                save_info(output_folder,info=info)
-            
-            
-            # Append the retrieved information to respective lists
-            all_origins.append(origin)
-            all_picks.append(picks)
-            all_mags.append(mags)
-        
-        
-        # Concatenate the data from all events if multiple events are found
+                save_info(output_folder, info=info)
+
+            # Append information to the lists or break if memory limit is reached
+            if len(all_origins) < max_events_in_ram:
+                all_origins.append(origin)
+                all_picks.append(picks)
+                all_mags.append(mags)
+            else:
+                if output_folder is not None:
+                    print(f"max_events_in_ram: {max_events_in_ram} is reached. "
+                        "But it is still saving on disk.")
+                else:
+                    print(f"max_events_in_ram: {max_events_in_ram} is reached. "
+                        "It is recommended to save the data on disk using the 'output_folder' parameter.")
+                    break
+
+        # Concatenate data from all events, if multiple events are found
         if len(ev_ids) > 1:
             all_origins = pd.concat(all_origins, axis=0)
             all_picks = pd.concat(all_picks, axis=0)
             all_mags = pd.concat(all_mags, axis=0)
         else:
-            # If only one event is found, keep the single DataFrame
+            # If only one event is found, retain the single DataFrame
             all_origins = all_origins[0]
             all_picks = all_picks[0]
             all_mags = all_mags[0]
-            
+
         return all_origins, all_picks, all_mags
         
 if __name__=="__main__":
