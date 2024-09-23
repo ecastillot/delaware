@@ -5,9 +5,20 @@ from obspy import UTCDateTime
 provider = "USGS"
 client =  CustomClient(provider)
 region = [-104.84329,-103.79942,31.39610,31.91505]
-output_folder = "/home/emmanuel/ecastillo/dev/delaware/21092024/output/delaware_20170101_20240901"
+output_folder = "/home/emmanuel/ecastillo/dev/delaware/21092024/output/delaware_20170101_20240922"
 
 years = range(2017,2025)
+
+#usgs 2020-01-02 16:03:51.348000
+#texnet 2021-12-31 22:56:50.593883
+
+# cat,picks,mag = client.get_custom_events(
+#                                 minlatitude=region[2], maxlatitude=region[3], 
+#                                 minlongitude=region[0], maxlongitude=region[1],
+#                                 includeallorigins=True,
+#                                 output_folder=output_folder,
+#                                 starttime=UTCDateTime(f"2021-02-18 00:03:51.348000"),
+#                                 endtime=UTCDateTime(f"2021-02-18 23:56:50.593883"),)
 
 for year in years:
     print("YEAR",year)

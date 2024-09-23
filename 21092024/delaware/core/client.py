@@ -1,3 +1,12 @@
+# /**
+#  * @author Emmanuel Castillo
+#  * @email [castillo.280997@gmail.com]
+#  * @create date 2024-09-22 22:07:55
+#  * @modify date 2024-09-22 22:07:55
+#  * @desc [description]
+#  */
+
+
 
 from obspy.clients.fdsn import Client 
 import pandas as pd
@@ -219,45 +228,56 @@ def get_custom_origin(event):
         ("event", "id"): event.resource_id.id.split("/")[-1] if event.resource_id is not None else None,
         ("event", "type"): event.event_type,
         ("event", "type_certainty"): event.event_type_certainty,
-        ("event", "agency"): origin.creation_info.agency_id,
-        ("event", "evaluation_mode"): origin.evaluation_mode,
-        ("event", "evaluation_status"): origin.evaluation_status
     }
     
     # Prepare location information
     loc_info = {
-        ("loc", "origin_time"): origin.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f") if origin.time is not None else None,
-        ("loc", "longitude"): origin.longitude,
-        ("loc", "longitude_error"): origin.longitude_errors.uncertainty,
-        ("loc", "latitude"): origin.latitude,
-        ("loc", "latitude_error"): origin.latitude_errors.uncertainty,
-        ("loc", "depth"): origin.depth,
-        ("loc", "depth_error"): origin.depth_errors.uncertainty if origin.depth_errors is not None else None,
-        ("loc", "method_id"): origin.method_id.id if origin.method_id is not None else None,
-        ("loc", "earth_model_id"): origin.earth_model_id.id if origin.earth_model_id is not None else None,
+        ("origin_loc", "agency"): origin.creation_info.agency_id,
+        ("origin_loc", "evaluation_mode"): origin.evaluation_mode,
+        ("origin_loc", "evaluation_status"): origin.evaluation_status,
+        ("origin_loc", "origin_time"): origin.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f") if origin.time is not None else None,
+        ("origin_loc", "longitude"): origin.longitude,
+        ("origin_loc", "longitude_error"): origin.longitude_errors.uncertainty,
+        ("origin_loc", "latitude"): origin.latitude,
+        ("origin_loc", "latitude_error"): origin.latitude_errors.uncertainty,
+        ("origin_loc", "depth"): origin.depth,
+        ("origin_loc", "depth_error"): origin.depth_errors.uncertainty if origin.depth_errors is not None else None,
+        ("origin_loc", "method_id"): origin.method_id.id if origin.method_id is not None else None,
+        ("origin_loc", "earth_model_id"): origin.earth_model_id.id if origin.earth_model_id is not None else None}
+        
+    unc_loc_info = {   
+        ("origin_uncertainty_loc", "horizontal_uncertainty"): origin.origin_uncertainty.horizontal_uncertainty if origin.origin_uncertainty is not None else None,
+        ("origin_uncertainty_loc", "min_horizontal_uncertainty"): origin.origin_uncertainty.min_horizontal_uncertainty if origin.origin_uncertainty is not None else None,
+        ("origin_uncertainty_loc", "max_horizontal_uncertainty"): origin.origin_uncertainty.max_horizontal_uncertainty if origin.origin_uncertainty is not None else None,
+        ("origin_uncertainty_loc", "azimuth_max_horizontal_uncertainty"): origin.origin_uncertainty.azimuth_max_horizontal_uncertainty if origin.origin_uncertainty is not None else None,
+        ("origin_uncertainty_loc", "semi_major_axis_length"):None,
+        ("origin_uncertainty_loc", "semi_minor_axis_length"):None,
+        ("origin_uncertainty_loc", "semi_intermediate_axis_length"):None,
+        ("origin_uncertainty_loc", "major_axis_plunge"):None,
+        ("origin_uncertainty_loc", "major_axis_azimuth"):None,
+        ("origin_uncertainty_loc", "major_axis_rotation"):None,
     }
     
     
-    # Prepare method information from origin uncertainty
-    method_info = {("method", x): y for x, y in dict(origin.origin_uncertainty).items() if x != "confidence_ellipsoid"}
-    method_info2 = {("method", x): y for x, y in dict(origin.origin_uncertainty.confidence_ellipsoid).items()}
-    method_info.update(method_info2)
+    if origin.origin_uncertainty is not None:
+        if origin.origin_uncertainty.confidence_ellipsoid is not None:
+            unc_loc_info[("origin_uncertainty_loc", "semi_major_axis_length")] = origin.origin_uncertainty.confidence_ellipsoid.semi_major_axis_length
+            unc_loc_info[("origin_uncertainty_loc", "semi_minor_axis_length")] = origin.origin_uncertainty.confidence_ellipsoid.semi_minor_axis_length
+            unc_loc_info[("origin_uncertainty_loc", "semi_intermediate_axis_length")] = origin.origin_uncertainty.confidence_ellipsoid.semi_intermediate_axis_length
+            unc_loc_info[("origin_uncertainty_loc", "major_axis_plunge")] = origin.origin_uncertainty.confidence_ellipsoid.major_axis_plunge
+            unc_loc_info[("origin_uncertainty_loc", "major_axis_azimuth")] = origin.origin_uncertainty.confidence_ellipsoid.major_axis_azimuth
+            unc_loc_info[("origin_uncertainty_loc", "major_axis_rotation")] = origin.origin_uncertainty.confidence_ellipsoid.major_axis_rotation
     
-    # Prepare creation information
-    creation_info = {("creation", x): y for x, y in dict(origin.creation_info).items()}
     
     # Combine all information into a single dictionary
     info = ev_info.copy()
     info.update(loc_info)
-    info.update(method_info)
-    info.update(creation_info)
+    info.update(unc_loc_info)
     
     # for x, y in info.items():
     #     print(x, y)
     
     return info
-    
-        
     
 def get_custom_info(event):
     """
@@ -339,23 +359,46 @@ def get_event_ids(catalog):
     return ev_ids
         
 
-def save_info(path,info):
+def save_info(path, info):
+    """
+    Saves the seismic event information to CSV and SQLite database files.
+
+    Parameters:
+    path : str
+        The folder path where the information will be saved.
+    info : dict
+        A dictionary containing seismic event information with keys like 
+        'origin', 'picks', 'mags', etc. Each key has an associated DataFrame.
+    """
     
+    # Iterate through the info dictionary, handling each key-value pair
     for key, value in info.items():
         
+        # If the key is 'origin', save it as a CSV file
         if key == "origin":
-            info_path = os.path.join(path,f"{key}.csv")
-            # Save the dataframes to files, appending if they already exist
-            value.to_csv(info_path, mode='a', 
-                        header=not pd.io.common.file_exists(info_path), 
-                        index=False)
-        else:
-            info_path = os.path.join(path,f"{key}.db")
+            info_path = os.path.join(path, f"{key}.csv")
             
-            for ev_id,df_by_evid in value.groupby("ev_id").__iter__():
+            # Save the DataFrame to a CSV file, appending if the file already exists
+            value.to_csv(
+                info_path, 
+                mode='a',  # Append mode
+                header=not pd.io.common.file_exists(info_path),  # Add header only if the file doesn't exist
+                index=False  # Do not write row numbers
+            )
+        else:
+            # For other keys, save the data in a SQLite database
+            info_path = os.path.join(path, f"{key}.db")
+            
+            # Group the DataFrame by 'ev_id' and iterate over each group
+            for ev_id, df_by_evid in value.groupby("ev_id").__iter__():
                 with sqlite3.connect(info_path) as conn:
-                    # Save DataFrame to SQLite database, appending if the table exists
-                    df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
+                    # Save each group to a SQLite table, appending to the table if it exists
+                    df_by_evid.to_sql(
+                        ev_id, 
+                        conn, 
+                        if_exists='append',  # Append data to the table if it exists
+                        index=False  # Do not write row numbers
+                    )
                         
                 # testing...        
                 # try:
@@ -433,7 +476,7 @@ class CustomClient(Client):
         all_origins, all_picks, all_mags = [], [], []
 
         # Loop through each event ID to gather detailed event information
-        for ev_id in ev_ids:
+        for ev_id in ev_ids[::-1]:
             # Catalog with arrivals. This is a workaround to retrieve 
             # arrivals by specifying the event ID.
             cat = self.get_events(eventid=ev_id)
