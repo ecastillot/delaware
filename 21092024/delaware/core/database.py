@@ -18,7 +18,7 @@ def save_dataframe_to_sqlite(df, db_name, table_name):
         # Save DataFrame to SQLite database, appending if the table exists
         df.to_sql(table_name, conn, if_exists='append', index=False)
 
-def load_dataframe_from_sqlite(db_name, table_name=None, starttime=None, endtime=None):
+def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=None):
     """
     Load a DataFrame from an SQLite database based on optional query parameters.
 
@@ -40,55 +40,55 @@ def load_dataframe_from_sqlite(db_name, table_name=None, starttime=None, endtime
     with sqlite3.connect(db_name) as conn:
         # Get the list of tables in the database
         tables_query = "SELECT name FROM sqlite_master WHERE type='table';"
-        tables = pd.read_sql_query(tables_query, conn)['name'].tolist()
+        all_tables = pd.read_sql_query(tables_query, conn)['name'].tolist()
         
         # print(tables)
         # exit()
 
-        if table_name:
-            tables = [table_name]  # Only use the specified table
-        else:
-            # If no table is specified, load from all tables
-            all_dataframes = []
+        if tables is None:
+            tables = all_tables # Only use the specified table
+            
+        # If no table is specified, load from all tables
+        all_dataframes = []
 
-            for table in tables:
-                # Get the list of columns in the current table
-                cursor = conn.execute(f"PRAGMA table_info({table})")
-                columns = [col[1] for col in cursor.fetchall()]
+        for table in tables:
+            # Get the list of columns in the current table
+            cursor = conn.execute(f"PRAGMA table_info({table})")
+            columns = [col[1] for col in cursor.fetchall()]
 
-                # Build query for the current table
-                query = f"SELECT * FROM {table} WHERE 1=1"
+            # Build query for the current table
+            query = f"SELECT * FROM {table} WHERE 1=1"
 
-                # Add conditions for starttime and endtime if the columns exist and parameters are provided
-                params = []
-                if 'starttime' in columns and starttime:
-                    query += " AND starttime >= ?"
-                    params.append(starttime)
-                if 'endtime' in columns and endtime:
-                    query += " AND endtime <= ?"
-                
-                # Execute the query for the current table
-                df = pd.read_sql_query(query, conn, params=params)
+            # Add conditions for starttime and endtime if the columns exist and parameters are provided
+            params = []
+            if 'starttime' in columns and starttime:
+                query += " AND starttime >= ?"
+                params.append(starttime)
+            if 'endtime' in columns and endtime:
+                query += " AND endtime <= ?"
+            
+            # Execute the query for the current table
+            df = pd.read_sql_query(query, conn, params=params)
 
-                # Convert 'starttime' and 'endtime' columns to datetime if they exist
-                if 'starttime' in df.columns:
-                    df['starttime'] = pd.to_datetime(df['starttime'])
-                if 'endtime' in df.columns:
-                    df['endtime'] = pd.to_datetime(df['endtime'])
+            # Convert 'starttime' and 'endtime' columns to datetime if they exist
+            if 'starttime' in df.columns:
+                df['starttime'] = pd.to_datetime(df['starttime'])
+            if 'endtime' in df.columns:
+                df['endtime'] = pd.to_datetime(df['endtime'])
 
-                # Drop duplicates based on 'starttime' and 'endtime' if they exist
-                drop_subset = [col for col in ['starttime', 'endtime'] if col in df.columns]
-                if drop_subset:
-                    df = df.drop_duplicates(subset=drop_subset, ignore_index=True)
+            # Drop duplicates based on 'starttime' and 'endtime' if they exist
+            drop_subset = [col for col in ['starttime', 'endtime'] if col in df.columns]
+            if drop_subset:
+                df = df.drop_duplicates(subset=drop_subset, ignore_index=True)
 
-                # Sort DataFrame by 'starttime' if it exists
-                if 'starttime' in df.columns:
-                    df = df.sort_values(by=['starttime'], ignore_index=True)
+            # Sort DataFrame by 'starttime' if it exists
+            if 'starttime' in df.columns:
+                df = df.sort_values(by=['starttime'], ignore_index=True)
 
-                all_dataframes.append(df)
+            all_dataframes.append(df)
 
-            # Concatenate all DataFrames from all tables
-            df = pd.concat(all_dataframes, ignore_index=True)
+        # Concatenate all DataFrames from all tables
+        df = pd.concat(all_dataframes, ignore_index=True)
     return df
 
 if __name__ == "__main__":
