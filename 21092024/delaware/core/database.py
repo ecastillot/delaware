@@ -40,6 +40,7 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
     with sqlite3.connect(db_name) as conn:
         # Get the list of tables in the database
         tables_query = "SELECT name FROM sqlite_master WHERE type='table';"
+        
         all_tables = pd.read_sql_query(tables_query, conn)['name'].tolist()
         
         # print(tables)
@@ -47,13 +48,22 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
 
         if tables is None:
             tables = all_tables # Only use the specified table
+        else:
+            tables = list(set(tables).intersection(all_tables))
+            complement = list(set(all_tables).difference(tables))
+            print(f"{len(complement)} tables not found:")
             
         # If no table is specified, load from all tables
         all_dataframes = []
 
         for table in tables:
             # Get the list of columns in the current table
-            cursor = conn.execute(f"PRAGMA table_info({table})")
+            try:
+                cursor = conn.execute(f"PRAGMA table_info({table})")
+            except:
+                print(f"Not found {table}")
+                continue
+            
             columns = [col[1] for col in cursor.fetchall()]
 
             # Build query for the current table
@@ -87,8 +97,11 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
 
             all_dataframes.append(df)
 
-        # Concatenate all DataFrames from all tables
-        df = pd.concat(all_dataframes, ignore_index=True)
+        if all_dataframes:
+            # Concatenate all DataFrames from all tables
+            df = pd.concat(all_dataframes, ignore_index=True)
+        else:
+            df = pd.DataFrame()
     return df
 
 if __name__ == "__main__":

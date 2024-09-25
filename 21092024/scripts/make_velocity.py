@@ -2,7 +2,7 @@ from delaware.vel.velocity import VelModel,MontecarloVelModel
 import pandas as pd
 
 
-data = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/seismicity/vel/DB_model.csv"
+data = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/vel/DB_model.csv"
 data = pd.read_csv(data)
 
 vel_model = VelModel(data,name="DB1D",dtm=-0.7)
@@ -16,7 +16,7 @@ vel_model = VelModel(data,name="DB1D",dtm=-0.7)
 
 
 # # Plot Monte Carlo Simulation
-out = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/seismicity/vel/montecarlo.db"
+out = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/vel/montecarlo.db"
 # vel_model.monte_carlo_simulation(out,num_simulations=1000, 
 #                                  mean=0, std_dev=0.3)
 
