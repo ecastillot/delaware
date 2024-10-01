@@ -70,178 +70,235 @@ class VelModel():
         
         return fig,ax
 
+    # This method generates perturbations for VP and VS velocity values
     def _get_perturbations(self, n=1000, p_mean=0, p_std_dev=0.05,
-                               s_mean=0, s_std_dev=0.05):
+                           s_mean=0, s_std_dev=0.05):
         """
-        Perform Monte Carlo simulation by generating multiple realizations of the velocity model.
+        Generate perturbations for the velocity model.
         
-        Parameters:
-        - n: Number of perturbations
-        - mean: Mean of Gaussian noise for each perturbation
-        - std_dev: Standard deviation of Gaussian noise for each perturbation
-        
+        Args:
+            n (int): Number of perturbations to generate for each velocity.
+            p_mean (float): Mean of the perturbation noise for VP.
+            p_std_dev (float): Standard deviation of the perturbation noise for VP.
+            s_mean (float): Mean of the perturbation noise for VS.
+            s_std_dev (float): Standard deviation of the perturbation noise for VS.
+            
         Returns:
-        - A dictionary of results for VP and VS perturbations, each containing arrays of velocities per depth.
+            dict: Dictionary with perturbed VP and VS values for each layer.
         """
+        # Make a copy of the original data
         data = self.data.copy()
         
+        # Get the number of layers from the data shape
         layers = self.data.shape[0]
         
-        params = {"VP (km/s)":{"mean":p_mean,"std_dev":p_std_dev},
-                  "VS (km/s)":{"mean":s_mean,"std_dev":s_std_dev}}
+        # Define the parameters for VP and VS perturbation (mean and standard deviation)
+        params = {
+            "VP (km/s)": {"mean": p_mean, "std_dev": p_std_dev},
+            "VS (km/s)": {"mean": s_mean, "std_dev": s_std_dev}
+        }
         
-        pert_vels = {"VP (km/s)":{},"VS (km/s)":{}}
+        # Initialize dictionaries to store perturbed velocity values
+        pert_vels = {"VP (km/s)": {}, "VS (km/s)": {}}
+        
+        # Loop over each layer to apply perturbation
         for i in range(layers):
-            for vel_key in ["VP (km/s)","VS (km/s)"]:
-                noise = np.random.normal(params[vel_key]["mean"], 
+            # Loop over both VP and VS
+            for vel_key in ["VP (km/s)", "VS (km/s)"]:
+                # Generate random noise based on the normal distribution
+                noise = np.random.normal(params[vel_key]["mean"],
                                          params[vel_key]["std_dev"],
                                          n)
+                # Add the noise to the original velocity values
                 pert_vels[vel_key][i] = data.iloc[i][vel_key] + noise
         
         return pert_vels
     
-    def monte_carlo_simulation(self, output,num_simulations=1000, p_mean=0, p_std_dev=0.05,
+    # This method generates perturbation models and saves them to a database
+    def get_perturbation_model(self, output, n_perturbations=1000, p_mean=0, p_std_dev=0.05,
                                s_mean=0, s_std_dev=0.05):
         """
-        Perform Monte Carlo simulation by generating multiple realizations of the velocity model.
+        Create perturbation models and save them to the database.
         
-        Parameters:
-        - num_simulations: Number of simulations to run
-        - mean: Mean of Gaussian noise for each simulation
-        - std_dev: Standard deviation of Gaussian noise for each simulation
-        
-        Returns:
-        - A dictionary of results for VP and VS simulations, each containing arrays of velocities per depth.
+        Args:
+            output (str): The name of the output SQLite database.
+            n_perturbations (int): Number of perturbation models to create.
+            p_mean (float): Mean of the perturbation noise for VP.
+            p_std_dev (float): Standard deviation of the perturbation noise for VP.
+            s_mean (float): Mean of the perturbation noise for VS.
+            s_std_dev (float): Standard deviation of the perturbation noise for VS.
         """
-        
-        
-        perturbations = self._get_perturbations(n=num_simulations,p_mean=p_mean,
+        # Generate perturbations for the given parameters
+        perturbations = self._get_perturbations(n=n_perturbations,
+                                                p_mean=p_mean,
                                                 s_mean=s_mean,
                                                 p_std_dev=p_std_dev,
                                                 s_std_dev=s_std_dev)
         
-        # print(perturbations["VP (km/s)"])
-        # exit()
-        # print(list(perturbations["VP (km/s)"].keys()))
-        # print(list(perturbations["VP (km/s)"][0].keys()))
-        # exit()        
-        for i in tqdm(range(num_simulations),"Perturbations"):
-            
+        # Loop through each perturbation and apply it to the data
+        for i in tqdm(range(n_perturbations), "Perturbations"):
+            # Make a copy of the original data
             data = self.data.copy()
+            
+            # Insert the model_id column to track each perturbation model
             data.insert(0, "model_id", i)
             
-            # print(f"Perturbation {i}")
+            # Initialize dictionaries to store the velocity per simulation
+            vels_by_simulation = {"VP (km/s)": [], "VS (km/s)": []}
             
-            vels_by_simulation = {"VP (km/s)":[],"VS (km/s)":[]}
+            # Loop through VP and VS velocities
             for wave_key in vels_by_simulation.keys():
                 vel_by_phase = perturbations[wave_key]
                 
-                for layer,vel in vel_by_phase.items():
+                # Loop through each layer and apply the i-th perturbation
+                for layer, vel in vel_by_phase.items():
                     vels_by_simulation[wave_key].append(vel[i])
-                    
-                    
+            
+            # Convert the perturbed velocity dictionary to a DataFrame
             vels_by_simulation = pd.DataFrame.from_dict(vels_by_simulation)
             
-            # new_cols = ["Delta "+key for key in list(vels_by_simulation.keys())]
-            # renaming = dict(zip(vels_by_simulation.keys(),new_cols))
+            # Calculate the differences between the original and perturbed velocities
+            data["Delta VP (km/s)"] = data["VP (km/s)"] - vels_by_simulation["VP (km/s)"]
+            data["Delta VS (km/s)"] = data["VS (km/s)"] - vels_by_simulation["VS (km/s)"]
             
-            # print(data)
-            # vels_by_simulation.rename(columns=renaming,inplace=True)
-            data["Delta VP (km/s)"] = data["VP (km/s)"] - vels_by_simulation ["VP (km/s)"]
-            data["Delta VS (km/s)"] = data["VS (km/s)"] - vels_by_simulation ["VS (km/s)"]
-            data["VP (km/s)"] = vels_by_simulation ["VP (km/s)"]
-            data["VS (km/s)"] = vels_by_simulation ["VS (km/s)"]
+            # Update the VP and VS columns with the perturbed velocities
+            data["VP (km/s)"] = vels_by_simulation["VP (km/s)"]
+            data["VS (km/s)"] = vels_by_simulation["VS (km/s)"]
             
-            # print(data,"\n")
-            save_dataframe_to_sqlite(data,output,table_name=f"model_{i}")
-            # simulation = pd.concat([data[""],vels_by_simulation],axis=1)
-            # print(data)
-            # exit()
+            # Save the perturbed model to an SQLite database
+            save_dataframe_to_sqlite(data, output, table_name=f"model_{i}")
         
             
             
-class MontecarloVelModel():
-    def __init__(self,db_path,models=None) -> None:
+class VelPerturbationModel:
+    """
+    A class to represent a velocity perturbation model. This class provides methods
+    to load velocity model data from a database, group it by depth, and visualize the perturbations.
+    
+    Attributes:
+        db_path (str): Path to the SQLite database containing velocity models.
+        models (list): List of model names loaded from the database.
+        data (DataFrame): The loaded data from the SQLite database.
+    """
+
+    def __init__(self, db_path, models=None) -> None:
+        """
+        Initialize the VelPerturbationModel with a database path and optional model range.
+        
+        Args:
+            db_path (str): Path to the SQLite database.
+            models (tuple, optional): A tuple representing the range of models to load (start, end). 
+                                      Defaults to None, which loads all models.
+        """
         self.db_path = db_path
-        
+
+        # Load specific models if a range is provided
         if models is not None:
             models = np.arange(*models)
-            models = [ f"model_{i}" for i in models]
-            
-        data = load_dataframe_from_sqlite(db_path,models)
+            models = [f"model_{i}" for i in models]
+
+        # Load data from the SQLite database
+        data = load_dataframe_from_sqlite(db_path, models)
         self.models = models
         self.data = data
-    
+
     @property
     def values_by_depth(self):
+        """
+        Group the data by depth.
+        
+        Returns:
+            DataFrameGroupBy: A pandas groupby object with data grouped by 'Depth (km)'.
+        """
         return self.data.groupby("Depth (km)")
-    
-    def plot(self,vel_model, n_bins=30,
-                          columns=["VP (km/s)","VS (km/s)"],
-                          colors=["k","r"],
-                          zmin=None,
-                          zmax=None,
-                          show=True):
-        
-        
-        fig,axes = plt.subplots(1,2)
-        rect = fig.patch
-        rect.set_facecolor('w')
-        
-        all_x = []
 
-        for i,vel_name in enumerate(columns):
+    def plot(self, vel_model, n_bins=30,
+             columns=["VP (km/s)", "VS (km/s)"],
+             colors=["k", "r"],
+             zmin=None, zmax=None,
+             show=True):
+        """
+        Plot 2D histograms of velocity perturbations with depth and overlaid velocity models.
+        
+        Args:
+            vel_model (VelModel): The velocity model to compare against.
+            n_bins (int, optional): Number of bins for the histogram. Defaults to 30.
+            columns (list, optional): List of columns to plot. Defaults to ["VP (km/s)", "VS (km/s)"].
+            colors (list, optional): List of colors for plotting. Defaults to ["k", "r"].
+            zmin (float, optional): Minimum depth for the plot. Defaults to None.
+            zmax (float, optional): Maximum depth for the plot. Defaults to None.
+            show (bool, optional): Whether to display the plot immediately. Defaults to True.
+        
+        Returns:
+            tuple: The matplotlib figure and axes objects.
+        """
+        # Create a figure with two subplots for VP and VS
+        fig, axes = plt.subplots(1, 2)
+        rect = fig.patch
+        rect.set_facecolor('w')  # Set the background color of the figure
+
+        all_x = []  # To store all x-values for setting common limits
+
+        # Iterate over the velocity columns (e.g., VP, VS)
+        for i, vel_name in enumerate(columns):
+            vbd = self.values_by_depth  # Group data by depth
             
-            vbd = self.values_by_depth
-            for j in range(len(vel_model.data)-1):
+            # Loop over each depth layer to create 2D histograms
+            for j in range(len(vel_model.data) - 1):
+                z0 = vel_model.data.loc[j, "Depth (km)"]  # Depth at the start of the layer
+                z1 = vel_model.data.loc[j + 1, "Depth (km)"]  # Depth at the end of the layer
                 
-                z0 = vel_model.data.loc[j,"Depth (km)"]
-                z1 = vel_model.data.loc[j+1,"Depth (km)"]
-                
+                # Get data corresponding to the current depth
                 data = vbd.get_group(z0)
                 
-                print(data)
-                
+                # Generate a histogram for the current velocity column
                 counts, bins = np.histogram(data[columns[i]], bins=n_bins, density=False)
                 
+                # Normalize the counts for better visualization
                 norm_counts = (counts - counts.min()) / (counts.max() - counts.min())
                 
+                # Prepare the 2D array for plotting the histogram with depth
                 counts_z0 = norm_counts
                 counts_z1 = norm_counts
+                counts_2d = np.vstack([counts_z0, counts_z1])  # Stack for both depths
                 
-                counts_2d = np.vstack([counts_z0, counts_z1])
-                extent = [bins[0], bins[-1], z0, z1]  # Map x to bins and y to depths
-                im = axes[i].imshow(counts_2d, cmap='viridis', aspect='auto', 
+                # Define the extent of the image in the plot
+                extent = [bins[0], bins[-1], z0, z1]
+                
+                # Plot the 2D histogram as an image
+                im = axes[i].imshow(counts_2d, cmap='viridis', aspect='auto',
                                     extent=extent, origin='lower')
                 
-                all_x.extend(bins)
-        
-            # print(self.data[columns[i]], self.data["Depth (km)"])
+                all_x.extend(bins)  # Store x-values (velocity) for common axis limits
+
+            # Overlay the velocity model on top of the 2D histogram
             axes[i].step(vel_model.data[columns[i]], vel_model.data["Depth (km)"], colors[i],
-                    linewidth=2.5, linestyle='-', label=vel_model.name)
-        
+                         linewidth=2.5, linestyle='-', label=vel_model.name)
+            
+            # Set axis labels and title
             axes[i].set_xlabel('Velocity [km/s]')
             axes[i].set_ylabel('Depth [km]')
-            axes[i].legend(loc="lower left")
-            
-            axes[i].set_ylim(ymin=zmin, ymax=zmax)
-            axes[i].invert_yaxis()
-            axes[i].grid()
-            axes[i].set_title(columns[i])
-        
-        # Set common limits
-        x_min, x_max = min(all_x), max(all_x)
+            axes[i].legend(loc="lower left")  # Add legend to the plot
+            axes[i].set_ylim(ymin=zmin, ymax=zmax)  # Set depth limits
+            axes[i].invert_yaxis()  # Invert y-axis to show depth increasing downwards
+            axes[i].grid()  # Add grid lines to the plot
+            axes[i].set_title(columns[i])  # Set title of the subplot
 
+        # Set common x-axis limits for both subplots
+        x_min, x_max = min(all_x), max(all_x)
         for ax in axes:
-            ax.set_xlim([np.floor(x_min), np.floor(x_max)])
-            ax.set_xticks(np.arange(np.floor(x_min), np.floor(x_max),1))  # Set same tick separation
+            ax.set_xlim([np.floor(x_min), np.floor(x_max)])  # Set x-axis limits
+            ax.set_xticks(np.arange(np.floor(x_min), np.floor(x_max), 1))  # Set x-ticks
+
+        # Add a colorbar for the 2D histogram
+        plt.colorbar(im, ax=axes[i], label='PDF')  
         
-        # Show the entire plot after the loop finishes
-        plt.colorbar(im, ax=axes[i], label='PDF')
+        # Adjust layout to prevent overlapping
         plt.tight_layout()
-        
+
+        # Show the plot if the show argument is True
         if show:
             plt.show()
-            
-        return fig, axes
+
+        return fig, axes  # Return figure and axes for further customization
         # exit()

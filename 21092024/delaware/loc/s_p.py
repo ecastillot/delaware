@@ -36,6 +36,8 @@ class SP_Database():
         
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
+    
+    def run_montecarlo():
 
     def plot_stations_counts(self):
         
