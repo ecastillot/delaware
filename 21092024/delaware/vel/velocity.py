@@ -5,7 +5,9 @@
 #  * @modify date 2024-09-23 16:03:02
 #  * @desc [description]
 #  */
+from tqdm import tqdm
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
@@ -68,21 +70,38 @@ class VelModel():
         
         return fig,ax
 
-    def _add_gaussian_perturbation(self, column_name, mean=0, std_dev=0.05):
+    def _get_perturbations(self, n=1000, p_mean=0, p_std_dev=0.05,
+                               s_mean=0, s_std_dev=0.05):
         """
-        Add Gaussian noise to each layer in a DataFrame column.
+        Perform Monte Carlo simulation by generating multiple realizations of the velocity model.
         
         Parameters:
-        - column_name: Column in DataFrame to modify (e.g., 'VP (km/s)')
-        - mean: Mean of the Gaussian noise distribution
-        - std_dev: Standard deviation of the Gaussian noise distribution
+        - n: Number of perturbations
+        - mean: Mean of Gaussian noise for each perturbation
+        - std_dev: Standard deviation of Gaussian noise for each perturbation
+        
+        Returns:
+        - A dictionary of results for VP and VS perturbations, each containing arrays of velocities per depth.
         """
         data = self.data.copy()
-        noise = np.random.normal(mean, std_dev, self.data.shape[0])
-        data[column_name] += noise
-        return data[column_name]
-
-    def monte_carlo_simulation(self, output,num_simulations=1000, mean=0, std_dev=0.05):
+        
+        layers = self.data.shape[0]
+        
+        params = {"VP (km/s)":{"mean":p_mean,"std_dev":p_std_dev},
+                  "VS (km/s)":{"mean":s_mean,"std_dev":s_std_dev}}
+        
+        pert_vels = {"VP (km/s)":{},"VS (km/s)":{}}
+        for i in range(layers):
+            for vel_key in ["VP (km/s)","VS (km/s)"]:
+                noise = np.random.normal(params[vel_key]["mean"], 
+                                         params[vel_key]["std_dev"],
+                                         n)
+                pert_vels[vel_key][i] = data.iloc[i][vel_key] + noise
+        
+        return pert_vels
+    
+    def monte_carlo_simulation(self, output,num_simulations=1000, p_mean=0, p_std_dev=0.05,
+                               s_mean=0, s_std_dev=0.05):
         """
         Perform Monte Carlo simulation by generating multiple realizations of the velocity model.
         
@@ -94,17 +113,50 @@ class VelModel():
         Returns:
         - A dictionary of results for VP and VS simulations, each containing arrays of velocities per depth.
         """
-        data = self.data.copy()
-        data.insert(0, "model_id", 0)
         
-        for i in range(num_simulations):
-            data["model_id"] = i
-            data["VP (km/s)"] = self._add_gaussian_perturbation("VP (km/s)",mean, std_dev)
-            data["VS (km/s)"] = self._add_gaussian_perturbation("VS (km/s)",mean, std_dev)
-            data[" Delta_VP (km/s)"] = self.data["VP (km/s)"] - data["VP (km/s)"]
-            data[" Delta_VS (km/s)"] = self.data["VS (km/s)"] - data["VS (km/s)"]
+        
+        perturbations = self._get_perturbations(n=num_simulations,p_mean=p_mean,
+                                                s_mean=s_mean,
+                                                p_std_dev=p_std_dev,
+                                                s_std_dev=s_std_dev)
+        
+        # print(perturbations["VP (km/s)"])
+        # exit()
+        # print(list(perturbations["VP (km/s)"].keys()))
+        # print(list(perturbations["VP (km/s)"][0].keys()))
+        # exit()        
+        for i in tqdm(range(num_simulations),"Perturbations"):
             
+            data = self.data.copy()
+            data.insert(0, "model_id", i)
+            
+            # print(f"Perturbation {i}")
+            
+            vels_by_simulation = {"VP (km/s)":[],"VS (km/s)":[]}
+            for wave_key in vels_by_simulation.keys():
+                vel_by_phase = perturbations[wave_key]
+                
+                for layer,vel in vel_by_phase.items():
+                    vels_by_simulation[wave_key].append(vel[i])
+                    
+                    
+            vels_by_simulation = pd.DataFrame.from_dict(vels_by_simulation)
+            
+            # new_cols = ["Delta "+key for key in list(vels_by_simulation.keys())]
+            # renaming = dict(zip(vels_by_simulation.keys(),new_cols))
+            
+            # print(data)
+            # vels_by_simulation.rename(columns=renaming,inplace=True)
+            data["Delta VP (km/s)"] = data["VP (km/s)"] - vels_by_simulation ["VP (km/s)"]
+            data["Delta VS (km/s)"] = data["VS (km/s)"] - vels_by_simulation ["VS (km/s)"]
+            data["VP (km/s)"] = vels_by_simulation ["VP (km/s)"]
+            data["VS (km/s)"] = vels_by_simulation ["VS (km/s)"]
+            
+            # print(data,"\n")
             save_dataframe_to_sqlite(data,output,table_name=f"model_{i}")
+            # simulation = pd.concat([data[""],vels_by_simulation],axis=1)
+            # print(data)
+            # exit()
         
             
             
@@ -135,6 +187,8 @@ class MontecarloVelModel():
         fig,axes = plt.subplots(1,2)
         rect = fig.patch
         rect.set_facecolor('w')
+        
+        all_x = []
 
         for i,vel_name in enumerate(columns):
             
@@ -145,6 +199,8 @@ class MontecarloVelModel():
                 z1 = vel_model.data.loc[j+1,"Depth (km)"]
                 
                 data = vbd.get_group(z0)
+                
+                print(data)
                 
                 counts, bins = np.histogram(data[columns[i]], bins=n_bins, density=False)
                 
@@ -157,6 +213,8 @@ class MontecarloVelModel():
                 extent = [bins[0], bins[-1], z0, z1]  # Map x to bins and y to depths
                 im = axes[i].imshow(counts_2d, cmap='viridis', aspect='auto', 
                                     extent=extent, origin='lower')
+                
+                all_x.extend(bins)
         
             # print(self.data[columns[i]], self.data["Depth (km)"])
             axes[i].step(vel_model.data[columns[i]], vel_model.data["Depth (km)"], colors[i],
@@ -170,9 +228,15 @@ class MontecarloVelModel():
             axes[i].invert_yaxis()
             axes[i].grid()
             axes[i].set_title(columns[i])
-            
         
-            # Show the entire plot after the loop finishes
+        # Set common limits
+        x_min, x_max = min(all_x), max(all_x)
+
+        for ax in axes:
+            ax.set_xlim([np.floor(x_min), np.floor(x_max)])
+            ax.set_xticks(np.arange(np.floor(x_min), np.floor(x_max),1))  # Set same tick separation
+        
+        # Show the entire plot after the loop finishes
         plt.colorbar(im, ax=axes[i], label='PDF')
         plt.tight_layout()
         

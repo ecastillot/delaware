@@ -17,8 +17,9 @@ vel_model = VelModel(data,name="DB1D",dtm=-0.7)
 
 # # Plot Monte Carlo Simulation
 out = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/vel/montecarlo.db"
-# vel_model.monte_carlo_simulation(out,num_simulations=1000, 
-#                                  mean=0, std_dev=0.3)
+vel_model.monte_carlo_simulation(out,num_simulations=1000, 
+                                 p_mean=0, p_std_dev=0.5,
+                                 s_mean=0, s_std_dev=0.5)
 
 mv = MontecarloVelModel(out)
 mv.plot(vel_model,n_bins=50)
