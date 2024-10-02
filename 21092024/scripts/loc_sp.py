@@ -3,7 +3,7 @@ from delaware.vel.velocity import ScalarVelModel,ScalarVelPerturbationModel
 import pandas as pd
 import numpy as np
 
-output = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/simple_vel.npz"
+output = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/vel/simple_general_vel.npz"
 svpm = ScalarVelPerturbationModel(output)
 
 # catalog_path = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/loc/s_p/nlloc/catalog_sp_method.db"
@@ -17,5 +17,5 @@ sp_db = SP_Database(catalog_path=catalog_path,
                     picks_path=picks_path)
 
 
-output = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/loc/s_p/growclust/depth.db"
+output = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/loc/s_p/growclust/depth_simple_general_vel.db"
 sp_db.run_montecarlo(svpm,output=output)

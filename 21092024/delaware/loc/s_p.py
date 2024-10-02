@@ -11,6 +11,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 from delaware.eqviewer.eqviewer import Catalog,Picks
+import numpy as np
 
 class SP_Database():
     def __init__(self,catalog_path,picks_path):
@@ -55,6 +56,7 @@ class SP_Database():
             s_phase = picks_by_id.query(f"phase_hint == 'S'") 
             sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
             sp_time = sp_time.total_seconds()
+            station = p_phase.iloc[0].station_code
             
             data = {"z":[],"vp":[],"vs":[]}
             for i in range(len(scalar_vel_perturbation)):
@@ -70,7 +72,9 @@ class SP_Database():
                 
             # Insert the model_id column to track each perturbation model
             data.insert(0, "ev_id", ev_id)
+            data["station"] = station
             data["ts-tp"] = sp_time
+            data["original_z"] = event["depth"]
                 
             save_dataframe_to_sqlite(data, output, table_name=ev_id)
                 
@@ -121,14 +125,86 @@ def plot_montecarlo_depths(path):
 
     fig, ax = plt.subplots(1, 1)
     # Plot histograms for each ev_id
-    for ev_id, group in grouped:
-        ax.hist(group['z'], bins=30, alpha=0.7)
-    ax.set_title(f"Histogram of z")
-    ax.set_xlabel('z (km)')
-    ax.set_ylabel('Frequency')
+    for i,(ev_id, group) in enumerate(grouped):
+        ax.hist(group['z'], bins=20, alpha=0.7,density=False)
+        
+        zeros = np.zeros(len(group['original_z']))
+        
+        if i ==0:
+            label = "Original Depths"
+        else:
+            label=None
+            
+        ax.plot(group['original_z'],zeros, alpha=0.7,
+                marker="x", color="black", markersize=10,
+                label=label)
+        # ax.scatter(group['original_z'], zeros, alpha=0.7, 
+        #           marker='x', s=100, color='red')
+        
+    ax.set_title(f"Histogram of z",fontdict={"size":18})
+    ax.set_xlabel('z (km)',fontdict={"size":18})
+    ax.set_ylabel('Frequency',fontdict={"size":18})
+    ax.legend()
+    
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
     plt.show()
     
+def plot_montecarlo_depths_by_station(path,show: bool = True, savefig:str=None):   
+    data = load_dataframe_from_sqlite(db_name=path)
+    
+    # Assuming your DataFrame is named df
+    grouped = data.groupby('station')
 
+    fig, ax = plt.subplots(1, 1)
+    
+    colors = ["blue","green","magenta","brown"]
+    # Plot histograms for each ev_id
+    for i,(station, group) in enumerate(grouped):
+        zeros = np.zeros(len(group['original_z']))
+        
+        if i ==0:
+            label = "Original Depths"
+        else:
+            label=None
+            
+        ax.plot(group['original_z'],zeros, alpha=0.7,
+                marker="x", color="black", markersize=10,
+                label=label)
+        
+        
+        id_grouped = group.groupby('ev_id')
+        
+        for j,(ev_id, ev_group) in enumerate(id_grouped):
+            if j ==0:
+                sta_label = station
+            else:
+                sta_label=None
+            print(station,colors[i])
+            ax.hist(ev_group['z'], color=colors[i], 
+                    bins=30, alpha=0.3,
+                    # density=True,
+                    density=False,
+                     histtype='step',
+                    label=sta_label)
+        
+        # ax.scatter(group['original_z'], zeros, alpha=0.7, 
+        #           marker='x', s=100, color='red')
+        
+    ax.set_title(f"Histogram of z",fontdict={"size":18})
+    ax.set_xlabel('z (km)',fontdict={"size":18})
+    ax.set_ylabel('Frequency',fontdict={"size":18})
+    ax.legend()
+    
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
+    if savefig is not None:
+        fig.savefig(savefig)
+    
+    if show:
+        plt.show()
+    
+    return fig,ax
 
 
 def get_picks(event_ids,picks_path):

@@ -42,7 +42,7 @@ class ScalarVelPerturbationModel:
         return len(self.p_vel)
         
     def plot(self, n_bins=30,
-             colors=["k", "r"],
+             colors=["k", "r"], savefig:str=None,
              show=True):
         
         fig, ax = plt.subplots(1, 1)
@@ -50,10 +50,10 @@ class ScalarVelPerturbationModel:
         
         ax.hist(self.p_vel,color=colors[0], 
                 label="VP (km/s)",
-                density=False, bins=30)  # density=False would make counts
+                density=False, bins=n_bins)  # density=False would make counts
         ax.hist(self.s_vel,color=colors[1], 
                 label="VS (km/s)",
-                density=False, bins=30)  # density=False would make counts
+                density=False, bins=n_bins)  # density=False would make counts
         
         # Set axis labels and title
         ax.set_xlabel('Velocity [km/s]')
@@ -62,8 +62,13 @@ class ScalarVelPerturbationModel:
         ax.grid()  # Add grid lines to the plot
         ax.set_title("Velocity histograms")  # Set title of the subplot
         
+        if savefig is not None:
+            fig.savefig(savefig)
+        
         if show:
             plt.show()
+            
+        return fig,ax
 
 class VelModel():
     def __init__(self, data, name, dtm=None) -> None:

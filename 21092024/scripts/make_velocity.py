@@ -6,7 +6,9 @@ data = "/home/emmanuel/ecastillo/dev/delaware/21092024/data/vel/DB_model.csv"
 data = pd.read_csv(data)
 
 vel_model = VelModel(data,name="DB1D",dtm=-0.7)
-# vel_model.plot_profile()
+save_fig = "/home/emmanuel/ecastillo/dev/delaware/21092024/output/velocity/db1d_vel.png"
+vel_model.plot_profile(savefig=save_fig)
+exit()
 
 
 # # Add Gaussian noise to VP
