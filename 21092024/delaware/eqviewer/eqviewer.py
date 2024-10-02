@@ -1404,36 +1404,44 @@ class Station():
             new_catalog.filter_by_r_az(latitude=row.latitude,
                                     longitude=row.longitude,
                                     r=rmax)
+            if new_catalog.empty:
+                # print("bad",i,new_catalog)
+                continue
+            
             if picks_path is not None:
                 picks = new_catalog.get_picks(picks_path)
                 picks.select_data({"station_code":[row.station]})
                 picks.filter_requiring_ps_phases_in_station()
                 
                 if picks.empty:
-                    new_catalog.data = pd.DataFrame()
-                    
-                    
-            if not new_catalog.data.empty:
-                if output_folder is not None:
-                    
-                    sp_cat_path = os.path.join(output_folder,
-                                               "catalog_sp_method.db")
-                    sp_picks_path = os.path.join(output_folder,
-                                                 "picks_sp_method.db")
-                    
-                    save_dataframe_to_sqlite(new_catalog.data,
-                                             db_name=sp_cat_path,
-                                            table_name=row.station)
-                    
-                    if picks_path is not None:
-                        save_dataframe_to_sqlite(picks.data,
-                                             db_name=sp_picks_path,
-                                            table_name=row.station)
-                        
-                all_events[row.station].append(new_catalog.data)
-                if picks_path is not None:
-                    all_picks[row.station].append(picks.data)
+                    continue
                 
+                ev_ids = picks.data["ev_id"].to_list()
+                new_catalog.select_data(rowval={"id":ev_ids})
+                if new_catalog.empty:
+                    continue
+                
+                
+            if output_folder is not None:
+                
+                sp_cat_path = os.path.join(output_folder,
+                                            "catalog_sp_method.db")
+                sp_picks_path = os.path.join(output_folder,
+                                                "picks_sp_method.db")
+                
+                save_dataframe_to_sqlite(new_catalog.data,
+                                            db_name=sp_cat_path,
+                                        table_name=row.station)
+                
+                if picks_path is not None:
+                    save_dataframe_to_sqlite(picks.data,
+                                            db_name=sp_picks_path,
+                                        table_name=row.station)
+                    
+            all_events[row.station].append(new_catalog.data)
+            if picks_path is not None:
+                all_picks[row.station].append(picks.data)
+            
         
         return all_events,all_picks
 

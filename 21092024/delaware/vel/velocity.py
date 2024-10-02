@@ -12,6 +12,59 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
+
+class ScalarVelModel():
+    def __init__(self,p_value,s_value,name) -> None:
+        self.name = name
+        self.p_value = p_value
+        self.s_value = s_value
+    
+    def get_perturbation_model(self,output, n_perturbations=1000, 
+                               p_mean=0, p_std_dev=0.05,
+                               s_mean=0, s_std_dev=0.05):
+        
+        p_noise = np.random.normal(p_mean,p_std_dev,n_perturbations)
+        s_noise = np.random.normal(s_mean,s_std_dev,n_perturbations)
+        
+        p_vel = self.p_value + p_noise
+        s_vel = self.s_value + s_noise
+        
+        np.savez(output,p_vel=p_vel,s_vel=s_vel)
+
+class ScalarVelPerturbationModel:
+    def __init__(self,npz_path) -> None:
+        self.npz_path = npz_path
+        data = np.load(npz_path)
+        self.p_vel = data["p_vel"]     
+        self.s_vel = data["s_vel"] 
+    
+    def __len__(self):
+        return len(self.p_vel)
+        
+    def plot(self, n_bins=30,
+             colors=["k", "r"],
+             show=True):
+        
+        fig, ax = plt.subplots(1, 1)
+        
+        
+        ax.hist(self.p_vel,color=colors[0], 
+                label="VP (km/s)",
+                density=False, bins=30)  # density=False would make counts
+        ax.hist(self.s_vel,color=colors[1], 
+                label="VS (km/s)",
+                density=False, bins=30)  # density=False would make counts
+        
+        # Set axis labels and title
+        ax.set_xlabel('Velocity [km/s]')
+        ax.set_ylabel('Counts')
+        ax.legend()  # Add legend to the plot
+        ax.grid()  # Add grid lines to the plot
+        ax.set_title("Velocity histograms")  # Set title of the subplot
+        
+        if show:
+            plt.show()
+
 class VelModel():
     def __init__(self, data, name, dtm=None) -> None:
         self.name = name

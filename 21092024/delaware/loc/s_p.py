@@ -5,30 +5,30 @@
 #  * @modify date 2024-09-24 16:49:27
 #  * @desc [description]
 #  */
-
+from tqdm import tqdm
 import pandas as pd
+import datetime as dt
 import matplotlib.pyplot as plt
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 from delaware.eqviewer.eqviewer import Catalog,Picks
 
-
 class SP_Database():
     def __init__(self,catalog_path,picks_path):
-        self.sp_catalog = load_dataframe_from_sqlite(db_name=catalog_path)
-        self.sp_picks = load_dataframe_from_sqlite(db_name=picks_path)
+        self.catalog = load_dataframe_from_sqlite(db_name=catalog_path)
+        self.picks = load_dataframe_from_sqlite(db_name=picks_path)
         
-        # print(sp_catalog)
-        # print(sp_picks)
+        self.picks["time"] = pd.to_datetime(self.picks["time"])
+        
     
     @property
     def n_stations(self):
-        stations = self.sp_picks.drop_duplicates("station_code")
+        stations = self.picks.drop_duplicates("station_code")
         n_stations = len(stations)
         return n_stations
     
     @property
     def n_events(self):
-        events = self.sp_picks.drop_duplicates("ev_id")
+        events = self.picks.drop_duplicates("ev_id")
         n_events = len(events)
         return n_events
     
@@ -37,12 +37,52 @@ class SP_Database():
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
     
-    def run_montecarlo():
-
+    def run_montecarlo(self,scalar_vel_perturbation,output):
+        
+        # Initialize tqdm for pandas
+        for n,event in tqdm(self.catalog.iterrows(),
+                            total=len(self.catalog),
+                            desc="Events"):
+            
+            ev_id = event["id"]
+            picks_by_id = self.picks.query(f"ev_id == '{ev_id}'")
+            
+            if picks_by_id.empty:
+                print(f"No picks in event {ev_id}")
+                continue
+            
+            p_phase = picks_by_id.query(f"phase_hint == 'P'") 
+            s_phase = picks_by_id.query(f"phase_hint == 'S'") 
+            sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
+            sp_time = sp_time.total_seconds()
+            
+            data = {"z":[],"vp":[],"vs":[]}
+            for i in range(len(scalar_vel_perturbation)):
+                vp = scalar_vel_perturbation.p_vel[i]
+                vs = scalar_vel_perturbation.s_vel[i]
+                vps =  vp/vs
+                z = (vp/vps)*sp_time
+                data["z"].append(z)
+                data["vp"].append(vp)
+                data["vs"].append(vs)
+                
+            data = pd.DataFrame(data)
+                
+            # Insert the model_id column to track each perturbation model
+            data.insert(0, "ev_id", ev_id)
+            data["ts-tp"] = sp_time
+                
+            save_dataframe_to_sqlite(data, output, table_name=ev_id)
+                
+        
     def plot_stations_counts(self):
         
+        
+        data = self.picks.copy()
+        data = data.drop_duplicates("ev_id")
+        
         # First, count the number of occurrences of each station_name
-        station_counts = self.sp_picks.groupby('station_code')['ev_id'].count()
+        station_counts = data.groupby('station_code')['ev_id'].count()
 
         # Plot the histogram
         fig,ax = plt.subplots(1,1,figsize=(10, 6))
@@ -73,7 +113,20 @@ class SP_Database():
         # print(self.catalog)
     
     
+def plot_montecarlo_depths(path):   
+    data = load_dataframe_from_sqlite(db_name=path)
     
+    # Assuming your DataFrame is named df
+    grouped = data.groupby('ev_id')
+
+    fig, ax = plt.subplots(1, 1)
+    # Plot histograms for each ev_id
+    for ev_id, group in grouped:
+        ax.hist(group['z'], bins=30, alpha=0.7)
+    ax.set_title(f"Histogram of z")
+    ax.set_xlabel('z (km)')
+    ax.set_ylabel('Frequency')
+    plt.show()
     
 
 
