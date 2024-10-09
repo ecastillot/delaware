@@ -1,0 +1,2 @@
+date-time, latitude, longitude, depth, RMS, Nphs, Gap, Dist, errH, errZ, Mamp, Mdur, expect_lat, expect_lon, expect_z, EllipsoidAz1, EllipsoidDip1, EllipsoidLen1, EllipsoidAz2, EllipsoidDip2, EllipsoidLen2, EllipsoidLen3, minHorUnc, maxHorUnc, azMaxHorUnc, pdfVolume, publicId
+2022-11-16T21:32:44.678574, 31.6334, -103.9983, 5.0547, 0.089035, 19, 50.7706, 2.3832, 0.6007, 1.5358, 5.4000, -9.9000, 31.6333, -103.9988, 5.2099, 324.1568, -0.8487, 0.6954, 234.1006, -3.7872, 0.7350, 1.9063, 0.5616, 0.6007, 56.6398, 1.8036, None

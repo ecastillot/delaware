@@ -1,5 +1,7 @@
 01082024/data/database/delaware_database*/**
 01082024/data/metadata/delaware_database*_log/**
+21092024/data/nlloc/**
+01082024/data/nlloc/**
 01082024/data/seismonitor/**
 01082024/**.mseed
 21092024/output/delaware**

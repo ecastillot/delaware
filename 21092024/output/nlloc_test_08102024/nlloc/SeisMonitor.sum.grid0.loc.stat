@@ -1,0 +1,64 @@
+
+#Average Phase Residuals (CalcResidual)  RMS_Max: 9999.000000  NRdgs_Min: -1  Gap_Max: 9999.000000  P_Res_Max: 1.000000  S_Res_Max: 1.000000  Ell_Len3_Max: 9999.000000  Hypo_Depth_Min: -9999.000000  Hypo_Depth_Max: 9999.000000  Hypo_Dist_Max: 1000000000000000019884624838656.000000
+#         ID      Phase   Nres      AveRes       StdDev       ResMin       ResMax     ignored
+LOCDELAY  PB20 P 1        0.022344     -1.000000    0.022344     0.022344     0
+LOCDELAY  PB23 P 1        -0.014055    -1.000000    -0.014055    -0.014055    0
+LOCDELAY  PB23 S 1        -0.121764    -1.000000    -0.121764    -0.121764    0
+LOCDELAY  PB24 P 1        0.044651     -1.000000    0.044651     0.044651     0
+LOCDELAY  PB25 P 1        -0.087777    -1.000000    -0.087777    -0.087777    0
+LOCDELAY  PB31 P 1        -0.044067    -1.000000    -0.044067    -0.044067    0
+LOCDELAY  PB34 P 1        0.116155     -1.000000    0.116155     0.116155     0
+LOCDELAY  PB34 S 1        0.027691     -1.000000    0.027691     0.027691     0
+LOCDELAY  PB40 P 1        -0.004759    -1.000000    -0.004759    -0.004759    0
+LOCDELAY  PB40 S 1        -0.108396    -1.000000    -0.108396    -0.108396    0
+LOCDELAY  PB43 S 1        0.507707     -1.000000    0.507707     0.507707     0
+LOCDELAY  WB02 P 1        -0.067743    -1.000000    -0.067743    -0.067743    0
+LOCDELAY  WB03 P 1        0.003418     -1.000000    0.003418     0.003418     0
+
+#Total Phase Corrections (CalcResidual + InputDelay)  RMS_Max: 9999.000000  NRdgs_Min: -1  Gap_Max: 9999.000000  P_Res_Max: 1.000000  S_Res_Max: 1.000000  Ell_Len3_Max: 9999.000000  Hypo_Depth_Min: -9999.000000  Hypo_Depth_Max: 9999.000000  Hypo_Dist_Max: 1000000000000000019884624838656.000000
+#         ID      Phase   Nres      TotCorr      StdDev
+LOCDELAY  PB20 P 1        0.022344     -1.000000   
+LOCDELAY  PB23 P 1        -0.014055    -1.000000   
+LOCDELAY  PB23 S 1        -0.121764    -1.000000   
+LOCDELAY  PB24 P 1        0.044651     -1.000000   
+LOCDELAY  PB25 P 1        -0.087777    -1.000000   
+LOCDELAY  PB31 P 1        -0.044067    -1.000000   
+LOCDELAY  PB34 P 1        0.116155     -1.000000   
+LOCDELAY  PB34 S 1        0.027691     -1.000000   
+LOCDELAY  PB40 P 1        -0.004759    -1.000000   
+LOCDELAY  PB40 S 1        -0.108396    -1.000000   
+LOCDELAY  PB43 S 1        0.507707     -1.000000   
+LOCDELAY  WB02 P 1        -0.067743    -1.000000   
+LOCDELAY  WB03 P 1        0.003418     -1.000000   
+
+#Average Phase Residuals PDF (CalcPDFResidual)  RMS_Max: 9999.000000  NRdgs_Min: -1  Gap_Max: 9999.000000  P_Res_Max: 1.000000  S_Res_Max: 1.000000  Ell_Len3_Max: 9999.000000  Hypo_Depth_Min: -9999.000000  Hypo_Depth_Max: 9999.000000  Hypo_Dist_Max: 1000000000000000019884624838656.000000
+#         ID      Phase   Nres      AveRes       StdDev       ResMin       ResMax     ignored
+LOCDELAY  PB20 P 0        0.000000     -1.000000    0.022344     0.022344     0
+LOCDELAY  PB23 P 0        0.000000     -1.000000    -0.014055    -0.014055    0
+LOCDELAY  PB23 S 0        0.000000     -1.000000    -0.121764    -0.121764    0
+LOCDELAY  PB24 P 0        0.000000     -1.000000    0.044651     0.044651     0
+LOCDELAY  PB25 P 0        0.000000     -1.000000    -0.087777    -0.087777    0
+LOCDELAY  PB31 P 0        0.000000     -1.000000    -0.044067    -0.044067    0
+LOCDELAY  PB34 P 0        0.000000     -1.000000    0.116155     0.116155     0
+LOCDELAY  PB34 S 0        0.000000     -1.000000    0.027691     0.027691     0
+LOCDELAY  PB40 P 0        0.000000     -1.000000    -0.004759    -0.004759    0
+LOCDELAY  PB40 S 0        0.000000     -1.000000    -0.108396    -0.108396    0
+LOCDELAY  PB43 S 0        0.000000     -1.000000    0.507707     0.507707     0
+LOCDELAY  WB02 P 0        0.000000     -1.000000    -0.067743    -0.067743    0
+LOCDELAY  WB03 P 0        0.000000     -1.000000    0.003418     0.003418     0
+
+#Total Phase Corrections PDF (CalcPDFResidual + InputDelay)  RMS_Max: 9999.000000  NRdgs_Min: -1  Gap_Max: 9999.000000  P_Res_Max: 1.000000  S_Res_Max: 1.000000  Ell_Len3_Max: 9999.000000  Hypo_Depth_Min: -9999.000000  Hypo_Depth_Max: 9999.000000  Hypo_Dist_Max: 1000000000000000019884624838656.000000
+#         ID      Phase   Nres      TotCorr      StdDev
+LOCDELAY  PB20 P 0        0.000000     -1.000000   
+LOCDELAY  PB23 P 0        0.000000     -1.000000   
+LOCDELAY  PB23 S 0        0.000000     -1.000000   
+LOCDELAY  PB24 P 0        0.000000     -1.000000   
+LOCDELAY  PB25 P 0        0.000000     -1.000000   
+LOCDELAY  PB31 P 0        0.000000     -1.000000   
+LOCDELAY  PB34 P 0        0.000000     -1.000000   
+LOCDELAY  PB34 S 0        0.000000     -1.000000   
+LOCDELAY  PB40 P 0        0.000000     -1.000000   
+LOCDELAY  PB40 S 0        0.000000     -1.000000   
+LOCDELAY  PB43 S 0        0.000000     -1.000000   
+LOCDELAY  WB02 P 0        0.000000     -1.000000   
+LOCDELAY  WB03 P 0        0.000000     -1.000000   

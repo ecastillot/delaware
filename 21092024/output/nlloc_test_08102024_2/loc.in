@@ -1,0 +1,39 @@
+#__________________START GENERIC CONTROL STATEMENTS
+
+CONTROL 1 54321
+TRANS SIMPLE 31.655575 -104.321355 0
+#__________________END
+#__________________START VEL2GRID STATEMENTS
+
+VGOUT /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/model/layer
+VGTYPE P
+VGTYPE S
+VGGRID 99 57 22 -49.64 -28.77 -2 1 1 1 SLOW_LEN
+INCLUDE /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/vel_model.dat
+#__________________END
+#__________________START GRID2TIME STATEMENTS
+
+GTFILES /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/model/layer /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/time/layer P
+GTMODE GRID3D ANGLES_YES
+INCLUDE /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/station.dat
+GT_PLFD 0.001 0
+#__________________END
+#__________________START NLDIFFLOC STATEMENTS
+
+LOCSIG SeisMonitor
+LOCCOM Comment
+LOCFILES /home/emmanuel/ecastillo/dev/delaware/21092024/output/nlloc_test_08102024/catalog_input.inp SEISAN /home/emmanuel/ecastillo/dev/delaware/21092024/data/nlloc/time/layer /home/emmanuel/ecastillo/dev/delaware/21092024/output/nlloc_test_08102024/nlloc/SeisMonitor
+LOCHYPOUT SAVE_NLLOC_ALL SAVE_NLLOC_SUM SAVE_HYPO71_SUM
+LOCSEARCH OCT 37 58 7 0.01 100000 10000
+LOCGRID 99 57 22 -49.64 -28.77 -2 1 1 1 PROB_DENSITY SAVE
+LOCMETH EDT_OT_WT 9999 4 -1 -1 1.78 6
+LOCGAU 0.2 0.0
+LOCGAU2 0.05 0.05 2.0
+LOCPHASEID P P p PN PG Pn Pg
+LOCPHASEID S S s SN SG Sn Sg
+LOCQUAL2ERR 0.1 0.5 1.0 2.0 99999.9
+LOCPHSTAT 9999.0 -1 9999.0 1.0 1.0 9999.0 -9999.0 9999.0
+LOCANGLES ANGLES_YES 5
+LOCMAG ML_HB 1.0 1.11 0.00189
+#__________________END
+

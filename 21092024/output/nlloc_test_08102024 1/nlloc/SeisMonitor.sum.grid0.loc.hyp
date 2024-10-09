@@ -1,0 +1,19 @@
+NLLOC "/home/emmanuel/ecastillo/dev/delaware/21092024/output/nlloc_test_08102024/nlloc/SeisMonitor.20221116.213246.grid0" "LOCATED" "Location completed."
+PUBLIC_ID None
+SIGNATURE "SeisMonitor   obs:/home/emmanuel/ecastillo/dev/delaware/21092024/output/nlloc_test_08102024/catalog_input.inp   NLLoc:v7.1.04(05Sep2024)   run:09Oct2024 00h32m02"
+COMMENT "Comment"
+GRID  99 57 22  -49.64 -28.77 -2  1 1 1 PROB_DENSITY
+SEARCH OCTREE nInitial 15022 nEvaluated 100014 smallestNodeSide 0.041385/0.015086/0.046875 oct_tree_integral 3.340853e+00 scatter_volume 3.322216e+00
+HYPOCENTER  x 30.0471 y -2.34651 z 6.32031  OT 44.5437  ix -1 iy -1 iz -1 MAXIMUM_LIKELIHOOD
+GEOGRAPHIC  OT 2022 11 16  21 32 44.543721  Lat 31.634472 Long -104.003977 Depth 6.320312
+QUALITY  Pmax 6.86261e+93 MFmin 34.6903 MFmax 35.7163 RMS 0.213699 Nphs 32 Gap 47.1706 Dist 2.08337 Mamp  5.40 1 Mdur -9.90 0
+VPVSRATIO  VpVsRatio 1.64957  Npair 7  Diff 3.684
+STATISTICS  ExpectX 29.631072 Y -2.282375 Z 7.320111  CovXX 0.3725 XY -0.0193262 XZ -0.433058 YY 0.184229 YZ 0.0512992 ZZ 1.61658 EllAz1  3.68462 Dip1  -0.933111 Len1  0.801859 Az2  273.39 Dip2  -17.5107 Len2  0.914228 Len3  2.488570e+00
+STAT_GEOG  ExpectLat 31.635049 Long -104.008369 Depth 7.320111
+TRANSFORM  SIMPLE LatOrig 31.655575  LongOrig -104.321355  RotCW 0.000000
+QML_OriginQuality  assocPhCt 68  usedPhCt 32  assocStaCt -1  usedStaCt 25  depthPhCt -1  stdErr 0.213699  azGap 47.1706  secAzGap 74.8858  gtLevel -  minDist 2.08337 maxDist 50.4554 medDist 14.0779
+QML_OriginUncertainty  horUnc -1  minHorUnc 0.647464  maxHorUnc 0.928044  azMaxHorUnc 95.8009
+QML_ConfidenceEllipsoid  semiMajorAxisLength 2.48857  semiMinorAxisLength 0.801859  semiIntermediateAxisLength 0.914228  majorAxisPlunge -72.4629  majorAxisAzimuth 96.639  majorAxisRotation 176.216
+FOCALMECH  Hyp  31.634472 -104.003977 6.320312 Mech  0 0 0 mf  0 nObs -1
+END_NLLOC
+
