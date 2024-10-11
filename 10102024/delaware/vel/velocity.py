@@ -226,8 +226,6 @@ class VelModel():
             # Save the perturbed model to an SQLite database
             save_dataframe_to_sqlite(data, output, table_name=f"model_{i}")
         
-            
-            
 class VelPerturbationModel:
     """
     A class to represent a velocity perturbation model. This class provides methods

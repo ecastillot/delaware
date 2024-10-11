@@ -18,8 +18,7 @@ if __name__ == "__main__":
     eq_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/growclust/texnet_hirescatalog.csv"
     syn_picks_folder_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/pykonal"
     
-    df = pd.read_csv(stations_path)
-    stations = Stations(data=df, xy_epsg=proj)
+    stations = get_db_stations(stations_path,x,y,proj)
     print(stations)
     # growclust = get_texnet_high_resolution_catalog(eq_path)
     # eqs = Earthquakes(data=growclust.data,xy_epsg=proj)
@@ -32,7 +31,6 @@ if __name__ == "__main__":
                              "origin_time":["2022-11-16 21:32:48.4819999"]
                              })
     df["origin_time"] = pd.to_datetime(df['origin_time'])
-    print(df)
     earthquakes = Earthquakes(data=df, xy_epsg=proj)
     print(earthquakes)
     
@@ -42,17 +40,15 @@ if __name__ == "__main__":
         ott_path = os.path.join(tt_folder_path,f"{phase}_tt.csv")
         eq = EarthquakeTravelTime(phase=phase, stations=stations,
                             earthquakes=earthquakes)
-        print(tt_path)
         eq.load_velocity_model(path=tt_path,
                                     xy_epsg=proj)
         tt = eq.get_traveltimes(merge_stations=True,
                                 output=ott_path)
-        print(tt)
         tt.data.sort_values(by="event_index", inplace=True)
         tt.data["phase_hint"] = phase
         picks.append(tt.data)
     picks = pd.concat(picks)
-    print(picks)
+    print(picks.info())
     
     # x,y,z,profiles = prepare_db1d_syn_vel_model(x,y,z,vel_path,proj)
     # stations = get_db_syn_stations(x,y,stations_path,proj)

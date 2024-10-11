@@ -805,13 +805,6 @@ class Catalog():
 
         return fig
 
-    # def plot_profiles(self,profiles,
-    #                 depth_unit,
-    #                 cpt=None,
-    #                 show_cpt=True,
-    #                 fig=None,
-    #                 verbose=True):
-
     def matplot(self,color_target="depth",
             s=8,cpt="viridis",show_cpt=True,
             ax=None):

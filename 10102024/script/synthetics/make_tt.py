@@ -5,6 +5,7 @@
 if __name__ == "__main__":
     import os
     from delaware.utils import *
+    from delaware.synthetic.utils import prepare_db1d_syn_vel_model
     from delaware.synthetic.tt import EarthquakeTravelTimeDataset
     
     x = (-104.84329,-103.79942)
@@ -16,17 +17,13 @@ if __name__ == "__main__":
     stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
     tt_folder_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/synthetics/tt"
     
-    stations = get_db_syn_stations(x,y,stations_path,proj)
-    x,y,z,profiles = prepare_db1d_syn_vel_model(x,y,z,vel_path,proj)
-    # print("aca",x,y,z)
-    # exit()
+    stations = get_db_stations(stations_path,x,y,proj)
     print(stations)
     
     
-    # print(x,y,z,profiles)
-    # exit()
+    x,y,z,profiles = prepare_db1d_syn_vel_model(x,y,z,vel_path,proj)
     for phase, vel in profiles.items():
-        print(phase)
+        print("Phase:",phase)
         tt_path = os.path.join(tt_folder_path,f"{phase}_tt.h5")
         tt = EarthquakeTravelTimeDataset(phase,stations)
         tt.add_grid_with_velocity_model(x,y,z,nx,ny,nz,
