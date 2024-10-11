@@ -15,3 +15,7 @@
 
 - **01082024**: It corresponds to the first analysis done to the TX high resolution catalog. It was previous to present the results to Alexandor's meetings.
 - **21092024**: After first Alexandros meeting on Sep 19.
+- **10102024**: 
+Synthetics travel times using pykonal
+
+
