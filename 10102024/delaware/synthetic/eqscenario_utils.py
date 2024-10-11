@@ -5,17 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from obspy.geodetics.base import gps2dist_azimuth
-import delaware.synthetic.tt_utils as ttu
+from delaware.core.eqviewer import Stations,Source
 
 def plot_eqscenario_phases(phases:pd.DataFrame,
-                stations:ttu.Stations,
-                sort_by_source:ttu.Source=None,
+                stations:Stations,
+                sort_by_source:Source=None,
                     show:bool = True):
         
     if not sort_by_source:
         lat = stations.data["latitude"].mean()
         lon = stations.data["longitude"].mean()
-        sort_by_source = ttu.Source(lat,lon,0,xy_epsg=stations.xy_epsg)
+        sort_by_source = Source(lat,lon,0,xy_epsg=stations.xy_epsg)
     
     stations = stations.sort_data_by_source(sort_by_source)
     stations["sort_by_r_index"] = stations.index 

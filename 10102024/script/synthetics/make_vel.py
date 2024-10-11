@@ -21,8 +21,6 @@ if __name__ == "__main__":
     new_stations_path = os.path.join(os.path.dirname(stations_path),"standard_stations.csv")
     stations.data.to_csv(new_stations_path,index=False)
     
-    # print(stations.data)
-    # # p_model.plot_profile()
     vel_models["P"].plot_velocity_model(coords="geo",
                                         stations=stations,
                                         view_init_args={"elev":0, "azim":-90}

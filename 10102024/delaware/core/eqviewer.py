@@ -18,7 +18,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from obspy.geodetics.base import gps2dist_azimuth
 from scipy import interpolate
-from . import utils as ut
+from . import eqviewer_utils as ut
 from tqdm import tqdm
 from delaware.core.database import save_dataframe_to_sqlite, load_dataframe_from_sqlite
 pygmt.config(FORMAT_GEO_MAP="ddd.xx")
@@ -309,6 +309,7 @@ class Picks():
 class Catalog():
     def __init__(self,
             data,
+            xy_epsg: str,
             baseplot = BasePlot(size=None,
                         style="c0.2c",
                         cmap=False,
@@ -327,12 +328,22 @@ class Catalog():
         baseplot: BasePlot
             Control plot args
         """
-        self.columns = ['origin_time','latitude','longitude','depth','magnitude']
-        check =  all(item in data.columns.to_list() for item in self.columns)
+        self.lonlat_epsg = "EPSG:4326"
+        self.xy_epsg = xy_epsg
+        
+        self._mandatory_columns = ['origin_time','latitude','longitude','depth','magnitude']
+        # Check if all mandatory columns are present in the DataFrame
+        check = all(item in data.columns.to_list() for item in self._mandatory_columns)
         if not check:
-            raise Exception("There is not the mandatory columns for the data in Catalog object."\
-                            +"->'origin_time','latitude','longitude','depth','magnitude'")
+            raise Exception("There is not the mandatory columns for the data in Earthquakes object." \
+                            + f"->{self._mandatory_columns}")
 
+        # Convert latitude and longitude to x and y coordinates in kilometers
+        data = ut.latlon2yx_in_km(data, xy_epsg)
+        
+        # Copy depth to z column (assuming depth is already in kilometers)
+        data["z[km]"] = data["depth"]
+        
         data = data.drop_duplicates(subset=self.columns,ignore_index=True)
         pd.to_datetime(data.loc[:,"origin_time"]).dt.tz_localize(None)
         # self.data = data[self.columns]
@@ -538,6 +549,20 @@ class Catalog():
         self.data = self.data[mask]
         
         return self
+
+    def get_minmax_coords(self, padding: list = [5, 5, 1]):
+        """
+        Get the minimum and maximum coordinates from the earthquake data.
+
+        Parameters:
+        - padding (list): Padding values to extend the bounding box. Default is [5, 5, 1].
+
+        Returns:
+        - tuple: Tuple containing minimum and maximum coordinates.
+        """
+        minmax_coords = ut.get_minmax_coords_from_points(self.data, self.xy_epsg, padding)
+        return minmax_coords
+
 
     def get_region(self,padding=[]):
         """
@@ -1193,9 +1218,49 @@ class MulCatalog():
                         position="JBC+e")
 
         return fig
+
+class Source(object):
+    def __init__(self, latitude: float, longitude: float, depth: float,
+                 xy_epsg: str, origin_time: dt.datetime = None) -> None:
+        """
+        Initialize the Source object.
+
+        Parameters:
+        - latitude (float): Latitude of the source.
+        - longitude (float): Longitude of the source.
+        - depth (float): Depth of the source.
+        - xy_epsg (str): EPSG code specifying the coordinate reference system for x and y coordinates.
+        - origin_time (dt.datetime): Origin time of the source. Default is None.
+        """
+        self.latitude = latitude
+        self.longitude = longitude
+        self.depth = depth
+        self.origin_time = origin_time
+        self.lonlat_epsg = "EPSG:4326"
+        self.xy_epsg = xy_epsg
+
+        # Convert latitude and longitude to x and y coordinates in kilometers
+        y,x = ut.single_latlon2yx_in_km(self.latitude, self.longitude, xy_epsg=xy_epsg)
+        
+        self.x = x
+        self.y = y
+        self.z = depth
+
+    def __str__(self) -> str:
+        """
+        Return a string representation of the Source object.
+
+        Returns:
+        - str: String representation of the Source object.
+        """
+        msg1 = f"Source [{self.longitude},{self.latitude},{self.depth},{self.origin_time}]"
+        msg2 = f"       ({self.xy_epsg}:km) -> [{self.x},{self.y},{self.z},{self.origin_time}]"
+        msg = msg1 + "\n" + msg2
+        return msg
     
-class Station():
+class Stations():
     def __init__(self,data,
+                 xy_epsg,
                 baseplot=BasePlot(color="black",
                                 label="stations",
                                 transparency = 0,
@@ -1215,12 +1280,26 @@ class Station():
         basetext: None or BaseText
             Control text args
         """
-        self.columns = ['station','latitude','longitude']
-        check =  all(item in data.columns.to_list() for item in self.columns)
+        self.lonlat_epsg = "EPSG:4326"
+        self.xy_epsg = xy_epsg
+        # Define mandatory columns
+        self._mandatory_columns = ['station_index', 'network', 'station', 
+                                   'latitude', 'longitude', 'elevation']
+        
+        # Check if all mandatory columns are present in the DataFrame
+        check = all(item in data.columns.to_list() for item in self._mandatory_columns)
         if not check:
-            raise Exception("There is not the mandatory columns for the data in Station object."\
-                            +"->'station','latitude','longitude'")
+            raise Exception("There is not the mandatory columns for the data in Station object." \
+                            + f"->{self._mandatory_columns}")
         # self.data = data[columns]
+        
+        # Convert latitude and longitude to x and y coordinates in kilometers
+        data = ut.latlon2yx_in_km(data, xy_epsg)
+        
+        # Convert elevation to z coordinates in kilometers
+        data["z[km]"] = data["elevation"] * -1
+        
+        
         self.data = data
         self.baseplot = baseplot
         self.basetext = basetext
@@ -1356,6 +1435,37 @@ class Station():
         self.data = self.data.sort_values(**args)
         return self
 
+    def sort_data_by_source(self, source: Source,ascending:bool=False):
+        """
+        Sorts data by distance from a specified source location.
+
+        Parameters:
+        - source (Source): The source location used for sorting.
+        - ascending (bool,False): Sort ascending vs. descending. Specify list for multiple sort orders. 
+                If this is a list of bools, must match the length of the by.
+
+        Returns:
+        - pd.DataFrame: DataFrame sorted by distance from the source.
+        """
+
+        # Extract data from the object
+        stations = self.data
+
+        if stations.empty:
+            raise Exception("Stations Object can not be sorted because its data attribute is empty")
+
+        # Define a distance function using the haversine formula
+        distance_func = lambda y: gps2dist_azimuth(y.latitude, y.longitude,
+                                                source.latitude, source.longitude)[0]/1e3
+
+        # Compute distances and add a new 'sort_by_r' column to the DataFrame
+        stations["sort_by_r"] = stations.apply(distance_func, axis=1)
+
+        # Sort the DataFrame by the 'sort_by_r' column
+        stations = stations.sort_values("sort_by_r",ascending=ascending, ignore_index=True)
+
+        return stations
+
     def filter_region(self,polygon):
         """
         Filter the region of the data.
@@ -1374,6 +1484,20 @@ class Station():
         mask = self.data[["longitude","latitude"]].apply(is_in_polygon,axis=1)
         self.data = self.data[mask]
         return self
+
+    def get_minmax_coords(self, padding: list = [5, 5, 1]):
+        """
+        Get the minimum and maximum coordinates from the station data.
+
+        Parameters:
+        - padding (list): Padding values to extend the bounding box. Default is [5, 5, 1].
+
+        Returns:
+        - tuple: Tuple containing minimum and maximum coordinates.
+        """
+        minmax_coords = ut.get_minmax_coords_from_points(self.data, 
+                                                         self.xy_epsg, padding)
+        return minmax_coords
 
     def get_events_by_sp(self,catalog,rmax,zmin,
                          picks_path=None,
@@ -1490,7 +1614,7 @@ class Station():
         ax.set_ylabel("Latitude [°]")
         return ax
 
-class MulStation():
+class MulStations():
     def __init__(self,stations=[]):
         """
         Parameters:

@@ -17,9 +17,12 @@ import pykonal
 import time
 import matplotlib.pyplot as plt
 import concurrent.futures as cf
-from . import tt_utils as ttu
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from .utils import change_file_extension
+from delaware.vel.pykonal import PykonalVelModel,get_xyz_velocity_model
+from delaware.core.eqviewer import Source,Stations,Catalog
+
 ### TravelTime
 
 class TravelTime(object):
@@ -98,12 +101,12 @@ class TravelTime(object):
         """Deep copy of the class"""
         return copy.deepcopy(self)
     
-    def merge_stations(self, stations: ttu.Stations, inplace: bool = False):
+    def merge_stations(self, stations, inplace: bool = False):
         """
         Merge the stations of the current object with another Stations object.
 
         Args:
-            stations (ttu.Stations): The Stations object containing stations to merge.
+            stations (Station): The Station object containing stations to merge.
             inplace (bool): Whether to modify the current object in-place or return a new merged object. Default is True.
 
         Returns:
@@ -121,13 +124,13 @@ class TravelTime(object):
         else:
             return data
         
-    def plot(self, stations: ttu.Stations, event_index: int = None, 
+    def plot(self, stations: Stations, event_index: int = None, 
                 show: bool = True, savefig: str = None):
         """
         Plot travel times for a given earthquake event.
 
         Args:
-            stations (ttu.Stations): Stations object containing station data.
+            stations (Stations): Stations object containing station data.
             event_index (int, optional): ID of the earthquake event. If not provided, a random event ID will be selected. Defaults to None.
             show (bool, optional): Whether to display the plot. Defaults to True.
             savefig (str, optional): File path to save the plot. Defaults to None.
@@ -221,7 +224,7 @@ class TravelTime(object):
     
 ## Earthquake TravelTime 
 
-def get_station_location_on_grid(x: float, y: float, z: float, field: ttu.VelModel):
+def get_station_location_on_grid(x: float, y: float, z: float, field: PykonalVelModel):
     """
     Get the grid location of a station in the velocity model field.
 
@@ -229,7 +232,7 @@ def get_station_location_on_grid(x: float, y: float, z: float, field: ttu.VelMod
         x (float): X-coordinate of the station.
         y (float): Y-coordinate of the station.
         z (float): Z-coordinate of the station.
-        field (ttu.VelModel): Velocity model field.
+        field (PykonalVelModel): Velocity model field.
 
     Returns:
         tuple: Grid location of the station (x_index, y_index, z_index).
@@ -247,16 +250,16 @@ def get_station_location_on_grid(x: float, y: float, z: float, field: ttu.VelMod
     
     return x_index, y_index, z_index
 
-def get_tt_from_single_source(source: ttu.Source,
-                              stations: ttu.Stations,
-                              vel_model: ttu.VelModel):
+def get_tt_from_single_source(source: Source,
+                              stations: Stations,
+                              vel_model: PykonalVelModel):
     """
     Calculate travel times from a single seismic source to multiple stations.
 
     Args:
-        source (ttu.Source): Seismic source.
-        stations (ttu.Stations): Seismic stations.
-        vel_model (ttu.VelModel): Velocity model.
+        source (Source): Seismic source.
+        stations (Stations): Seismic stations.
+        vel_model (PykonalVelModel): Velocity model.
 
     Returns:
         pd.DataFrame: DataFrame containing travel times.
@@ -347,14 +350,14 @@ def read_traveltime_from_earthquake(input: str, event_id: int, dropinf: bool = T
     return tt
 
 class EarthquakeTravelTime(object):
-    def __init__(self, phase: str, stations: ttu.Stations, earthquakes: ttu.Earthquakes):
+    def __init__(self, phase: str, stations: Stations, earthquakes: Catalog):
         """
         Initialize the PhaseTravelTime object.
 
         Args:
             phase (str): Phase type.
-            stations (ttu.Stations): Seismic stations.
-            earthquakes (ttu.Earthquakes): Earthquake data.
+            stations (Stations): Seismic stations.
+            earthquakes (Catalog): Earthquake data.
         """
         self.phase = phase
         self.stations = stations
@@ -371,7 +374,7 @@ class EarthquakeTravelTime(object):
         Returns:
             None
         """
-        self.model = ttu.VelModel.load_npz(path, self.phase, xy_epsg)
+        self.model = PykonalVelModel.load_npz(path, self.phase, xy_epsg)
         return self.model
         
     def add_grid_with_velocity_model(self, x: tuple, y: tuple, z: tuple,
@@ -395,9 +398,9 @@ class EarthquakeTravelTime(object):
             layer (bool): Whether to use layered velocity model. Default is True.
 
         Returns:
-            ttu.VelModel: Velocity model.
+            PykonalVelModel: Velocity model.
         """
-        self.model = ttu.get_xyz_velocity_model(x, y, z, nx, ny, nz, xy_epsg,
+        self.model = get_xyz_velocity_model(x, y, z, nx, ny, nz, xy_epsg,
                                                  self.phase, vel1d, layer)
         return self.model
         
@@ -428,7 +431,7 @@ class EarthquakeTravelTime(object):
         xy_epsg = self.earthquakes.xy_epsg
         for i, row in self.earthquakes.data.iterrows():
             # Create Source object
-            source = ttu.Source(row.latitude, row.longitude, row.depth,
+            source = Source(row.latitude, row.longitude, row.depth,
                                 xy_epsg=xy_epsg, origin_time=row.origin_time)
             
             # Calculate travel times for current earthquake
@@ -473,7 +476,7 @@ class EarthquakeTravelTime(object):
             hf.close()
             eq = tt_df[["event_index","src_lat","src_lon","src_z[km]"]] 
             eq = eq.drop_duplicates("event_index",ignore_index=True)
-            eq_path = ttu.change_file_extension(output,".csv")
+            eq_path = change_file_extension(output,".csv")
             eq.to_csv(eq_path,index=False)
         
         return tt
@@ -504,13 +507,13 @@ class EarthquakeTravelTime(object):
 ## TravelTime Dataset from grid points (massive travel times)   
  
 class Station2Source():
-    def __init__(self, vel_model: ttu.VelModel,
+    def __init__(self, vel_model: PykonalVelModel,
                  tt_data: pd.DataFrame):
         """
         Initialize Station2Source object.
 
         Args:
-            vel_model (ttu.VelModel): Velocity model object.
+            vel_model (PykonalVelModel): Velocity model object.
             tt_data (pd.DataFrame): DataFrame containing travel time data.
         """
         self.tt = tt_data
@@ -581,16 +584,16 @@ class Station2Source():
         
         return df
 
-def get_tt_from_grid_points(stations: ttu.Stations,
-                            vel_model: ttu.VelModel,
+def get_tt_from_grid_points(stations: Stations,
+                            vel_model: PykonalVelModel,
                             polygons: list=[],
                             output: str = None):
     """
     Calculate travel times from grid points to stations.
 
     Args:
-        stations (ttu.Stations): Stations object containing station data.
-        vel_model (ttu.VelModel): Velocity model object.
+        stations (Stations): Stations object containing station data.
+        vel_model (PykonalVelModel): Velocity model object.
         polygons (list): List of polygons to check if points are inside.
         output (str, optional): Output file path to store travel time data. Default is None.
 
@@ -603,7 +606,7 @@ def get_tt_from_grid_points(stations: ttu.Stations,
             os.makedirs(os.path.dirname(output))
         hf = h5py.File(output, 'w')
         
-        model_path = ttu.change_file_extension(output,".npz")
+        model_path = change_file_extension(output,".npz")
         vel_model.export_npz(model_path)
 
     def solver(iterrow,srcs_in_pol):
@@ -654,7 +657,7 @@ def get_tt_from_grid_points(stations: ttu.Stations,
             #saving earthquake info
             if nsta == 0:
                 eq = df[["event_index","src_lat","src_lon","src_z[km]"]]
-                eq_path = ttu.change_file_extension(output,".csv")
+                eq_path = change_file_extension(output,".csv")
                 try:
                     eq.to_csv(eq_path, index=False)
                     del eq
@@ -758,14 +761,14 @@ def read_traveltime_from_dataset(input: str, event_id: int, dropinf: bool = True
     
 class EarthquakeTravelTimeDataset(object):
     def __init__(self, phase: str, 
-                 stations: ttu.Stations, 
+                 stations: Stations, 
                  polygons:list = []):
         """
         Initialize the EarthquakeDataset object.
 
         Args:
             phase (str): Phase type.
-            stations (ttu.Stations): Stations object containing station data.
+            stations (Stations): Stations object containing station data.
             polygons (list): List of polygons to locate the earthquakes.
         """
         self.phase = phase
@@ -783,7 +786,7 @@ class EarthquakeTravelTimeDataset(object):
         Returns:
             None
         """
-        self.model = ttu.VelModel.load_npz(path, self.phase, xy_epsg)
+        self.model = PykonalVelModel.load_npz(path, self.phase, xy_epsg)
         return self.model
     
     def add_grid_with_velocity_model(self, x: tuple, y: tuple, z: tuple,
@@ -807,9 +810,9 @@ class EarthquakeTravelTimeDataset(object):
             layer (bool): Whether to use layered velocity model. Default is True.
 
         Returns:
-            ttu.VelModel: Velocity model.
+            PykonalVelModel: Velocity model.
         """
-        self.model = ttu.get_xyz_velocity_model(x, y, z, nx, ny, nz, xy_epsg,
+        self.model = get_xyz_velocity_model(x, y, z, nx, ny, nz, xy_epsg,
                                                  self.phase, vel1d, layer)
         return self.model
     
@@ -851,19 +854,19 @@ class EarthquakeTravelTimeDataset(object):
     
         
 if __name__ == "__main__":
-    
+    from delaware.eqviewer.utils import single_latlon2yx_in_km
     stations_path = pd.read_csv("/home/emmanuel/ecastillo/dev/associator/GPA/data/CM_stations.csv")
-    stations = ttu.Stations(stations_path,"EPSG:3116")
+    stations = Stations(stations_path,"EPSG:3116")
     
     earthquakes_data = pd.DataFrame.from_dict({"latitude":[6.81],
                                                "longitude":[-73.14],
                                                "depth":[150],
                                                "origin_time":[np.nan]})
-    earthquakes = ttu.Earthquakes(earthquakes_data,"EPSG:3116")
+    earthquakes = Catalog(earthquakes_data,"EPSG:3116")
     
     
-    ymin, xmin = ttu.single_latlon2yx_in_km(-1.403,-81.819,"EPSG:3116")
-    ymax, xmax= ttu.single_latlon2yx_in_km(14.571,-68.161,"EPSG:3116")
+    ymin, xmin = single_latlon2yx_in_km(-1.403,-81.819,"EPSG:3116")
+    ymax, xmax= single_latlon2yx_in_km(14.571,-68.161,"EPSG:3116")
     x = (xmin,xmax)
     y = (ymin,ymax)
     z = (-5,200)

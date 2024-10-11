@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import concurrent.futures as cf
 from obspy.geodetics.base import gps2dist_azimuth
-from 10102024.synthetic.tt import TravelTime,EarthquakeTravelTimeDataset,EarthquakeTravelTime
-from 10102024.synthetic.tt_utils import Source,Stations,change_file_extension,Stations,Earthquakes,VelModel
-from 10102024.synthetic.eqscenario_utils import *
+from delaware.synthetic.tt import TravelTime,EarthquakeTravelTimeDataset,EarthquakeTravelTime
+from delaware.core.eqviewer import Source,Stations,Catalog
+from delaware.synthetic.utils import change_file_extension
+from delaware.vel.pykonal import VelModel
+from delaware.synthetic.eqscenario_utils import *
 
 
 ##### Scenario Classes

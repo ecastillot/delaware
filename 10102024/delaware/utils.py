@@ -7,8 +7,7 @@
 #  */
 import pandas as pd
 from datetime import datetime
-from delaware.eqviewer.eqviewer import Catalog
-from delaware.synthetic.tt_utils import Stations
+from delaware.core.eqviewer import Catalog,Stations
 import pandas as pd
 
 def get_db_stations(stations_path,lon_lims, lat_lims,proj):

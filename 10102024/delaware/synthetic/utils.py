@@ -1,8 +1,69 @@
+import os
 import pandas as pd
-import pandas as pd
-from delaware.vel.velocity import VelModel
+from delaware.vel.montecarlo import VelModel
+from delaware.vel.pykonal import get_xyz_velocity_model
+from delaware.core.eqviewer_utils import single_latlon2yx_in_km
 
-from delaware.synthetic.tt_utils import get_xyz_velocity_model,single_latlon2yx_in_km
+def get_stations_info_from_inventory(inventory):
+    """
+    Extract station information from an inventory object.
+
+    Args:
+        inventory: ObsPy inventory object containing network and station information.
+
+    Returns:
+        pd.DataFrame: DataFrame containing station information.
+    """
+    # Initialize an empty list to store station information
+    data = []
+    
+    # Iterate over networks in the inventory
+    for network in inventory:
+        net_code = network.code
+        
+        # Iterate over stations in the network
+        for station in network:
+            # Extract station attributes
+            sta_code = station.code
+            sta_lat = station.latitude
+            sta_lon = station.longitude
+            sta_elv = station.elevation / 1e3  # Convert elevation to kilometers
+            
+            # Append station information to the list
+            data.append([net_code, sta_code, sta_lon, sta_lat, sta_elv])
+    
+    # Create a DataFrame from the collected data
+    df = pd.DataFrame(data, columns=["network", "station", "longitude", "latitude", "elevation"])
+    
+    # Add a station index column
+    df["station_index"] = df.index
+    
+    # Reorder columns with station index as the first column
+    df = df[df.columns[-1:].tolist() + df.columns[:-1].tolist()] 
+    
+    return df
+
+def change_file_extension(input_path, new_extension='.csv'):
+    """
+    Change the file extension of the given input path to the specified new extension.
+
+    Args:
+        input_path (str): The input file path.
+        new_extension (str, optional): The new file extension to be applied. Defaults to '.csv'.
+
+    Returns:
+        str: The modified file path with the new extension.
+    """
+    # Split the file path into its directory and file name parts
+    directory, filename = os.path.split(input_path)
+    
+    # Split the filename into its name and extension parts
+    filename_without_extension, _ = os.path.splitext(filename)
+    
+    # Concatenate the directory, filename without extension, and new extension
+    output_path = os.path.join(directory, filename_without_extension + new_extension)
+    
+    return output_path
 
 def prepare_db1d_syn_vel_model(lons, lats, z, vel_path, proj):
     """
@@ -27,7 +88,6 @@ def prepare_db1d_syn_vel_model(lons, lats, z, vel_path, proj):
     
     # Create a DBVelModel object with the velocity data and set the topographic datum (z[0])
     db1d = DBVelModel(db1d, name="db1d", dtm=z[0])
-    
     # Convert the 1D velocity profile into synthetic profiles for P and S waves
     profiles = db1d.to_synthetics()
     
