@@ -76,8 +76,6 @@ def single_yx_in_km2latlon(y: float, x: float, xy_epsg: str = "EPSG:3116"):
     """
     transformer = Transformer.from_crs(xy_epsg, "EPSG:4326")  # Creating a Transformer object
     lon, lat = transformer.transform(x * 1e3, y * 1e3)  # Converting x and y from km to meters and transforming to latlon
-    # print(lat,lon)
-    # exit()
     return lon,lat
 
 def single_latlon2yx_in_km(lat:float,lon:float, 
@@ -94,11 +92,8 @@ def single_latlon2yx_in_km(lat:float,lon:float,
         coords (tuple): y,x coordinates
     """
     transformer = Transformer.from_crs("EPSG:4326", xy_epsg)
-    y,x = transformer.transform(lat,lon)
-    coords = x/1e3,y/1e3
-    # print(lat,lon,y,x)
-    print(coords)
-    # exit()
+    x,y = transformer.transform(lat,lon)
+    coords = y/1e3,x/1e3
     return coords
 
 def latlon2yx_in_km(stations: pd.DataFrame, epsg: str):
@@ -490,12 +485,9 @@ class VelModel(ScalarField3D):
             tuple: Minimum geographic coordinates (longitude, latitude, depth).
         """
         min_x, min_y, min_z = self.min_coords
-        # print( min_x, min_y, min_z)
         min_lat, min_lon = single_yx_in_km2latlon(min_y, min_x,
                                                    xy_epsg=self.xy_epsg)
         geo_min_coords = round(min_lon,4), round(min_lat,4), round(min_z,4)
-        # print(geo_min_coords)
-        # exit()
         return geo_min_coords
     
     @property
@@ -548,9 +540,6 @@ class VelModel(ScalarField3D):
         """
         min_lon, min_lat, min_z = self.geo_min_coords
         max_lon, max_lat, max_z = self.geo_max_coords
-        
-        # print( self.geo_min_coords,self.geo_max_coords)
-        # exit()
         
         x_pts, y_pts, z_pts = self.npts
         lat = np.linspace(min_lat, max_lat, y_pts)
@@ -707,9 +696,7 @@ class VelModel(ScalarField3D):
         
         if coords == "geo":
             lon, lat, z = self.geo_coords
-            # print(lon, lat, z)
             x_grid, y_grid, z_grid = np.meshgrid(lon, lat, z, indexing='xy')
-            # print(x_grid.shape, y_grid.shape, z_grid.shape )
             
             xlabel = "Lon [°]"
             ylabel = "Lat [°]"

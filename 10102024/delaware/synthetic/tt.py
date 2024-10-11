@@ -147,12 +147,7 @@ class TravelTime(object):
         df = tt[tt["event_index"] == event_index]
         df = df.reset_index()
         
-        # print(df)
-        # exit()
-        #  getting the source
         source = df.loc[0,["src_lon","src_lat","src_z[km]"]]
-        # print(df)
-        # exit()
         
         if "station" in df.columns.to_list():
             pass
@@ -288,7 +283,6 @@ def get_tt_from_single_source(source: ttu.Source,
     
     # Iterate over stations
     for i, row in stations.data.iterrows():
-        # print(i,row)
         # Get station's grid location
         sta_grid_loc = get_station_location_on_grid(row["x[km]"],
                                                     row["y[km]"],
@@ -440,7 +434,6 @@ class EarthquakeTravelTime(object):
             # Calculate travel times for current earthquake
             df = get_tt_from_single_source(source, self.stations, self.model)
             
-            # print("Aca",df)
             # Add earthquake ID to DataFrame
             df["event_index"] = i
             
@@ -533,16 +526,9 @@ class Station2Source():
         
         # Create 2D array for travel time data.
         all = []
-        # for x in range(self.tt.shape[0]):
-        #     for y in range(self.tt.shape[1]):
-        #         for z in range(self.tt.shape[2]):
-        #             all.append((x,y,z,self.tt[y][x][z]))
-        # print(self.tt.shape)
-        # exit()
         for x in range(self.tt.shape[0]):
             for y in range(self.tt.shape[1]):
                 for z in range(self.tt.shape[2]):
-                    # print(x,y,z)
                     all.append((x,y,z,self.tt[x][y][z]))
         
         # THis approach could be better, but I have not had time to test it,
@@ -557,8 +543,6 @@ class Station2Source():
         
         #  # Create DataFrame from array
         df = pd.DataFrame(all, columns=columns)
-        
-        # print(df)
         
         # Extract geographical coordinates from velocity model
         lon, lat, z = self.vel_model.geo_coords
@@ -640,31 +624,9 @@ def get_tt_from_grid_points(stations: ttu.Stations,
         solver.src_loc = source
         solver.solve()
         
-        # print(model.npts)
-        # print(model.values)
-        # -11593311.0,3750558.3
         # Get travel time values
         values = solver.tt.values
-        # print(source,model.node_intervals,model.npts)
-        # print(model.min_coords)
-        # print(model.max_coords)
-        # print(values)
-        # exit()
-        # fig = plt.figure(figsize=(6, 2.5))
-        # ax = fig.add_subplot(1, 1, 1, frameon=False)
-        # print(source)
-        # print(solver.tt.nodes.shape)
-        # print(solver.tt.values.shape)
-        # qmesh = ax.pcolormesh(
-        #         solver.tt.nodes[:,:,0,0], 
-        #         solver.tt.nodes[:,:,0,1], 
-        #         solver.tt.values[:,:,0],
-        #         cmap=plt.get_cmap("hot")
-        #     )
-        # plt.show()
-        # cbar = fig.colorbar(qmesh, ax=(ax1, ax2))
-        # cbar.set_label("Velocity [km/s]")
-                
+        
         # Convert travel times to DataFrame
         s2s = Station2Source(vel_model=vel_model, tt_data=values)
         df = s2s.tt2df()
