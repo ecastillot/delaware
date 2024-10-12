@@ -348,7 +348,7 @@ class PykonalVelModel(ScalarField3D):
                            alpha=1,
                            s=200
                            )
-                print(z[0])
+                # print(z[0])
         # if coords == "geo":
         #     #fancy
         #     target_projection = ccrs.PlateCarree()

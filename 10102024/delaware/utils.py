@@ -48,7 +48,7 @@ def get_db_stations(stations_path,lon_lims, lat_lims,proj):
     
     return stations
 
-def get_texnet_high_resolution_catalog(path):
+def get_texnet_high_resolution_catalog(path,xy_epsg):
     df = pd.read_csv(path)
     # Function to create datetime
     def create_datetime(row):
@@ -65,9 +65,9 @@ def get_texnet_high_resolution_catalog(path):
                             "lonR":"longitude",
                             "depR":"depth",
                             "mag":"magnitude",
-                            "EventId":"id"})
+                            "EventId":"ev_id"})
     
-    catalog = Catalog(df)
+    catalog = Catalog(df,xy_epsg=xy_epsg)
     return catalog
     
     # df.to_csv(outpath,index=False)

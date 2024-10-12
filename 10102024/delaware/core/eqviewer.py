@@ -344,7 +344,7 @@ class Catalog():
         # Copy depth to z column (assuming depth is already in kilometers)
         data["z[km]"] = data["depth"]
         
-        data = data.drop_duplicates(subset=self.columns,ignore_index=True)
+        data = data.drop_duplicates(subset=self._mandatory_columns,ignore_index=True)
         pd.to_datetime(data.loc[:,"origin_time"]).dt.tz_localize(None)
         # self.data = data[self.columns]
         self.data = data
@@ -1527,14 +1527,14 @@ class Stations():
             
             if picks_path is not None:
                 picks = new_catalog.get_picks(picks_path)
-                picks.select_data({"station_code":[row.station]})
+                picks.select_data({"station":[row.station]})
                 picks.filter_requiring_ps_phases_in_station()
                 
                 if picks.empty:
                     continue
                 
                 ev_ids = picks.data["ev_id"].to_list()
-                new_catalog.select_data(rowval={"id":ev_ids})
+                new_catalog.select_data(rowval={"ev_id":ev_ids})
                 if new_catalog.empty:
                     continue
                 

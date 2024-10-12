@@ -27,8 +27,8 @@ from obspy.core.stream import _headonly_warning_msg
 from obspy import UTCDateTime
 from tqdm import tqdm
 import concurrent.futures as cf
-from scan.stats import get_rolling_stats
 from obspy.clients.fdsn import Client as FDSNClient
+from delaware.scan.stats import get_rolling_stats
 
 class StatsClient(FDSNClient):
     """
@@ -214,10 +214,10 @@ def get_custom_picks(event):
     # Loop through each pick in the event
     for pick in event.picks:
         picks[pick.resource_id.id] = {
-            "network_code": pick.waveform_id.network_code if pick.waveform_id is not None else None,
-            "station_code": pick.waveform_id.station_code if pick.waveform_id is not None else None,
-            "location_code": pick.waveform_id.location_code if pick.waveform_id is not None else None,
-            "channel_code": pick.waveform_id.channel_code if pick.waveform_id is not None else None,
+            "network": pick.waveform_id.network_code if pick.waveform_id is not None else None,
+            "station": pick.waveform_id.station_code if pick.waveform_id is not None else None,
+            "location": pick.waveform_id.location_code if pick.waveform_id is not None else None,
+            "channel": pick.waveform_id.channel_code if pick.waveform_id is not None else None,
             "phase_hint": pick.phase_hint,
             "time": pick.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f"),
             "time_lower_error": pick.time_errors.lower_uncertainty if pick.time_errors is not None else None,
@@ -342,7 +342,7 @@ def get_custom_pref_mag(event):
     
     # Get preferred magnitude information
     info = {
-        "mag": magnitude.mag,
+        "magnitude": magnitude.mag,
         "uncertainty": magnitude.mag_errors.uncertainty if magnitude.mag_errors is not None else None,
         "type": magnitude.magnitude_type,
         "method_id": magnitude.method_id.id.split("/")[-1] if magnitude.method_id is not None else None,
@@ -405,7 +405,7 @@ def get_custom_origin(event):
     
     # Prepare event information
     ev_info = {
-        ("event", "id"): event.resource_id.id.split("/")[-1] if event.resource_id is not None else None,
+        ("event", "ev_id"): event.resource_id.id.split("/")[-1] if event.resource_id is not None else None,
         ("event", "type"): event.event_type,
         ("event", "type_certainty"): event.event_type_certainty,
     }
@@ -569,6 +569,11 @@ def save_info(path, info):
             
             # Group the DataFrame by 'ev_id' and iterate over each group
             for ev_id, df_by_evid in value.groupby("ev_id").__iter__():
+                
+                if not isinstance(ev_id,str):
+                    ev_id = str(ev_id)
+                    
+                
                 with sqlite3.connect(info_path) as conn:
                     # Save each group to a SQLite table, appending to the table if it exists
                     df_by_evid.to_sql(
@@ -598,7 +603,7 @@ def save_info(path, info):
                 #         df_by_evid.to_sql(ev_id, conn, if_exists='append', index=False)
                 #     # exit()
                         
-class CustomClient(Client):
+class CustomClient(FDSNClient):
     """
     A custom client class that extends the base Client class to 
     retrieve seismic event data with additional processing.

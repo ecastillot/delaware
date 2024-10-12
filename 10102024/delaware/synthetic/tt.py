@@ -22,6 +22,170 @@ import cartopy.feature as cfeature
 from .utils import change_file_extension
 from delaware.vel.pykonal import PykonalVelModel,get_xyz_velocity_model
 from delaware.core.eqviewer import Source,Stations,Catalog
+from delaware.core.client import save_info
+
+## EQ with picks
+
+def get_picks(tt_folder_path, stations, catalog, xy_epsg, output_folder=None, 
+              join_catalog_id=False,max_events_in_ram=1e6):
+    """
+    Get earthquake picks by loading travel time data and optionally saving the results.
+    
+    Parameters:
+    tt_folder_path (str): Path to the folder containing travel time files.
+    stations (list): List of seismic stations.
+    catalog (pd.DataFrame): DataFrame containing earthquake catalog information.
+    xy_epsg (str): EPSG code for the projection used in the velocity model.
+    output_folder (str, optional): Folder to save the output, if specified. Default is None.
+    join_catalog_id (bool, optional): Whether to join catalog IDs with the travel time data.
+                                      Default is False.
+    max_events_in_ram : int, optional, default=1e6
+            Maximum number of events to hold in memory (RAM) before stopping or 
+            prompting to save the data to disk.
+    Returns:
+    pd.DataFrame: Processed events and picks data.
+    """
+    
+    # If no output folder is specified, process picks directly
+    if output_folder is None:
+        all_origins, all_picks =  _get_picks(tt_folder_path=tt_folder_path,
+                          stations=stations,
+                          catalog=catalog,
+                          xy_epsg=xy_epsg,
+                          join_catalog_id=join_catalog_id)
+    else:
+        # Ensure the output folder exists, create if necessary
+        if not os.path.isdir(output_folder):
+            os.makedirs(output_folder)
+        
+        # Initialize lists to store origins, picks, and magnitudes
+        all_origins, all_picks  = [],[]
+        
+        # Process each event in the catalog
+        for i, data in catalog.data.iterrows():
+            print("Event", i + 1)  # Display the event index
+            
+            # Create a new Catalog object for the single event
+            single_catalog = Catalog(data=pd.DataFrame([data]), xy_epsg=xy_epsg)
+            
+            # Get the origin and picks for the single event
+            origin, picks = get_picks(tt_folder_path=tt_folder_path,
+                                      stations=stations,
+                                      catalog=single_catalog,
+                                      xy_epsg=xy_epsg,
+                                      join_catalog_id=join_catalog_id)
+            
+            # Collect the origin and picks information
+            info = {
+                "origin": origin,
+                "picks": picks,
+            }
+            
+            # Save the event information to the output folder
+            save_info(output_folder, info=info)
+            
+            # Append information to the lists or break if memory limit is reached
+            if len(all_origins) < max_events_in_ram:
+                all_origins.append(origin)
+                all_picks.append(picks)
+            else:
+                if output_folder is not None:
+                    print(f"max_events_in_ram: {max_events_in_ram} is reached. "
+                        "But it is still saving on disk.")
+                else:
+                    print(f"max_events_in_ram: {max_events_in_ram} is reached. "
+                        "It is recommended to save the data on disk using the 'output_folder' parameter.")
+                    break
+    return all_origins,all_picks
+
+def _get_picks(tt_folder_path, stations, catalog, xy_epsg, join_catalog_id=False):
+    """
+    Process earthquake picks by loading travel time data and renaming columns.
+    
+    Parameters:
+    tt_folder_path (str): Path to the folder containing travel time files.
+    stations (list): List of seismic stations.
+    catalog (pd.DataFrame): DataFrame containing earthquake catalog information.
+    xy_epsg (str): EPSG code for the projection used in the velocity model.
+    join_catalog_id (bool, optional): Whether to join catalog IDs with the travel time data.
+                                      Default is False.
+    
+    Returns:
+    pd.DataFrame: Processed events and picks data.
+    """
+    all_picks = []  # Initialize a list to store pick data for each phase
+
+    # Loop over phases ("P" and "S")
+    for phase in ("P", "S"):
+        # Construct the file paths for the travel time and velocity model files
+        tt_path = os.path.join(tt_folder_path, f"{phase}_tt.npz")
+        ott_path = os.path.join(tt_folder_path, f"{phase}_tt.csv")
+        
+        # Create an EarthquakeTravelTime object for the current phase
+        eq = EarthquakeTravelTime(phase=phase, stations=stations, earthquakes=catalog)
+        
+        # Load the velocity model from the specified path
+        eq.load_velocity_model(path=tt_path, xy_epsg=xy_epsg)
+        
+        # Get travel times and merge data for all stations
+        tt = eq.get_traveltimes(merge_stations=True, join_catalog_id=join_catalog_id)
+        
+        # Sort the travel time data by "event_index" for consistency
+        tt.data.sort_values(by="event_index", inplace=True)
+        
+        # Add a column indicating the phase (P or S)
+        tt.data["phase_hint"] = phase
+        
+        # Append the phase data to the all_picks list
+        all_picks.append(tt.data)
+
+    # Concatenate all the picks from both phases (P and S)
+    all_picks = pd.concat(all_picks)
+    
+    # Define a dictionary to rename columns for clarity
+    renaming_columns = {
+        "event_index": "ev_id",
+        "src_lon": "longitude",
+        "src_lat": "latitude",
+        "src_z[km]": "depth",
+        "phase_hint": "phase_hint",
+        "travel_time": "arrival_time",
+        "network": "network",
+        "station": "station",
+        "station_latitude": "station_latitude",
+        "station_longitude": "station_longitude",
+        "station_elevation": "station_elevation",
+    }
+    
+    # Drop the "depth" column as it's not needed in this case
+    all_picks.drop("depth", inplace=True, axis=1)
+    
+    # Rename columns using the predefined dictionary
+    all_picks = all_picks.rename(columns=renaming_columns)
+    
+    # Filter the DataFrame to keep only the relevant columns for picks
+    picks = all_picks[list(renaming_columns.values())]
+    
+    # Define columns to extract for events and picks
+    event_columns = ["ev_id", "longitude", "latitude", "depth"]
+    picks_columns = ["ev_id", "network", "station", "phase_hint", "arrival_time",
+                     "station_latitude", "station_longitude", "station_elevation"]
+    
+    # Extract unique events and drop duplicates by "ev_id"
+    events = picks[event_columns]
+    events = events.drop_duplicates(subset="ev_id", ignore_index=True)
+    
+    # Extract the picks data based on the defined columns
+    picks = picks[picks_columns]
+    
+    # Reset the index for the picks DataFrame
+    picks.reset_index(drop=True, inplace=True)
+    
+    # Convert station elevation from meters to kilometers
+    picks["station_elevation"] /= 1e3
+    
+    return events, picks
+
 
 ### TravelTime
 
@@ -404,7 +568,7 @@ class EarthquakeTravelTime(object):
                                                  self.phase, vel1d, layer)
         return self.model
         
-    def get_traveltimes(self, merge_stations: bool = False, output: str = None):
+    def get_traveltimes(self, join_catalog_id=False, merge_stations: bool = False, output: str = None):
         """
         Get travel times for all earthquakes. First, you have to define your grid with 'add_grid_with_velocity_model' function.
 
@@ -438,11 +602,14 @@ class EarthquakeTravelTime(object):
             df = get_tt_from_single_source(source, self.stations, self.model)
             
             # Add earthquake ID to DataFrame
-            df["event_index"] = i
+            if join_catalog_id:
+                df["event_index"] = row.ev_id
+            else:
+                df["event_index"] = i
             
             # integer columns
             df['station_index'] = df['station_index'].astype(int)
-            df['event_index'] = df['event_index'].astype(int)
+            # df['event_index'] = df['event_index'].astype(int)
             
             # Reorder columns in DataFrame
             df = df[df.columns[-1:].tolist() + df.columns[:-1].tolist()]

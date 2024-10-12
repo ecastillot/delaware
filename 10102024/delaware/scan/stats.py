@@ -14,8 +14,7 @@ from matplotlib.colors import ListedColormap
 import concurrent.futures as cf
 from tqdm import tqdm
 from obspy import UTCDateTime
-from core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
-import scan.utils as ut
+from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
 class StatValues:
     def __init__(self,
