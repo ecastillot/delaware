@@ -31,20 +31,13 @@ def get_db_stations(stations_path,lon_lims, lat_lims,proj):
     stations_data["elevation"] = stations_data["elevation"] / 1e3
     
     # Define the polygon coordinates for the region of interest
-    x,y = lon_lims,lat_lims
-    dw_w_pol = [
-        (x[1], y[0]),
-        (x[1], y[1]),
-        (x[0], y[1]),
-        (x[0], y[0]),
-        (x[1], y[0])  # Closing the polygon
-    ]
+    region_lims = lon_lims+lat_lims
     
     # Create an instance of the Stations class with the prepared data
     stations = Stations(stations_data, xy_epsg=proj)
     
     # Filter the stations to include only those within the defined polygon
-    stations.filter_region(polygon=dw_w_pol)
+    stations.filter_rectangular_region(region_lims)
     
     return stations
 
@@ -72,13 +65,7 @@ def get_texnet_high_resolution_catalog(path,xy_epsg,
     
     # region_lims #lonw,lone,lats,latn
     if region_lims is not None:
-        pol2filter = [(region_lims[0],region_lims[2]),
-                (region_lims[0],region_lims[3]),
-                (region_lims[1],region_lims[3]),
-                (region_lims[1],region_lims[2]),
-                (region_lims[0],region_lims[2])
-                ]
-        catalog.filter_region(pol2filter)
+        catalog.filter_rectangular_region(region_lims)
     return catalog
     
     # df.to_csv(outpath,index=False)

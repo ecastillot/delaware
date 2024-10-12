@@ -415,6 +415,7 @@ class Catalog():
         mask = self.data.isin(rowval)
         mask = mask.any(axis='columns')
         self.data = self.data[~mask]
+        self.data.reset_index(drop=True,inplace=True)
         return self
     
     def select_data(self, rowval):
@@ -436,7 +437,7 @@ class Catalog():
         mask = self.data.isin(rowval)
         mask = mask.any(axis='columns')
         self.data = self.data[mask]
-        
+        self.data.reset_index(drop=True,inplace=True)
         return self
 
     def copy(self):
@@ -449,6 +450,7 @@ class Catalog():
         args: The parameters are the pd.DataFrame.sort_values parameters
         """
         self.data = self.data.sort_values(**args)
+        self.data.reset_index(drop=True,inplace=True)
         return self
 
     def filter(self,key,start=None,end=None):
@@ -525,12 +527,12 @@ class Catalog():
         
         self.data = data
         # print(len(data))
-        
+        self.data.reset_index(drop=True,inplace=True)
         
         # Return the updated object to allow method chaining.
         return self
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
         Filter the region of the catalog.
 
@@ -541,13 +543,39 @@ class Catalog():
             The first point must be equal to the last point in the polygon.
         
         """
+        
         if polygon[0] != polygon[-1]:
             raise Exception("The first point must be equal to the last point in the polygon.")
 
         is_in_polygon = lambda x: ut.inside_the_polygon((x.longitude,x.latitude),polygon)
         mask = self.data[["longitude","latitude"]].apply(is_in_polygon,axis=1)
         self.data = self.data[mask]
+        self.data.reset_index(drop=True,inplace=True)
+        return self
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
         
+        """
+        polygon = [(region_lims[0],region_lims[2]),
+                (region_lims[0],region_lims[3]),
+                (region_lims[1],region_lims[3]),
+                (region_lims[1],region_lims[2]),
+                (region_lims[0],region_lims[2])
+                ]
+        if polygon[0] != polygon[-1]:
+            raise Exception("The first point must be equal to the last point in the polygon.")
+
+        is_in_polygon = lambda x: ut.inside_the_polygon((x.longitude,x.latitude),polygon)
+        mask = self.data[["longitude","latitude"]].apply(is_in_polygon,axis=1)
+        self.data = self.data[mask]
+        self.data.reset_index(drop=True,inplace=True)
         return self
 
     def get_minmax_coords(self, padding: list = [5, 5, 1]):
@@ -615,14 +643,23 @@ class Catalog():
 
     def get_picks(self, picks_path, event_ids=None,
                starttime=None,endtime=None,
-               region=None, agencies=None,
+               mag_lims = None,
+               general_region=None,
+               region_lims=None, agencies=None,
                region_from_src = None,
                ):
     
         self.filter("origin_time",starttime,endtime)
         
-        if (region is not None) and (len(self) !=0):
-            self.filter_region(region)
+        if (mag_lims is not None) and (len(self) !=0):
+            self.filter("magnitude",start=mag_lims[0],
+                               end=mag_lims[1])
+        
+        if (region_lims is not None) and (len(self) !=0):
+            self.filter_rectangular_region(region_lims)
+            
+        if (general_region is not None) and (len(self) !=0):
+            self.filter_general_region(general_region)
             
         if (region_from_src is not None) and (len(self) !=0):
             lat,lon, r_max, az_max =  region_from_src
@@ -632,17 +669,17 @@ class Catalog():
                             az=az_max)
             
         if (event_ids is not None) and (len(self) !=0):
-            self.select_data({"id":event_ids})
+            self.select_data({"ev_id":event_ids})
             
         if (agencies is not None) and (len(self) !=0):
             self.select_data({"agency":agencies}) #agencies is a list
             
             
         if len(self) != 0:
-            event_ids = self.data["id"].to_list()
+            event_ids = self.data["ev_id"].to_list()
             
             picks = load_dataframe_from_sqlite(db_name=picks_path,
-                                      tables=event_ids)
+                                      tables=event_ids,debug=False)
             
             if picks.empty:
                 picks = pd.DataFrame(columns=["ev_id"])
@@ -1031,7 +1068,7 @@ class MulCatalog():
         self.catalogs = catalogs
         return self
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
         Filter the region of the catalog.
 
@@ -1044,7 +1081,23 @@ class MulCatalog():
         """
         catalogs = []
         for catalog in self.catalogs:
-            catalogs.append(catalog.filter_region(polygon))
+            catalogs.append(catalog.filter_general_region(polygon))
+        self.catalogs = catalogs
+        return self
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
+        
+        """
+        catalogs = []
+        for catalog in self.catalogs:
+            catalogs.append(catalog.filter_rectangular_region(region_lims))
         self.catalogs = catalogs
         return self
 
@@ -1466,9 +1519,9 @@ class Stations():
 
         return stations
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
-        Filter the region of the data.
+        Filter the region of the catalog.
 
         Parameters:
         -----------
@@ -1477,6 +1530,30 @@ class Stations():
             The first point must be equal to the last point in the polygon.
         
         """
+        if polygon[0] != polygon[-1]:
+            raise Exception("The first point must be equal to the last point in the polygon.")
+
+        is_in_polygon = lambda x: ut.inside_the_polygon((x.longitude,x.latitude),polygon)
+        mask = self.data[["longitude","latitude"]].apply(is_in_polygon,axis=1)
+        self.data = self.data[mask]
+        return self
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
+        
+        """
+        polygon = [(region_lims[0],region_lims[2]),
+                (region_lims[0],region_lims[3]),
+                (region_lims[1],region_lims[3]),
+                (region_lims[1],region_lims[2]),
+                (region_lims[0],region_lims[2])
+                ]
         if polygon[0] != polygon[-1]:
             raise Exception("The first point must be equal to the last point in the polygon.")
 
@@ -1780,9 +1857,9 @@ class MulStations():
         self.stations = stations
         return self
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
-        Filter the region of the stations.
+        Filter the region of the catalog.
 
         Parameters:
         -----------
@@ -1793,7 +1870,23 @@ class MulStations():
         """
         stations = []
         for station in self.stations:
-            stations.append(station.filter_region(polygon))
+            stations.append(station.filter_general_region(polygon))
+        self.stations = stations
+        return self
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
+        
+        """
+        stations = []
+        for station in self.stations:
+            stations.append(station.filter_rectangular_region(region_lims))
         self.stations = stations
         return self
 
@@ -2406,7 +2499,7 @@ class FM():
         self.data = self.data.sort_values(**args)
         return self
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
         Filter the region of the catalog.
 
@@ -2417,6 +2510,30 @@ class FM():
             The first point must be equal to the last point in the polygon.
         
         """
+        if polygon[0] != polygon[-1]:
+            raise Exception("The first point must be equal to the last point in the polygon.")
+
+        is_in_polygon = lambda x: ut.inside_the_polygon((x.longitude,x.latitude),polygon)
+        mask = self.data[["longitude","latitude"]].apply(is_in_polygon,axis=1)
+        self.data = self.data[mask]
+        return self
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
+        
+        """
+        polygon = [(region_lims[0],region_lims[2]),
+                (region_lims[0],region_lims[3]),
+                (region_lims[1],region_lims[3]),
+                (region_lims[1],region_lims[2]),
+                (region_lims[0],region_lims[2])
+                ]
         if polygon[0] != polygon[-1]:
             raise Exception("The first point must be equal to the last point in the polygon.")
 
@@ -2697,9 +2814,9 @@ class MulFM():
         self.fms = fms
         return self
 
-    def filter_region(self,polygon):
+    def filter_general_region(self,polygon):
         """
-        Filter the region of the fm.
+        Filter the region of the catalog.
 
         Parameters:
         -----------
@@ -2710,7 +2827,24 @@ class MulFM():
         """
         fms = []
         for fm in self.fms:
-            fms.append(fm.filter_region(polygon))
+            fms.append(fm.filter_general_region(polygon))
+        self.fms = fms
+        return self
+
+
+    def filter_rectangular_region(self,region_lims):
+        """
+        Filter the region of the catalog.
+
+        Parameters:
+        -----------
+        region_lims: list of 4 elements
+            lonw,lone,lats,latw
+        
+        """
+        fms = []
+        for fm in self.fms:
+            fms.append(fm.filter_rectangular_region(region_lims))
         self.fms = fms
         return self
 

@@ -18,7 +18,8 @@ def save_dataframe_to_sqlite(df, db_name, table_name):
         # Save DataFrame to SQLite database, appending if the table exists
         df.to_sql(table_name, conn, if_exists='append', index=False)
 
-def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=None):
+def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=None,
+                               debug=True):
     """
     Load a DataFrame from an SQLite database based on optional query parameters.
 
@@ -51,7 +52,8 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
         else:
             tables = list(set(tables).intersection(all_tables))
             complement = list(set(all_tables).difference(tables))
-            print(f"{len(complement)} tables not found:")
+            if debug:
+                print(f"{len(complement)} tables not found:")
             
         # If no table is specified, load from all tables
         all_dataframes = []
@@ -61,7 +63,8 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
             try:
                 cursor = conn.execute(f"PRAGMA table_info({table})")
             except:
-                print(f"Not found {table}")
+                if debug:
+                    print(f"Not found {table}")
                 continue
             
             columns = [col[1] for col in cursor.fetchall()]

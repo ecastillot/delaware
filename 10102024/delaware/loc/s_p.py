@@ -225,7 +225,7 @@ def get_events(origin, picks_path, event_ids=None,
     catalog.filter("origin_time",starttime,endtime)
     
     if (region is not None) and (len(catalog) !=0):
-        catalog.filter_region(region)
+        catalog.filter_rectangular_region(region)
         
     if (region_from_src is not None) and (len(catalog) !=0):
         lat,lon, r_max, az_max =  region_from_src
