@@ -16,8 +16,11 @@ if __name__ == "__main__":
     
     stations = get_db_stations(stations_path,x,y,proj)
     print(stations)
-    catalog = get_texnet_high_resolution_catalog(eq_path,xy_epsg=proj)
+    catalog = get_texnet_high_resolution_catalog(eq_path,xy_epsg=proj,
+                                                 region_lims=x+y)
+    
     print(catalog)
+    # exit()
     
     # "event_test"
     # df = pd.DataFrame.from_dict({"latitude":[31.636749999999999],
@@ -33,7 +36,7 @@ if __name__ == "__main__":
     # catalog = Catalog(data=df, xy_epsg=proj)
     
     
-    output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/pykonal"
+    output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/pykonal_growclust"
     
     eq= get_picks(tt_folder_path=tt_folder_path,
                             stations=stations,
