@@ -61,9 +61,10 @@ def get_picks(tt_folder_path, stations, catalog, xy_epsg, output_folder=None,
         # Initialize lists to store origins, picks, and magnitudes
         all_origins, all_picks  = [],[]
         
+        catalog.data.reset_index(drop=True,inplace=True)
+        
         # Process each event in the catalog
         for i, data in catalog.data.iterrows():
-            print("Event", i + 1)  # Display the event index
             
             # Create a new Catalog object for the single event
             single_catalog = Catalog(data=pd.DataFrame([data]), xy_epsg=xy_epsg)
@@ -74,6 +75,10 @@ def get_picks(tt_folder_path, stations, catalog, xy_epsg, output_folder=None,
                                       catalog=single_catalog,
                                       xy_epsg=xy_epsg,
                                       join_catalog_id=join_catalog_id)
+            
+            print(f"Event {i + 1}/{len(catalog.data)}:",
+                  f"| {data.ev_id}",
+                  f"| Picks:{len(picks)}")  # Display the event index
             
             # Collect the origin and picks information
             info = {
@@ -145,11 +150,12 @@ def _get_picks(tt_folder_path, stations, catalog, xy_epsg, join_catalog_id=False
     # Define a dictionary to rename columns for clarity
     renaming_columns = {
         "event_index": "ev_id",
+        "origin_time":"origin_time",
         "src_lon": "longitude",
         "src_lat": "latitude",
         "src_z[km]": "depth",
         "phase_hint": "phase_hint",
-        "travel_time": "arrival_time",
+        "travel_time": "travel_time",
         "network": "network",
         "station": "station",
         "station_latitude": "station_latitude",
@@ -157,18 +163,22 @@ def _get_picks(tt_folder_path, stations, catalog, xy_epsg, join_catalog_id=False
         "station_elevation": "station_elevation",
     }
     
-    # Drop the "depth" column as it's not needed in this case
-    all_picks.drop("depth", inplace=True, axis=1)
+    all_picks = all_picks[list(renaming_columns.keys())]
+    
+    # # Drop the "depth" column as it's not needed in this case
+    # all_picks.drop("depth", inplace=True, axis=1)
     
     # Rename columns using the predefined dictionary
     all_picks = all_picks.rename(columns=renaming_columns)
     
     # Filter the DataFrame to keep only the relevant columns for picks
     picks = all_picks[list(renaming_columns.values())]
+    picks = picks.copy()
+    picks.loc[:, "arrival_time"] = picks["origin_time"] + pd.to_timedelta(picks["travel_time"], unit='s')
     
     # Define columns to extract for events and picks
-    event_columns = ["ev_id", "longitude", "latitude", "depth"]
-    picks_columns = ["ev_id", "network", "station", "phase_hint", "arrival_time",
+    event_columns = ["ev_id", "origin_time","longitude", "latitude", "depth"]
+    picks_columns = ["ev_id", "network", "station", "phase_hint", "arrival_time","travel_time",
                      "station_latitude", "station_longitude", "station_elevation"]
     
     # Extract unique events and drop duplicates by "ev_id"
@@ -469,9 +479,10 @@ def get_tt_from_single_source(source: Source,
     df["src_x[km]"] = source.x
     df["src_y[km]"] = source.y
     df["src_z[km]"] = source.z
+    df["origin_time"] = source.origin_time
 
     # Reorder columns in DataFrame
-    df = df[['src_lon', 'src_lat', 'src_x[km]', 'src_y[km]', 'src_z[km]',
+    df = df[['origin_time','src_lon', 'src_lat', 'src_x[km]', 'src_y[km]', 'src_z[km]',
              'station_index', 'travel_time']]
     
     return df

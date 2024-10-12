@@ -42,6 +42,7 @@ def get_db_stations(stations_path,lon_lims, lat_lims,proj):
     return stations
 
 def get_texnet_high_resolution_catalog(path,xy_epsg,
+                                       depth_lims=[0,20],
                                         region_lims=None):
     df = pd.read_csv(path)
     # Function to create datetime
@@ -63,9 +64,15 @@ def get_texnet_high_resolution_catalog(path,xy_epsg,
     
     catalog = Catalog(df,xy_epsg=xy_epsg)
     
+    if depth_lims is not None:
+        catalog.filter("depth",start=depth_lims[0],end=depth_lims[1])
+    
     # region_lims #lonw,lone,lats,latn
     if region_lims is not None:
         catalog.filter_rectangular_region(region_lims)
+    
+        
+    catalog.sort_values(by="origin_time")
     return catalog
     
     # df.to_csv(outpath,index=False)

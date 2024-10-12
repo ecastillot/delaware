@@ -1,8 +1,9 @@
 from delaware.core.read import EQPicks
 import datetime as dt
 
-root = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq"
-author = "usgs_20170101_20240922"
+root = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi"
+# author = "usgs_20170101_20240922"
+author = "pykonal_growclust"
 proj = "EPSG:3857"
 starttime = "2023-01-01 00:00:00"
 endtime = "2023-02-01 00:00:00"
@@ -20,6 +21,8 @@ print(eqpicks.catalog)
 catalog, picks = eqpicks.get_catalog_with_picks(
                                 starttime=starttime,
                                endtime=endtime,
-                               ev_ids=["texnet2023bjyx"])
+                               ev_ids=["texnet2023bjyx"]
+                               )
 
 print(catalog,picks)
+print(picks.data)

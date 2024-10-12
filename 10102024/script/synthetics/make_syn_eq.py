@@ -7,8 +7,8 @@ if __name__ == "__main__":
     
     x = (-104.84329,-103.79942)
     y = (31.3961,31.91505)
-    z = (-2,10)
-    nx, ny, nz = 30,40,60
+    z = (-2,20)
+    nx, ny, nz = 100,60,100
     proj = "EPSG:3857"
     stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/standard_stations.csv"
     tt_folder_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/synthetics/tt"
@@ -17,7 +17,8 @@ if __name__ == "__main__":
     stations = get_db_stations(stations_path,x,y,proj)
     print(stations)
     catalog = get_texnet_high_resolution_catalog(eq_path,xy_epsg=proj,
-                                                 region_lims=x+y)
+                                                 region_lims=x+y,
+                                                 depth_lims=[0,20])
     
     print(catalog)
     # exit()
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     # catalog = Catalog(data=df, xy_epsg=proj)
     
     
-    output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/pykonal_growclust"
+    output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/pykonal_growclust"
     
     eq= get_picks(tt_folder_path=tt_folder_path,
                             stations=stations,

@@ -10,8 +10,8 @@ if __name__ == "__main__":
     
     x = (-104.84329,-103.79942)
     y = (31.3961,31.91505)
-    z = (-2,10)
-    nx, ny, nz = 50,40,60
+    z = (-2,20)
+    nx, ny, nz = 100,60,100
     proj = "EPSG:3857"
     vel_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/vel/DB_model.csv"
     stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
