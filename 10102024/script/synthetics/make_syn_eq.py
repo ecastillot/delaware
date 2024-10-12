@@ -18,7 +18,7 @@ if __name__ == "__main__":
     print(stations)
     catalog = get_texnet_high_resolution_catalog(eq_path,xy_epsg=proj,
                                                  region_lims=x+y,
-                                                 depth_lims=[0,20])
+                                                 depth_lims=z)
     
     print(catalog)
     # exit()
