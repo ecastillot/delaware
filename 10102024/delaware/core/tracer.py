@@ -88,7 +88,7 @@ class MyStream(Stream):
 
 def plot_traces(stream, picks_dict, 
                 color_authors,
-                out=None, show=True, 
+                savefig=None, show=True, 
                 figsize=(12, 12), fontsize=10):
     """
     Plot the traces in a stream with phase pick annotations.
@@ -103,7 +103,7 @@ def plot_traces(stream, picks_dict,
                                             value (dict): dictionary.
                                                 keys (str): phase name
                                                 value (str): color name
-        out (str, optional): File path to save the figure. Defaults to None.
+        savefig (str, optional): File path to save the figure. Defaults to None.
         show (bool, optional): Whether to display the plot. Defaults to False.
         figsize (tuple, optional): Figure size. Defaults to (12, 12).
         fontsize (int, optional): Font size for text in the plot. Defaults to 10.
@@ -171,10 +171,10 @@ def plot_traces(stream, picks_dict,
     plt.tight_layout(rect=[0, 0, 1, 0.98])
     
     # Save figure if output path is provided
-    if out is not None:
-        if not os.path.isdir(os.path.dirname(out)):
-            os.makedirs(os.path.dirname(out))
-        fig.savefig(out)
+    if savefig is not None:
+        if not os.path.isdir(os.path.dirname(savefig)):
+            os.makedirs(os.path.dirname(savefig))
+        fig.savefig(savefig)
     
     # Show the plot if required
     if show:
@@ -227,6 +227,7 @@ class Tracer():
     
     def _get_stream(self,starttime,endtime,
                     network_list=None,
+                    stations_list=None,
                     remove_stations=None,
                     ):
         
@@ -242,6 +243,10 @@ class Tracer():
         for station in station_ids:
             # Split the station name by '.' to get the first two characters (network code) and station ID
             network_code, station_id = station.split('.')
+            
+            if stations_list is not None:
+                if station_id not in stations_list:
+                    continue
             
             if remove_stations is not None:
                 if station_id in remove_stations:
@@ -303,13 +308,16 @@ class Tracer():
     
     def plot(self,starttime,endtime,
              network_list=None,
+             stations_list = None,
              remove_stations = None,
              sort_from_source=None,
              trace_output=None,
              sort_by_first_arrival=None,
              **kwargs):
         
-        st = self._get_stream(starttime,endtime,network_list=network_list,
+        st = self._get_stream(starttime,endtime,
+                              network_list=network_list,
+                              stations_list=stations_list,
                               remove_stations=remove_stations)
         st = merge_stream(st)
         

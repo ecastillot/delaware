@@ -54,26 +54,38 @@ mulpicks = MulPicks([picks,picks2])
 print(mulpicks)
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
-wav_starttime = "2023-01-01 15:26:30"
-wav_endtime = "2023-01-01 15:27:00"
+wav_starttime = "2023-01-01 15:26:33.00"
+wav_endtime = "2023-01-01 15:26:33.52"
+# wav_starttime = "2023-01-01 15:26:30"
+# wav_endtime = "2023-01-01 15:27:00"
 
 stations = pd.read_csv(stations_path)
 stations["station_index"] = stations.index
 stations = Stations(data=stations,xy_epsg=proj)
 
 wav_starttime = dt.datetime.strptime(wav_starttime,
-                                 "%Y-%m-%d %H:%M:%S")
+                                 "%Y-%m-%d %H:%M:%S.%f")
 wav_endtime = dt.datetime.strptime(wav_endtime,
-                                 "%Y-%m-%d %H:%M:%S")
+                                 "%Y-%m-%d %H:%M:%S.%f")
 
 trace_output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq_seismograms"
-out_fmt = "%Y%m%dT%H%M%S"
-trace_name = f"wav_{wav_starttime.strftime(out_fmt)}_{wav_endtime.strftime(out_fmt)}.mseed"
+fig_output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures"
+
+out_fmt = "%Y%m%dT%H%M%Sz%f"
+name = f"wav_{wav_starttime.strftime(out_fmt)}_{wav_endtime.strftime(out_fmt)}"
+trace_name = f"{name}.mseed"
+fig_name = f"{name}.png"
+
+
 trace_output = os.path.join(trace_output_folder,trace_name)
+fig_output = os.path.join(fig_output_folder,fig_name)
 tracer = Tracer(url="texnet",mulpicks=mulpicks,stations=stations,
                 preferred_author=picks.author )
-tracer.plot(wav_starttime,wav_endtime,network_list=["TX"],
+tracer.plot(wav_starttime,wav_endtime,
+            network_list=["TX"],
+            stations_list=["PB35","PB36","PB28","PB38","PB37"],
             remove_stations=["PCOS","VHRN","ALPN"],
             trace_output=trace_output,
-            sort_by_first_arrival=True)
+            sort_by_first_arrival=True,
+            savefig=fig_output)
 # dw.get_waveforms(network="")
