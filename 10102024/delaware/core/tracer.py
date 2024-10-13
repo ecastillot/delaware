@@ -88,7 +88,7 @@ class MyStream(Stream):
 
 def plot_traces(stream, picks_dict, 
                 color_authors,
-                out=None, show=False, 
+                out=None, show=True, 
                 figsize=(12, 12), fontsize=10):
     """
     Plot the traces in a stream with phase pick annotations.
@@ -213,11 +213,13 @@ def merge_stream(stream):
     return merged_stream
 
 class Tracer():
-    def __init__(self,url,mulpicks,stations):
+    def __init__(self,url,mulpicks,stations,
+                 preferred_author=None):
         self.url = url
         self.client = Client(url)
         self.mulpicks = mulpicks
         self.stations = stations
+        self.preferred_author = preferred_author
     
     def _get_stream(self,starttime,endtime,
                     network_list=None,
@@ -227,7 +229,7 @@ class Tracer():
         
         self._mulpicks = self.mulpicks.copy()
         self._mulpicks.filter("arrival_time",start=starttime,end=endtime)
-        station_ids = self._mulpicks.get_station_ids()
+        station_ids = self._mulpicks.get_station_ids(self.preferred_author)
         
         # Initialize an empty dictionary to store the grouped items
         grouped_stations = {}
@@ -268,10 +270,7 @@ class Tracer():
                 print(e)
                 st = Stream()
                 
-            print(st)
             all_st += st
-            
-            
             
         return all_st
     
@@ -279,12 +278,13 @@ class Tracer():
              network_list=None,
              remove_stations = None,
              sort_from_source=None,
-             sort_by_first_arrival=None):
+             sort_by_first_arrival=None,
+             **kwargs):
         
         st = self._get_stream(starttime,endtime,network_list=network_list,
                               remove_stations=remove_stations)
         st = merge_stream(st)
-        print(st)
+        
         stations_data = self.stations.data.copy()
         myst = MyStream(st.traces,stations_data)
         
@@ -298,12 +298,9 @@ class Tracer():
         if sort_by_first_arrival:
             station,station_time = self._mulpicks.get_lead_station()
             
-            print(station,station_time)
             station_info = stations_data[stations_data['station'] == station][['latitude', 'longitude']]
-            print(station_info)
             lat, lon = station_info.iloc[0]
             source = (lon,lat)
-            print(source)
             myst.sort_from_source(source=source)
             myst.detrend().normalize()
         
@@ -314,31 +311,12 @@ class Tracer():
             colors_dict[picks.author] = {"P":picks.p_color,
                                          "S":picks.s_color,
                                          }
-        print(picks_dict)
-        print(colors_dict)
-        plot_traces(myst,picks_dict=picks_dict,
-                    color_authors=colors_dict)
-        plt.show()    
-            
+        fig,ax = plot_traces(myst,picks_dict=picks_dict,
+                    color_authors=colors_dict,
+                    **kwargs)
         
-        # plot_traces()
-#     # @property
-#     # def stations(self):
+        return fig,ax
         
-#     #     for picks in picks_list:
-    
-#     def _get_picks(self):
-#         for eqpicks in self.eqpicks_list:
-            
-    
-#     def plot_waveforms_with_picks(self,
-#                                   **args):
-        
-        
-        
-#         st = self.get_waveforms(**args)
-        
-#         myst =  MyStream(st.traces,)
         
         
         

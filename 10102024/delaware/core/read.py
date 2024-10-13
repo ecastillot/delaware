@@ -26,6 +26,10 @@ class EQPicks():
         catalog = pd.read_csv(self.catalog_path,parse_dates=["origin_time"],
                               header=self.catalog_header_line)
         catalog = catalog.drop_duplicates(subset=["ev_id"],ignore_index=True)
+        
+        if "magnitude" not in catalog.columns.to_list():
+            catalog["magnitude"] = 1 #due to pykonal database
+            
         catalog = Catalog(catalog,xy_epsg=self.xy_epsg)
         return catalog
         

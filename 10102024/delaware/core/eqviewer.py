@@ -522,10 +522,18 @@ class MulPicks():
         self.picks = picks
         return self
 
-    def get_station_ids(self):
+    def get_station_ids(self,preferred_author=None):
         station_ids = []
         for pick in self.picks:
+            
+            if preferred_author is not None:
+                if pick.author != preferred_author:
+                    continue
+            
             station_ids += pick.get_station_ids()
+        
+        if not station_ids:
+            raise Exception("Empty stations ids. Review your preferred author in case you are using it")
         
         station_ids = list(set(station_ids))
         return station_ids
@@ -569,7 +577,9 @@ class Catalog():
         data["z[km]"] = data["depth"]
         
         data = data.drop_duplicates(subset=self._mandatory_columns,ignore_index=True)
-        pd.to_datetime(data.loc[:,"origin_time"]).dt.tz_localize(None)
+        # pd.to_datetime(data.loc[:,"origin_time"],format="mixed").dt.tz_localize(None)
+        data["origin_time"] = pd.to_datetime(data["origin_time"],errors='coerce').dt.tz_localize(None)
+        
         # self.data = data[self.columns]
         self.data = data
         if self.empty:
@@ -907,9 +917,10 @@ class Catalog():
                                       tables=event_ids,debug=False)
             
             if "arrival_time" not in picks.columns.to_list():
-                picks["arrival_time"] = pd.to_datetime(picks["time"])
+                picks["arrival_time"] = pd.to_datetime(picks["time"]) #due to the database 
             else:
                 picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
+            
             
             if picks.empty:
                 picks = pd.DataFrame(columns=["ev_id"])

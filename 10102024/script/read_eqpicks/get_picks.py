@@ -6,7 +6,7 @@ import pandas as pd
 
 root = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi"
 author = "usgs_20170101_20240922"
-# author = "pykonal_growclust"
+author2 = "pykonal_growclust"
 proj = "EPSG:3857"
 starttime = "2023-01-01 00:00:00"
 endtime = "2023-01-03 00:00:00"
@@ -15,6 +15,7 @@ starttime = dt.datetime.strptime(starttime,
                                  "%Y-%m-%d %H:%M:%S")
 endtime = dt.datetime.strptime(endtime,
                                  "%Y-%m-%d %H:%M:%S")
+
 
 eqpicks = EQPicks(root=root,
                   author=author,
@@ -27,9 +28,19 @@ catalog, picks = eqpicks.get_catalog_with_picks(
                             #    ev_ids=["texnet2023bjyx"]
                                )
 
+eqpicks2 = EQPicks(root=root,
+                  author=author2,
+                  xy_epsg=proj,
+                  catalog_header_line=0)
+print(eqpicks2.catalog)
+catalog2, picks2 = eqpicks2.get_catalog_with_picks(
+                                starttime=starttime,
+                               endtime=endtime,
+                               )
+picks2.p_color = "cyan"
+picks2.s_color = "magenta"
 
-
-mulpicks = MulPicks([picks])
+mulpicks = MulPicks([picks,picks2])
 print(mulpicks)
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
@@ -45,7 +56,8 @@ wav_starttime = dt.datetime.strptime(wav_starttime,
 wav_endtime = dt.datetime.strptime(wav_endtime,
                                  "%Y-%m-%d %H:%M:%S")
 
-tracer = Tracer(url="texnet",mulpicks=mulpicks,stations=stations)
+tracer = Tracer(url="texnet",mulpicks=mulpicks,stations=stations,
+                preferred_author=author)
 tracer.plot(wav_starttime,wav_endtime,network_list=["TX"],
             remove_stations=["PCOS","VHRN","ALPN"],
             sort_by_first_arrival=True)
