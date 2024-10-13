@@ -46,8 +46,10 @@ class EQPicks():
                                       event_ids=ev_ids,
                                       starttime=starttime,
                                       endtime=endtime,
+                                      general_region=general_region,
                                       region_lims=region_lims,
-                                      region_from_src=region_from_src)
+                                      region_from_src=region_from_src,
+                                      author=self.author)
         return new_catalog, picks
             
         

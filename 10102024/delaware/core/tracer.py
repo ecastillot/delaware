@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime as dt
 import os
-from delaware.core.client import CustomClient
+from obspy.clients.fdsn import Client 
+from obspy import UTCDateTime
 
 
 class MyStream(Stream):
@@ -85,7 +86,7 @@ class MyStream(Stream):
         return self
 
 
-def plot_traces(stream, picks_list, 
+def plot_traces(stream, picks_dict, 
                 color_authors,
                 out=None, show=False, 
                 figsize=(12, 12), fontsize=10):
@@ -94,9 +95,9 @@ def plot_traces(stream, picks_list,
 
     Parameters:
         stream (Stream): ObsPy Stream containing the traces to be plotted.
-        picks_list (dict): Dictionary of picks with phase and author information.
+        picks_dict (dict): Dictionary of picks with phase and author information.
                             keys (str):author name. 
-                            value (dict): dataframe
+                            value (dict): PIcks Oobject with the next data:
                                 columns: network,station,arrival_time
         color_authors (dict): Dictionary.   keys (str):author name. 
                                             value (dict): dictionary.
@@ -125,8 +126,11 @@ def plot_traces(stream, picks_list,
         # Generate time axis for the trace
         x = [start + dt.timedelta(seconds=x) for x in np.arange(0, deltadt + delta, delta)]
         
+        # Plot the trace data
+        ax[i].plot(x, tr.data, 'k')
+        
         # Iterate through each author and plot picks if available
-        for author, picks in picks_list.items():
+        for author, picks in picks_dict.items():
             ps_picks = picks[(picks["arrival_time"] >= start) & (picks["arrival_time"] <= end)]
             ps_picks = ps_picks[ps_picks["station"] == tr.stats.station]
             
@@ -134,8 +138,11 @@ def plot_traces(stream, picks_list,
                 for _, pick in ps_picks.iterrows():
                     pick_time = pick["arrival_time"]
                     ymin, ymax = ax[i].get_ylim()
-                    phasehint = pick["phasehint"]
+                    phasehint = pick["phase_hint"]
                     label = f"{phasehint}-{author.capitalize()}"
+                    station_pick = pick["station"]
+                    
+                    print(station_pick,phasehint,pick_time)
                     
                     # Avoid duplicate labels in the legend
                     if label not in all_labels:
@@ -148,8 +155,7 @@ def plot_traces(stream, picks_list,
                     ax[i].vlines(pick_time, ymin, ymax, color=color_authors[author][phasehint],
                                  label=phase_label, linewidth=2)
         
-        # Plot the trace data
-        ax[i].plot(x, tr.data, 'k')
+        
         ax[i].set_yticklabels([])  # Hide y-axis labels
         ax[i].text(0.05, 0.95, f'{tr.id}', transform=ax[i].transAxes, fontsize=fontsize,
                    style='italic', color="red", bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 2})
@@ -176,17 +182,166 @@ def plot_traces(stream, picks_list,
 
     return fig, ax
 
-
-# class TracerClient():
-#     def __init__(self,, *args, **kwargs):
-#         self.owwp = only_wav_with_picks
-#         super().__init__(*args, **kwargs)
-        
-#     def add_picks()
+def merge_stream(stream):
+    """
+    Merge traces in the stream. If traces with the same ID have different sampling rates,
+    skip merging those traces.
     
-#     def plot_waveforms_with_picks(self,only_wav_with_picks=True):
+    Parameters:
+    stream (Stream): ObsPy Stream object with traces to be merged.
+
+    Returns:
+    Stream: Merged stream, with traces that have differing sampling rates left unmerged.
+    """
+    merged_stream = Stream()  # Initialize an empty stream for merged traces
+    
+    # Group traces by their id (same network, station, location, channel)
+    for trace_id in set(tr.id for tr in stream):
+        # Select all traces with the same id
+        traces = stream.select(id=trace_id)
         
-#         waveforms = self.get_waveforms(**args)
+        # Check if all traces have the same sampling rate
+        sampling_rates = set(tr.stats.sampling_rate for tr in traces)
+        
+        if len(sampling_rates) == 1:  # If all traces have the same sampling rate, merge them
+            merged_traces = traces.merge()
+            merged_stream += merged_traces
+        else:
+            print(f"Skipping merge for {trace_id}: differing sampling rates")
+            merged_stream += traces  # Add the unmerged traces to the final stream
+
+    return merged_stream
+
+class Tracer():
+    def __init__(self,url,mulpicks,stations):
+        self.url = url
+        self.client = Client(url)
+        self.mulpicks = mulpicks
+        self.stations = stations
+    
+    def _get_stream(self,starttime,endtime,
+                    network_list=None,
+                    remove_stations=None):
+        
+        all_st = Stream()
+        
+        self._mulpicks = self.mulpicks.copy()
+        self._mulpicks.filter("arrival_time",start=starttime,end=endtime)
+        station_ids = self._mulpicks.get_station_ids()
+        
+        # Initialize an empty dictionary to store the grouped items
+        grouped_stations = {}
+        # Iterate over the list of station names
+        for station in station_ids:
+            # Split the station name by '.' to get the first two characters (network code) and station ID
+            network_code, station_id = station.split('.')
+            
+            if remove_stations is not None:
+                if station_id in remove_stations:
+                    # print("NO",network_code)
+                    continue
+            
+            if network_list is not None:
+                if network_code not in network_list:
+                    # print("NO",network_code)
+                    continue
+            
+            # Add the station ID (YYYY part) to the appropriate group in the dictionary
+            if network_code not in grouped_stations:
+                grouped_stations[network_code] = []
+            
+            grouped_stations[network_code].append(station_id)
+        # print(grouped_stations)
+        
+        for network,stations in grouped_stations.items():
+            station = ",".join(stations)
+            print(network,station)
+            # print(self.client)
+            try:
+                st = self.client.get_waveforms(network=network,
+                                        station=station,
+                                        location=",00,10",
+                                        channel="*Z",
+                                        starttime=UTCDateTime(starttime),
+                                        endtime=UTCDateTime(endtime))
+            except Exception as e:
+                print(e)
+                st = Stream()
+                
+            print(st)
+            all_st += st
+            
+            
+            
+        return all_st
+    
+    def plot(self,starttime,endtime,
+             network_list=None,
+             remove_stations = None,
+             sort_from_source=None,
+             sort_by_first_arrival=None):
+        
+        st = self._get_stream(starttime,endtime,network_list=network_list,
+                              remove_stations=remove_stations)
+        st = merge_stream(st)
+        print(st)
+        stations_data = self.stations.data.copy()
+        myst = MyStream(st.traces,stations_data)
+        
+        
+        if sort_from_source is not None:
+            source = (sort_from_source.longitude,
+                      sort_from_source.latitude)
+            myst.sort_from_source(source=source)
+            myst.detrend().normalize()
+        
+        if sort_by_first_arrival:
+            station,station_time = self._mulpicks.get_lead_station()
+            
+            print(station,station_time)
+            station_info = stations_data[stations_data['station'] == station][['latitude', 'longitude']]
+            print(station_info)
+            lat, lon = station_info.iloc[0]
+            source = (lon,lat)
+            print(source)
+            myst.sort_from_source(source=source)
+            myst.detrend().normalize()
+        
+        picks_dict = {}
+        colors_dict = {}
+        for picks in self._mulpicks:
+            picks_dict[picks.author] = picks.data
+            colors_dict[picks.author] = {"P":picks.p_color,
+                                         "S":picks.s_color,
+                                         }
+        print(picks_dict)
+        print(colors_dict)
+        plot_traces(myst,picks_dict=picks_dict,
+                    color_authors=colors_dict)
+        plt.show()    
+            
+        
+        # plot_traces()
+#     # @property
+#     # def stations(self):
+        
+#     #     for picks in picks_list:
+    
+#     def _get_picks(self):
+#         for eqpicks in self.eqpicks_list:
+            
+    
+#     def plot_waveforms_with_picks(self,
+#                                   **args):
+        
+        
+        
+#         st = self.get_waveforms(**args)
+        
+#         myst =  MyStream(st.traces,)
+        
+        
+        
         
         
         

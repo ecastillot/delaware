@@ -234,6 +234,9 @@ class CPT():
 class Picks():
     def __init__(self,
             data,
+            author,
+            p_color="blue",
+            s_color="red"
             ) -> None:
 
         """
@@ -245,7 +248,10 @@ class Picks():
         baseplot: BasePlot
             Control plot args
         """
+        self.author = author
         self.data = data
+        self.p_color = p_color
+        self.s_color = s_color
         
     @property
     def empty(self):
@@ -262,6 +268,75 @@ class Picks():
         
         msg = f"Picks | {len(self.events)} events, {self.__len__()} picks  "
         return msg
+    
+    def get_lead_station(self):
+        min_idx = self.data['arrival_time'].idxmin()  # Get the index of the minimum arrival time
+        row = self.data.loc[min_idx, ['arrival_time', 'station']]  # Retrieve the station at that index
+        return row.station,row.arrival_time
+    
+    def get_station_ids(self):
+        data = self.data.copy()
+        data = data.drop_duplicates(subset=["network","station"],ignore_index=True)
+        
+        data["station_ids"] = data.apply(lambda x: ".".join((x.network,
+                                                             x.station)) ,axis=1)
+        return data["station_ids"].to_list()
+
+    def filter(self,key,start=None,end=None):
+        """
+        Filter data of the catalog.
+
+        Parameters:
+        -----------
+        key: str
+            Name of the column to filter
+        start: int or float or datetime.datetime
+            must be the same type as data[key] does
+        end: int or float or datetime.datetime
+            must be the same type as data[key] does
+        
+        """
+        if (start is not None) and (len(self) !=0):
+            self.data = self.data[self.data[key]>=start]
+        if (end is not None) and (len(self) !=0):
+            self.data = self.data[self.data[key]<=end]
+            
+        self.data.reset_index(drop=True,inplace=True)
+        return self
+    
+    def copy(self):
+        """Deep copy of the class"""
+        return copy.deepcopy(self)
+    
+    def sort_values(self,**args):
+        """
+        Sort values. Take in mind that it could affect the order of the events plotted
+        args: The parameters are the pd.DataFrame.sort_values parameters
+        """
+        self.data = self.data.sort_values(**args)
+        self.data.reset_index(drop=True,inplace=True)
+        return self
+    
+    def remove_data(self, rowval):
+        """
+        remove rows to the data.
+
+        Parameters:
+        -----------
+        rowval : dict
+            key: 
+                column name
+            value: list
+                values specified to remove
+        """
+        if not isinstance(rowval,dict):
+            raise Exception("rowval must be a dictionary")
+        
+        mask = self.data.isin(rowval)
+        mask = mask.any(axis='columns')
+        self.data = self.data[~mask]
+        self.data.reset_index(drop=True,inplace=True)
+        return self
     
     def select_data(self, rowval):
         """
@@ -305,6 +380,155 @@ class Picks():
         self.data = picks
         
         return self
+
+class MulPicks():
+    def __init__(self,picks=[]):
+        """
+        Parameters:
+        -----------
+        picks: list
+            list of Catalog objects
+        cpt: None or CPT
+            color palette table applied to the catalog
+        show_cpt: bool
+            Show color palette table.
+        """
+        self.picks = picks
+        
+    def __iter__(self):
+        return list(self.picks).__iter__()
+
+    def __nonzero__(self):
+        return bool(len(self.picks))
+
+    def __len__(self):
+        return len(self.picks)
+
+    def __str__(self,extended=False) -> str:
+        msg = f"MulPicks ({self.__len__()} Picks objects)\n"
+        msg += "-"*len(msg) 
+
+        submsgs = []
+        for i,pick in enumerate(self.__iter__(),1):
+            submsg = f"{i}. "+pick.__str__()
+            submsgs.append(submsg)
+                
+        if len(self.picks)<=20 or extended is True:
+            submsgs = "\n".join(submsgs)
+        else:
+            three_first_submsgs = submsgs[0:3]
+            last_two_subsgs = submsgs[-2:]
+            len_others = len(self.picks) -len(three_first_submsgs) - len(last_two_subsgs)
+            submsgs = "\n".join(three_first_submsgs+\
+                                [f"...{len_others} other picks..."]+\
+                                last_two_subsgs)
+
+        return msg+ "\n" +submsgs
+
+    def __setitem__(self, index, trace):
+        self.picks.__setitem__(index, trace)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return self.__class__(picks=self.picks.__getitem__(index))
+        else:
+            return self.picks.__getitem__(index)
+
+    def __delitem__(self, index):
+        return self.picks.__delitem__(index)
+
+    def __getslice__(self, i, j, k=1):
+        return self.__class__(picks=self.picks[max(0, i):max(0, j):k])
+
+    def get_lead_station(self):
+        lead_station = []
+        for pick in self.picks:
+            lead_station.append(pick.get_lead_station())
+            
+        lead_station = pd.DataFrame(lead_station,columns=["station","arrival_time"])
+        min_idx = lead_station['arrival_time'].idxmin()  # Get the index of the minimum arrival time
+        row = lead_station.loc[min_idx, ['arrival_time', 'station']]  # Retrieve the station at that index
+        return row.station,row.arrival_time
+        
+
+    def remove_data(self,rowval):
+        """
+        remove rows of each data.
+
+        Parameters:
+        -----------
+        rowval : dict
+            key:  
+                column name
+            value: 
+                One or more values specified to remove
+        """
+        picks = []
+        for pick in self.picks:
+            picks.append(pick.remove_data(rowval))
+        self.picks = picks
+        return self
+
+    def select_data(self,rowval):
+        """
+        select rows of each data.
+
+        Parameters:
+        -----------
+        rowval : dict
+            key:  
+                column name
+            value: 
+                One or more values specified to select
+        """
+        picks = []
+        for pick in self.picks:
+            picks.append(pick.select_data(rowval))
+        self.picks = picks
+        return self
+
+    def copy(self):
+        """Deep copy of the class"""
+        return copy.deepcopy(self)
+
+    def sort_values(self,**args):
+        """
+        Sort values. Take in mind that it could affect the order of the events plotted
+        args: The parameters are the pd.DataFrame.sort_values parameters
+        """
+        picks = []
+        for pick in self.picks:
+            picks.append(pick.sort_values(**args))
+        self.picks = picks
+        return self
+    
+    def filter(self,key,start=None,end=None):
+        """
+        Filter data of the pick.
+
+        Parameters:
+        -----------
+        key: str
+            Name of the column to filter
+        start: int or float or datetime.datetime
+            must be the same type as data[key] does
+        end: int or float or datetime.datetime
+            must be the same type as data[key] does
+        
+        """
+        picks = []
+        for pick in self.picks:
+            picks.append(pick.filter(key,start,end))
+        self.picks = picks
+        return self
+
+    def get_station_ids(self):
+        station_ids = []
+        for pick in self.picks:
+            station_ids += pick.get_station_ids()
+        
+        station_ids = list(set(station_ids))
+        return station_ids
 
 class Catalog():
     def __init__(self,
@@ -647,6 +871,7 @@ class Catalog():
                general_region=None,
                region_lims=None, agencies=None,
                region_from_src = None,
+               author=None
                ):
     
         self.filter("origin_time",starttime,endtime)
@@ -681,13 +906,18 @@ class Catalog():
             picks = load_dataframe_from_sqlite(db_name=picks_path,
                                       tables=event_ids,debug=False)
             
+            if "arrival_time" not in picks.columns.to_list():
+                picks["arrival_time"] = pd.to_datetime(picks["time"])
+            else:
+                picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
+            
             if picks.empty:
                 picks = pd.DataFrame(columns=["ev_id"])
         
         else :
             picks = pd.DataFrame(columns=["ev_id"])
         
-        picks = Picks(picks)
+        picks = Picks(picks,author=author)
         
         
         return  picks

@@ -8,7 +8,6 @@
 
 
 
-from obspy.clients.fdsn import Client 
 import pandas as pd
 import os
 import sqlite3
@@ -219,7 +218,7 @@ def get_custom_picks(event):
             "location": pick.waveform_id.location_code if pick.waveform_id is not None else None,
             "channel": pick.waveform_id.channel_code if pick.waveform_id is not None else None,
             "phase_hint": pick.phase_hint,
-            "time": pick.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "arrival_time": pick.time.datetime.strftime("%Y-%m-%d %H:%M:%S.%f"),
             "time_lower_error": pick.time_errors.lower_uncertainty if pick.time_errors is not None else None,
             "time_upper_error": pick.time_errors.upper_uncertainty if pick.time_errors is not None else None,
             "author": pick.creation_info.author if pick.creation_info is not None else None,
@@ -708,7 +707,7 @@ class CustomClient(FDSNClient):
             all_mags = all_mags[0]
 
         return all_origins, all_picks, all_mags
-        
+   
 if __name__=="__main__":
     from obspy import UTCDateTime
 
