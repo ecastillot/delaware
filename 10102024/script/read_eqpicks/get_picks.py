@@ -56,7 +56,7 @@ print(mulpicks)
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
 wav_starttime = "2023-01-01 15:26:33.00"
-wav_endtime = "2023-01-01 15:26:40.00"
+wav_endtime = "2023-01-01 15:26:36.40"
 # wav_starttime = "2023-01-01 15:26:30"
 # wav_endtime = "2023-01-01 15:27:00"
 
@@ -84,9 +84,10 @@ tracer = Tracer(url="texnet",mulpicks=mulpicks,stations=stations,
                 preferred_author=picks.author )
 tracer.plot(wav_starttime,wav_endtime,
             network_list=["TX"],
-            stations_list=["PB35","PB36","PB28","PB38","PB37"],
+            stations_list=["PB38","PB37"],
+            # stations_list=["PB35","PB36","PB28","PB38","PB37"],
             remove_stations=["PCOS","VHRN","ALPN"],
-            trace_output=trace_output,
+            # trace_output=trace_output,
             sort_by_first_arrival=True,
             savefig=fig_output)
 # dw.get_waveforms(network="")
