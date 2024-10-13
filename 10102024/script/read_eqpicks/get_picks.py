@@ -3,6 +3,7 @@ from delaware.core.tracer import Tracer
 from delaware.core.eqviewer import MulPicks,Stations,Picks
 import datetime as dt
 import pandas as pd
+import os
 
 root = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi"
 author = "usgs_20170101_20240922"
@@ -33,6 +34,8 @@ catalog, picks = eqpicks.get_catalog_with_picks(
                             #    ev_ids=["texnet2023bjyx"]
                                )
 
+picks.author = "texnet"
+
 eqpicks2 = EQPicks(root=root,
                   author=author2,
                   xy_epsg=proj,
@@ -45,6 +48,7 @@ catalog2, picks2 = eqpicks2.get_catalog_with_picks(
                                )
 picks2.p_color = "cyan"
 picks2.s_color = "magenta"
+picks2.author = "pykonal"
 
 mulpicks = MulPicks([picks,picks2])
 print(mulpicks)
@@ -62,9 +66,14 @@ wav_starttime = dt.datetime.strptime(wav_starttime,
 wav_endtime = dt.datetime.strptime(wav_endtime,
                                  "%Y-%m-%d %H:%M:%S")
 
+trace_output_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq_seismograms"
+out_fmt = "%Y%m%dT%H%M%S"
+trace_name = f"wav_{wav_starttime.strftime(out_fmt)}_{wav_endtime.strftime(out_fmt)}.mseed"
+trace_output = os.path.join(trace_output_folder,trace_name)
 tracer = Tracer(url="texnet",mulpicks=mulpicks,stations=stations,
-                preferred_author=author)
+                preferred_author=picks.author )
 tracer.plot(wav_starttime,wav_endtime,network_list=["TX"],
             remove_stations=["PCOS","VHRN","ALPN"],
+            trace_output=trace_output,
             sort_by_first_arrival=True)
 # dw.get_waveforms(network="")

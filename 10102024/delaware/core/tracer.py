@@ -142,7 +142,7 @@ def plot_traces(stream, picks_dict,
                     label = f"{phasehint}-{author.capitalize()}"
                     station_pick = pick["station"]
                     
-                    print(station_pick,phasehint,pick_time)
+                    print(station_pick,phasehint,pick_time,author)
                     
                     # Avoid duplicate labels in the legend
                     if label not in all_labels:
@@ -305,12 +305,19 @@ class Tracer():
              network_list=None,
              remove_stations = None,
              sort_from_source=None,
+             trace_output=None,
              sort_by_first_arrival=None,
              **kwargs):
         
         st = self._get_stream(starttime,endtime,network_list=network_list,
                               remove_stations=remove_stations)
         st = merge_stream(st)
+        
+        if trace_output is not None:
+            if not os.path.isdir(os.path.dirname(trace_output)):
+                os.makedirs(os.path.dirname(trace_output))
+            st.write(trace_output)
+        
         stations_data = self.stations.data.copy()
         myst = MyStream(st.traces,stations_data)
         
