@@ -284,7 +284,7 @@ class Tracer():
         st = self._get_stream(starttime,endtime,network_list=network_list,
                               remove_stations=remove_stations)
         st = merge_stream(st)
-        
+        print(st)
         stations_data = self.stations.data.copy()
         myst = MyStream(st.traces,stations_data)
         
