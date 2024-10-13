@@ -44,8 +44,8 @@ mulpicks = MulPicks([picks,picks2])
 print(mulpicks)
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
-wav_starttime = "2023-01-01 15:26:00"
-wav_endtime = "2023-01-01 15:28:00"
+wav_starttime = "2023-01-01 15:26:30"
+wav_endtime = "2023-01-01 15:27:00"
 
 stations = pd.read_csv(stations_path)
 stations["station_index"] = stations.index

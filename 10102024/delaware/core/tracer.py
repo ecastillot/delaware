@@ -214,16 +214,21 @@ def merge_stream(stream):
 
 class Tracer():
     def __init__(self,url,mulpicks,stations,
-                 preferred_author=None):
+                 preferred_author=None,
+                 channel_preference = "Z",
+                 instrument_preference= ["HH","","BH","HN"]):
         self.url = url
         self.client = Client(url)
         self.mulpicks = mulpicks
         self.stations = stations
         self.preferred_author = preferred_author
+        self.channel_preference = channel_preference
+        self.instrument_preference = instrument_preference
     
     def _get_stream(self,starttime,endtime,
                     network_list=None,
-                    remove_stations=None):
+                    remove_stations=None,
+                    ):
         
         all_st = Stream()
         
@@ -251,7 +256,7 @@ class Tracer():
             # Add the station ID (YYYY part) to the appropriate group in the dictionary
             if network_code not in grouped_stations:
                 grouped_stations[network_code] = []
-            
+                
             grouped_stations[network_code].append(station_id)
         # print(grouped_stations)
         
@@ -262,10 +267,32 @@ class Tracer():
             try:
                 st = self.client.get_waveforms(network=network,
                                         station=station,
-                                        location=",00,10",
-                                        channel="*Z",
+                                        location="*",
+                                        channel=f"*{self.channel_preference}",
                                         starttime=UTCDateTime(starttime),
                                         endtime=UTCDateTime(endtime))
+                # Ensuring only one component by preference
+                group = st._groupby('{network}.{station}')
+                
+                st = Stream()
+                for key,myst in group.items():
+                    
+                    cha_group = myst._groupby('{network}.{station}.{channel}')
+                    inst = [x.split(".")[-1][0:2] for x in list(cha_group.keys())]
+                    
+                    cha_st = Stream()
+                    for ins_pref in self.instrument_preference:
+                        if ins_pref in inst:
+                            cha_key = ".".join((key,ins_pref+self.channel_preference))
+                            cha_st += cha_group[cha_key]
+                            break
+                    
+                    if len(cha_st) == 0:
+                        cha_keys = list(cha_group.keys())
+                        st += cha_group[cha_keys[0]]
+                    else:
+                        st += cha_st    
+                
             except Exception as e:
                 print(e)
                 st = Stream()
@@ -284,7 +311,6 @@ class Tracer():
         st = self._get_stream(starttime,endtime,network_list=network_list,
                               remove_stations=remove_stations)
         st = merge_stream(st)
-        print(st)
         stations_data = self.stations.data.copy()
         myst = MyStream(st.traces,stations_data)
         
@@ -296,7 +322,7 @@ class Tracer():
             myst.detrend().normalize()
         
         if sort_by_first_arrival:
-            station,station_time = self._mulpicks.get_lead_station()
+            station,station_time = self._mulpicks.get_lead_station(self.preferred_author)
             
             station_info = stations_data[stations_data['station'] == station][['latitude', 'longitude']]
             lat, lon = station_info.iloc[0]
@@ -307,6 +333,7 @@ class Tracer():
         picks_dict = {}
         colors_dict = {}
         for picks in self._mulpicks:
+            # print(picks.data[picks.data["station"]=="PB11"])
             picks_dict[picks.author] = picks.data
             colors_dict[picks.author] = {"P":picks.p_color,
                                          "S":picks.s_color,

@@ -440,9 +440,12 @@ class MulPicks():
     def __getslice__(self, i, j, k=1):
         return self.__class__(picks=self.picks[max(0, i):max(0, j):k])
 
-    def get_lead_station(self):
+    def get_lead_station(self,preferred_author=None):
         lead_station = []
         for pick in self.picks:
+            if preferred_author is not None:
+                if pick.author != preferred_author:
+                    continue
             lead_station.append(pick.get_lead_station())
             
         lead_station = pd.DataFrame(lead_station,columns=["station","arrival_time"])
@@ -529,7 +532,6 @@ class MulPicks():
             if preferred_author is not None:
                 if pick.author != preferred_author:
                     continue
-            
             station_ids += pick.get_station_ids()
         
         if not station_ids:
