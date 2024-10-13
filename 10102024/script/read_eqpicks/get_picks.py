@@ -50,12 +50,13 @@ picks2.p_color = "cyan"
 picks2.s_color = "magenta"
 picks2.author = "pykonal"
 
-mulpicks = MulPicks([picks,picks2])
+# mulpicks = MulPicks([picks,picks2])
+mulpicks = MulPicks([picks])
 print(mulpicks)
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
 wav_starttime = "2023-01-01 15:26:33.00"
-wav_endtime = "2023-01-01 15:26:33.52"
+wav_endtime = "2023-01-01 15:26:40.00"
 # wav_starttime = "2023-01-01 15:26:30"
 # wav_endtime = "2023-01-01 15:27:00"
 
