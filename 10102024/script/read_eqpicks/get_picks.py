@@ -10,7 +10,11 @@ author2 = "pykonal_growclust"
 proj = "EPSG:3857"
 starttime = "2023-01-01 00:00:00"
 endtime = "2023-01-03 00:00:00"
-
+x = (-104.84329,-103.79942)
+y = (31.3961,31.91505)
+z = (-2,20)
+    
+    
 starttime = dt.datetime.strptime(starttime,
                                  "%Y-%m-%d %H:%M:%S")
 endtime = dt.datetime.strptime(endtime,
@@ -25,6 +29,7 @@ print(eqpicks.catalog)
 catalog, picks = eqpicks.get_catalog_with_picks(
                                 starttime=starttime,
                                endtime=endtime,
+                               region_lims= list(x+y)
                             #    ev_ids=["texnet2023bjyx"]
                                )
 
@@ -36,6 +41,7 @@ print(eqpicks2.catalog)
 catalog2, picks2 = eqpicks2.get_catalog_with_picks(
                                 starttime=starttime,
                                endtime=endtime,
+                               region_lims= list(x+y)
                                )
 picks2.p_color = "cyan"
 picks2.s_color = "magenta"
