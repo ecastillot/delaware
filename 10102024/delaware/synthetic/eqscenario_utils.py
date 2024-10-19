@@ -161,32 +161,7 @@ def generate_weights(num_elements, priority_factor=2):
     weights = [priority_factor * (num_elements - i) for i in range(num_elements)]
     return weights
 
-def get_distance_in_dataframe(data: pd.DataFrame, lat1_name: str, lon1_name: str,
-                              lat2_name: str, lon2_name: str):
-    """
-    Compute distances between two sets of latitude and longitude coordinates in a DataFrame.
 
-    Args:
-    - data (pd.DataFrame): Input DataFrame containing the latitude and longitude columns.
-    - lat1_name (str): Name of the column containing the first set of latitudes.
-    - lon1_name (str): Name of the column containing the first set of longitudes.
-    - lat2_name (str): Name of the column containing the second set of latitudes.
-    - lon2_name (str): Name of the column containing the second set of longitudes.
-
-    Returns:
-    - pd.DataFrame: DataFrame with additional columns 'r', 'az', 'baz' representing distance (in km),
-      azimuth (degrees clockwise from north), and back azimuth (degrees clockwise from south), respectively.
-    """
-    if data.empty:
-        return data
-    
-    data = data.reset_index(drop=True)
-    computing_r = lambda x: gps2dist_azimuth(x[lat1_name], x[lon1_name],
-                                             x[lat2_name], x[lon2_name])
-    r = data.apply(computing_r, axis=1)
-    data[["r", "az", "baz"]] = pd.DataFrame(r.tolist(), index=data.index)
-    data["r"] = data["r"] / 1e3
-    return data
 
 def generate_random_points(latitude, longitude, depth, radius_km, num_points):
     """

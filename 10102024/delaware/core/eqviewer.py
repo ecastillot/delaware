@@ -236,23 +236,29 @@ class Picks():
             data,
             author,
             p_color="blue",
-            s_color="red"
+            s_color="red",
             ) -> None:
 
         """
         Parameters:
         -----------
         data: pd.DataFrame 
-            Dataframe with the next mandatory columns:
-            'origin_time','latitude','longitude','depth','magnitude'
-        baseplot: BasePlot
-            Control plot args
+            ev_id,arrival_time,phase_hint,station
         """
         self.author = author
+        
+        self._mandatory_columns = ['ev_id','network','station','arrival_time','phase_hint']
+        
+        # Check if all mandatory columns are present in the DataFrame
+        check = all(item in data.columns.to_list() for item in self._mandatory_columns)
+        if not check:
+            raise Exception("There is not the mandatory columns for the data in Picks object." \
+                            + f"->{self._mandatory_columns}")
+        
         self.data = data
         self.p_color = p_color
         self.s_color = s_color
-        
+    
     @property
     def empty(self):
         return self.data.empty
@@ -268,6 +274,13 @@ class Picks():
         
         msg = f"Picks | {len(self.events)} events, {self.__len__()} picks  "
         return msg
+    
+    def __getitem__(self, key):
+        
+        return self.data[key]
+    
+    def __setitem__(self, key, value):
+        self.data[key] = value
     
     def get_lead_station(self):
         min_idx = self.data['arrival_time'].idxmin()  # Get the index of the minimum arrival time
@@ -388,10 +401,6 @@ class MulPicks():
         -----------
         picks: list
             list of Catalog objects
-        cpt: None or CPT
-            color palette table applied to the catalog
-        show_cpt: bool
-            Show color palette table.
         """
         self.picks = picks
         
@@ -452,7 +461,48 @@ class MulPicks():
         min_idx = lead_station['arrival_time'].idxmin()  # Get the index of the minimum arrival time
         row = lead_station.loc[min_idx, ['arrival_time', 'station']]  # Retrieve the station at that index
         return row.station,row.arrival_time
+    
+    def compare(self,author1,author2,
+                sr_columns = None
+                ):
         
+        list2compare = [author1,author2]
+        
+        if sr_columns is None:
+            sr_columns = ["sr_r [km]","sr_az","sr_baz"]
+        
+        # print(list2compare)
+        data2compare = []
+        for pick in self.__iter__():
+            if pick.author in list2compare:
+                data = pick.data.copy()
+                _mandatory_columns = pick._mandatory_columns
+                
+                _optional_columns = [v for v in sr_columns\
+                            if v in data.columns.to_list()]
+                
+                if _optional_columns:
+                    cols = _mandatory_columns + _optional_columns
+                else:
+                    cols = _mandatory_columns
+                
+                data = data[cols]
+                data2compare.append(data)
+                
+        key = "arrival_time"
+        cols2merge =  _mandatory_columns.copy() 
+        cols2merge.remove(key)
+        suffixes = list(map(lambda x: "_"+x,list2compare))
+        data = pd.merge(left=data2compare[0], 
+                        right=data2compare[1],
+                        on=cols2merge,
+                        suffixes=suffixes )
+        
+        data.loc[:,"delta_arrival_time"] = data[key+suffixes[0]] - data[key+suffixes[1]]
+        data['delta_arrival_time'] = data['delta_arrival_time'].dt.total_seconds()
+        
+        return data
+            
 
     def remove_data(self,rowval):
         """
@@ -883,7 +933,8 @@ class Catalog():
                general_region=None,
                region_lims=None, agencies=None,
                region_from_src = None,
-               author=None
+               author=None,
+               stations=None
                ):
     
         self.filter("origin_time",starttime,endtime)
@@ -929,6 +980,25 @@ class Catalog():
         
         else :
             picks = pd.DataFrame(columns=["ev_id"])
+        
+        if stations is not None:
+            stations_data = stations.data.copy()
+            renaming = {"latitude":"station_latitude",
+                        "longitude":"station_longitude",
+                        "elevation":"station_elevation"}
+            to_rename = {k: v for k, v in renaming.items() \
+                                    if v not in stations_data.columns}
+            stations_data = stations_data.rename(columns=to_rename)
+            pick_columns = picks.columns.to_list()
+            for key in renaming.values():
+                if key in pick_columns:
+                    picks.drop(key,axis=1,inplace=True)
+            
+            picks = pd.merge(picks,stations_data,
+                            on=["network","station"],
+                            )
+            
+            # exit()
         
         picks = Picks(picks,author=author)
         

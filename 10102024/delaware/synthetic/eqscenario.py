@@ -15,6 +15,7 @@ import concurrent.futures as cf
 from obspy.geodetics.base import gps2dist_azimuth
 from delaware.synthetic.tt import TravelTime,EarthquakeTravelTimeDataset,EarthquakeTravelTime
 from delaware.core.eqviewer import Source,Stations,Catalog
+from delaware.core.eqviewer_utils import get_distance_in_dataframe
 from delaware.synthetic.utils import change_file_extension
 from delaware.vel.pykonal import VelModel
 from delaware.synthetic.eqscenario_utils import *
