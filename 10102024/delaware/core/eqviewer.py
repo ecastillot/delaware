@@ -927,17 +927,20 @@ class Catalog():
             region = list( map(add, region, padding) )
         return region
 
-    def get_picks(self, picks_path, event_ids=None,
-               starttime=None,endtime=None,
-               mag_lims = None,
-               general_region=None,
-               region_lims=None, agencies=None,
-               region_from_src = None,
-               author=None,
-               stations=None
-               ):
-    
+    def query(self,starttime=None,
+                endtime=None,
+                ev_ids=None,agencies=None,
+                mag_lims=None,region_lims=None,
+                general_region=None,
+                region_from_src=None):
+        
         self.filter("origin_time",starttime,endtime)
+        
+        if (ev_ids is not None) and (len(self) !=0):
+            self.select_data({"ev_id":ev_ids})
+            
+        if (agencies is not None) and (len(self) !=0):
+            self.select_data({"agency":agencies}) #agencies is a list
         
         if (mag_lims is not None) and (len(self) !=0):
             self.filter("magnitude",start=mag_lims[0],
@@ -955,19 +958,34 @@ class Catalog():
                             longitude=lon,
                             r=r_max,
                             az=az_max)
-            
-        if (event_ids is not None) and (len(self) !=0):
-            self.select_data({"ev_id":event_ids})
-            
-        if (agencies is not None) and (len(self) !=0):
-            self.select_data({"agency":agencies}) #agencies is a list
+        
+        return self    
+        
+    def get_picks(self, picks_path, ev_ids=None,
+               starttime=None,endtime=None,
+               mag_lims = None,
+               general_region=None,
+               region_lims=None, agencies=None,
+               region_from_src = None,
+               author=None,
+               stations=None
+               ):
+    
+        self.query(starttime=starttime,
+                    endtime=endtime,
+                    ev_ids=ev_ids,
+                    mag_lims=mag_lims,
+                    agencies=agencies,
+                    region_lims=region_lims,
+                    general_region=general_region,
+                    region_from_src=region_from_src)
             
             
         if len(self) != 0:
-            event_ids = self.data["ev_id"].to_list()
+            ev_ids = self.data["ev_id"].to_list()
             
             picks = load_dataframe_from_sqlite(db_name=picks_path,
-                                      tables=event_ids,debug=False)
+                                      tables=ev_ids,debug=False)
             
             if "arrival_time" not in picks.columns.to_list():
                 picks["arrival_time"] = pd.to_datetime(picks["time"]) #due to the database 
@@ -980,6 +998,9 @@ class Catalog():
         
         else :
             picks = pd.DataFrame(columns=["ev_id"])
+        
+        if picks.empty:
+            raise Exception("No available picks")
         
         if stations is not None:
             stations_data = stations.data.copy()

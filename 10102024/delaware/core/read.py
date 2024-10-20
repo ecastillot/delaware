@@ -1,7 +1,7 @@
 # read earthquakes and picks
 import os
 import pandas as pd
-from delaware.core.eqviewer import Catalog
+from delaware.core.eqviewer import Catalog,MulPicks
 from delaware.core.eqviewer_utils import get_distance_in_dataframe
 
 class EQPicks():
@@ -33,7 +33,6 @@ class EQPicks():
             
         catalog = Catalog(catalog,xy_epsg=self.xy_epsg)
         return catalog
-        
     
     def get_catalog_with_picks(self,starttime=None,
                                endtime=None,
@@ -51,7 +50,7 @@ class EQPicks():
         new_catalog = self.catalog.copy()
         
         picks = new_catalog.get_picks(picks_path=self.picks_path,
-                                      event_ids=ev_ids,
+                                      ev_ids=ev_ids,
                                       starttime=starttime,
                                       endtime=endtime,
                                       general_region=general_region,
@@ -76,8 +75,43 @@ class EQPicks():
             picks.data = picks_data
         
         return new_catalog, picks
+
+
+class ParseEQPicks():
+    def __init__(self,eqpicks1,eqpicks2) -> None:
+        self.eqpicks1 = eqpicks1
+        self.eqpicks2 = eqpicks2
+        
+    def compare(self,**kwargs):
+        
+        all_picks = {}
+        for eqpicks in [self.eqpicks1,self.eqpicks2]:
+            #do something in EQPicks class to filter first
+            catalog, picks = eqpicks.get_catalog_with_picks(**kwargs)
+            all_picks[picks.author] = picks
+        
+        mulpicks = MulPicks(list(all_picks.values()))
+        mulpicks.compare(*list(all_picks.keys()))
             
         
+    # def write_catalog_with_picks(self,**kwargs):
+    #     new_catalog = self.catalog.copy()
+    #     new_catalog.query(**kwargs)
+    #     catalog_data = new_catalog.data
+        
+    #     groupby = catalog_data.groupby("ev_id")
+        
+    #     for ev_id, data in groupby.__iter__():
+    #         single_catalog = Catalog(data=data,
+    #                                  xy_epsg=self.catalog.xy_epsg)
+            
+    #         single_catalog, picks = single_catalog.get_picks(picks_path=self.picks_path,
+    #                                             ev_ids=[ev_id],
+    #                                             )
+            
+    #         print(single_catalog, picks )
+        
+    #     return None            
         
         
         

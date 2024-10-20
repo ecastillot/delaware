@@ -61,7 +61,7 @@ picks2.author = "pykonal"
 mulpicks = MulPicks([picks,picks2])
 x = mulpicks.compare("texnet","pykonal")
 # print(x[["sr_r [km]_texnet","sr_r [km]_pykonal"]])
-print(x)
+# print(x)
 # print(mulpicks)
 
 # stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
