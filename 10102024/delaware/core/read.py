@@ -1,8 +1,10 @@
 # read earthquakes and picks
 import os
+import copy
 import pandas as pd
 from delaware.core.eqviewer import Catalog,MulPicks
 from delaware.core.eqviewer_utils import get_distance_in_dataframe
+from delaware.core.database import save_dataframe_to_sqlite
 
 class EQPicks():
     def __init__(self,root,author,xy_epsg,catalog_header_line=0,
@@ -33,6 +35,18 @@ class EQPicks():
             
         catalog = Catalog(catalog,xy_epsg=self.xy_epsg)
         return catalog
+    
+    def copy(self):
+        """Deep copy of the class"""
+        return copy.deepcopy(self)
+    
+    def query(self,**kwargs):
+        self.catalog.query(**kwargs)
+        return self
+    
+    def select_data(self,rowval):
+        self.catalog.select_data(rowval=rowval)
+        return self
     
     def get_catalog_with_picks(self,starttime=None,
                                endtime=None,
@@ -82,16 +96,59 @@ class ParseEQPicks():
         self.eqpicks1 = eqpicks1
         self.eqpicks2 = eqpicks2
         
-    def compare(self,**kwargs):
+    def compare(self,ev_ids=None,out=None,**kwargs):
         
-        all_picks = {}
-        for eqpicks in [self.eqpicks1,self.eqpicks2]:
-            #do something in EQPicks class to filter first
-            catalog, picks = eqpicks.get_catalog_with_picks(**kwargs)
-            all_picks[picks.author] = picks
+        if ev_ids is None:
+            ev_ids = list(set(self.eqpicks1.catalog.data["ev_id"].to_list())) 
         
-        mulpicks = MulPicks(list(all_picks.values()))
-        mulpicks.compare(*list(all_picks.keys()))
+        kwargs["ev_ids"] = ev_ids 
+        
+        ## filtering data
+        query_kwargs = kwargs.copy()
+        query_kwargs.pop("stations",None)
+        all_eqpicks = []
+        for _eqpicks in [self.eqpicks1,self.eqpicks2]:
+            eqpicks = _eqpicks.copy()
+            eqpicks.query(**query_kwargs)
+            all_eqpicks.append(eqpicks)
+        
+        # getting picks
+        all_comparisons = []
+        for ev_id in ev_ids:
+            
+            all_picks = {}
+            for _eqpicks in all_eqpicks:
+                eqpicks = _eqpicks.copy() #important
+                eqpicks.select_data({"ev_id":[ev_id]})
+                try:
+                    catalog, picks = eqpicks.get_catalog_with_picks(ev_ids=kwargs["ev_ids"],
+                                                                    stations=kwargs["stations"])
+                except:
+                    print(f"Event [BAD]: {ev_id} | Author {eqpicks.author}: get_catalog_with picks didn't work ")
+                    continue
+                all_picks[picks.author] = picks
+            
+            if len(all_picks) < 2:
+                print(f"\tEvent skipped: {ev_id} ")
+                continue
+            
+            #comparing
+            mulpicks = MulPicks(list(all_picks.values()))
+            comparison = mulpicks.compare(*list(all_picks.keys()))
+            
+            print(f"Event [OK]: {ev_id} ")
+            if out is not None:
+                if not os.path.isdir(os.path.dirname(out)):
+                    os.makedirs(os.path.dirname(out))
+                save_dataframe_to_sqlite(comparison, out, ev_id)
+            else:
+                all_comparisons.append(comparison)
+        
+        if all_comparisons:
+            all_comparisons = pd.concat(all_comparisons)
+        return all_comparisons
+            # print(comparison)
+        
             
         
     # def write_catalog_with_picks(self,**kwargs):

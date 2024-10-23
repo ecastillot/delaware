@@ -1,4 +1,4 @@
-from delaware.core.read import EQPicks
+from delaware.core.read import EQPicks, ParseEQPicks
 from delaware.core.tracer import Tracer
 from delaware.core.eqviewer import MulPicks,Stations,Picks
 import datetime as dt
@@ -7,8 +7,8 @@ import os
 
 root = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
-# author = "usgs_20170101_20240922"
-author = "growclust"
+author = "usgs_20170101_20240922"
+# author = "growclust"
 author2 = "pykonal_growclust"
 proj = "EPSG:3857"
 starttime = "2023-01-01 00:00:00"
@@ -57,9 +57,22 @@ picks2.p_color = "cyan"
 picks2.s_color = "magenta"
 picks2.author = "pykonal"
 
+
+stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/stations/delaware_onlystations_160824.csv"
+stations = pd.read_csv(stations_path)
+stations["station_index"] = stations.index
+stations = Stations(data=stations,xy_epsg=proj)
+
+out = f"/home/emmanuel/ecastillo/dev/delaware/10102024/data/picks/versus/versus_{eqpicks.author}VS{eqpicks2.author}.db"
+
+parse_eqp = ParseEQPicks(eqpicks,eqpicks2)
+
+x = parse_eqp.compare(stations=stations,out=out)
+print(x)
+
 # mulpicks = MulPicks([picks,picks2])
-mulpicks = MulPicks([picks,picks2])
-x = mulpicks.compare("texnet","pykonal")
+# mulpicks = MulPicks([picks,picks2])
+# x = mulpicks.compare("texnet","pykonal")
 # print(x[["sr_r [km]_texnet","sr_r [km]_pykonal"]])
 # print(x)
 # print(mulpicks)

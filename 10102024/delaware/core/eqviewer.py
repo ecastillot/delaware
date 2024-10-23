@@ -983,16 +983,16 @@ class Catalog():
             
         if len(self) != 0:
             ev_ids = self.data["ev_id"].to_list()
+            # print(picks_path,ev_ids)
             
             picks = load_dataframe_from_sqlite(db_name=picks_path,
                                       tables=ev_ids,debug=False)
-            
             if "arrival_time" not in picks.columns.to_list():
                 picks["arrival_time"] = pd.to_datetime(picks["time"]) #due to the database 
             else:
                 picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
             
-            
+            # print(picks)
             if picks.empty:
                 picks = pd.DataFrame(columns=["ev_id"])
         
