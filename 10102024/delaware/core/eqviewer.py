@@ -380,7 +380,7 @@ class Picks():
         
         data = self.data.copy()
         picks = []
-        for x,df in data.groupby(["ev_id","station_code"]):
+        for x,df in data.groupby(["ev_id","station"]):
             df = df.drop_duplicates(["phase_hint"])
             if len(df) == 2: #p and s phases
                 picks.append(df)
@@ -987,20 +987,19 @@ class Catalog():
             
             picks = load_dataframe_from_sqlite(db_name=picks_path,
                                       tables=ev_ids,debug=False)
-            if "arrival_time" not in picks.columns.to_list():
-                picks["arrival_time"] = pd.to_datetime(picks["time"]) #due to the database 
-            else:
-                picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
-            
-            # print(picks)
             if picks.empty:
-                picks = pd.DataFrame(columns=["ev_id"])
-        
+                picks = pd.DataFrame(columns=['ev_id', 'network', 
+                                          'station', 'arrival_time',
+                                          'phase_hint'])
+            else:
+                if "arrival_time" not in picks.columns.to_list():
+                    picks["arrival_time"] = pd.to_datetime(picks["time"]) #due to the database 
+                else:
+                    picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
         else :
-            picks = pd.DataFrame(columns=["ev_id"])
-        
-        if picks.empty:
-            raise Exception("No available picks")
+            picks = pd.DataFrame(columns=['ev_id', 'network', 
+                                          'station', 'arrival_time',
+                                          'phase_hint'])
         
         if stations is not None:
             stations_data = stations.data.copy()

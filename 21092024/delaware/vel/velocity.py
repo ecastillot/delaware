@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
-
 class ScalarVelModel():
     def __init__(self,p_value,s_value,name) -> None:
         self.name = name

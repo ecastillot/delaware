@@ -38,7 +38,66 @@ class SP_Database():
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
     
+    def run_single_montecarlo_analysis(self,z_guess,min_vps=1.5,
+                                max_vps=1.8,output_folder=None):
+        """Considering the suggestion of uses guesses of z (alexandros idea)
+
+        Args:
+            z_guess (_type_): _description_
+            min_vps (float, optional): _description_. Defaults to 1.5.
+            max_vps (float, optional): _description_. Defaults to 1.8.
+            output_folder (_type_, optional): _description_. Defaults to None.
+        """
+        
+        # Initialize tqdm for pandas
+        for n,event in tqdm(self.catalog.iterrows(),
+                            total=len(self.catalog),
+                            desc="Events"):
+            
+            ev_id = event["id"]
+            picks_by_id = self.picks.query(f"ev_id == '{ev_id}'")
+            
+            if picks_by_id.empty:
+                print(f"No picks in event {ev_id}")
+                continue
+            
+            p_phase = picks_by_id.query(f"phase_hint == 'P'") 
+            s_phase = picks_by_id.query(f"phase_hint == 'S'") 
+            sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
+            sp_time = sp_time.total_seconds()
+            station = p_phase.iloc[0].station_code
+            
+            print(sp_time)
+            exit()
+            
+            # data = {"z":[],"vp":[],"vs":[]}
+            # for i in range(len(scalar_vel_perturbation)):
+            #     vp = scalar_vel_perturbation.p_vel[i]
+            #     vs = scalar_vel_perturbation.s_vel[i]
+            #     vps =  vp/vs
+            #     z = (vp/vps)*sp_time
+            #     data["z"].append(z)
+            #     data["vp"].append(vp)
+            #     data["vs"].append(vs)
+                
+            # data = pd.DataFrame(data)
+                
+            # # Insert the model_id column to track each perturbation model
+            # data.insert(0, "ev_id", ev_id)
+            # data["station"] = station
+            # data["ts-tp"] = sp_time
+            # data["original_z"] = event["depth"]
+                
+            # save_dataframe_to_sqlite(data, output, table_name=ev_id)
+        
+        
+    
     def run_montecarlo(self,scalar_vel_perturbation,output):
+        
+        """
+        Based on a scalar velocity perturbation done in advance.
+        First results presented on Castillo2025_102024
+        """
         
         # Initialize tqdm for pandas
         for n,event in tqdm(self.catalog.iterrows(),
