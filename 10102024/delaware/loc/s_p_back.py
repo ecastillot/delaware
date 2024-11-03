@@ -10,20 +10,50 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
-from delaware.eqviewer.eqviewer import Catalog,Picks
+from delaware.core.eqviewer import Catalog,Picks
 import numpy as np
+
+def get_s_p_phases_by_event(picks, ev_id):
+    """This function will get the phases from an event
+    """
+    picks_by_id = picks.query(f"ev_id == '{ev_id}'")
+    
+    if picks_by_id.empty:
+        print(f"No picks in event {ev_id}")
+        return None
+
+    p_phase = picks_by_id.query(f"phase_hint == 'P'") 
+    s_phase = picks_by_id.query(f"phase_hint == 'S'") 
+    sp_time = s_phase.iloc[0].arrival_time - p_phase.iloc[0].arrival_time
+    sp_time = sp_time.total_seconds()
+    # return .to_numpy() 
+    
+
+# def get_s_p_phases(s_p_times,z_guess,
+#                    vp_mean, vs_mean,
+#                    scale_factor=1):
+#     """This function will get the phases that satisfy the following condition:
+#     z_guess << d
+
+#     Returns:
+#         s_p_times: 1d array
+#         z_guess: Assumption of z
+#         scale_factor: int, scale factor to find d.  d=zguess/ 10**scale_factor
+#     """
+    
+    
 
 class SP_Database():
     def __init__(self,catalog_path,picks_path):
         self.catalog = load_dataframe_from_sqlite(db_name=catalog_path)
         self.picks = load_dataframe_from_sqlite(db_name=picks_path)
         
-        self.picks["time"] = pd.to_datetime(self.picks["time"])
+        self.picks["arrival_time"] = pd.to_datetime(self.picks["arrival_time"])
         
     
     @property
     def n_stations(self):
-        stations = self.picks.drop_duplicates("station_code")
+        stations = self.picks.drop_duplicates("station")
         n_stations = len(stations)
         return n_stations
     
@@ -38,8 +68,8 @@ class SP_Database():
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
     
-    def run_single_montecarlo_analysis(self,z_guess,min_vps=1.5,
-                                max_vps=1.8,output_folder=None):
+    def run_single_montecarlo_analysis(self,z_guess,min_vps=1.6,
+                                max_vps=1.9,output_folder=None):
         """Considering the suggestion of uses guesses of z (alexandros idea)
 
         Args:
@@ -50,25 +80,44 @@ class SP_Database():
         """
         
         # Initialize tqdm for pandas
-        for n,event in tqdm(self.catalog.iterrows(),
-                            total=len(self.catalog),
-                            desc="Events"):
+        # for n,event in tqdm(self.catalog.iterrows(),
+        #                     total=len(self.catalog),
+        #                     desc="Events"):
+        for n,event in self.catalog.iterrows():
             
-            ev_id = event["id"]
+            ev_id = event["ev_id"]
             picks_by_id = self.picks.query(f"ev_id == '{ev_id}'")
             
             if picks_by_id.empty:
                 print(f"No picks in event {ev_id}")
                 continue
-            
+            # print(picks_by_id.info)
             p_phase = picks_by_id.query(f"phase_hint == 'P'") 
             s_phase = picks_by_id.query(f"phase_hint == 'S'") 
-            sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
+            sp_time = s_phase.iloc[0].arrival_time - p_phase.iloc[0].arrival_time
             sp_time = sp_time.total_seconds()
-            station = p_phase.iloc[0].station_code
+            station = p_phase.iloc[0].station
             
-            print(sp_time)
-            exit()
+            min_p_vel = (z_guess/sp_time) * (min_vps-1) 
+            max_p_vel = (z_guess/sp_time) * (max_vps-1) 
+            min_s_vel = min_p_vel / min_vps
+            max_s_vel = max_p_vel / max_vps
+            # max_p_vel = z_guess * max_vps / sp_time
+            
+            vp_disp = round((max_p_vel -min_p_vel)/2,2)
+            vs_disp = round((max_s_vel -min_s_vel)/2,2)
+
+            vp = min_p_vel+vp_disp
+            vs = min_s_vel+vs_disp 
+            
+            z = (sp_time)*min_p_vel/(min_vps-1)
+            # zz = (sp_time)*min_p_vel/(min_vps-1)
+            # zzz = (sp_time)*max_p_vel/(max_vps-1)
+            print(sp_time,z)
+            # print(vp,vp_disp)
+            # print(vs,vs_disp )
+            # print(zz,zzz)
+            # exit()
             
             # data = {"z":[],"vp":[],"vs":[]}
             # for i in range(len(scalar_vel_perturbation)):
@@ -138,59 +187,43 @@ class SP_Database():
             save_dataframe_to_sqlite(data, output, table_name=ev_id)
                 
         
-    def plot_stations_counts(self, savefig=None, show=True):
-        """
-        Plots the number of events recorded per station.
-
-        Parameters:
-        - savefig (str or None): Path to save the figure. If None, the figure is not saved.
-        - show (bool): Whether to display the figure. Defaults to True.
-        """
+    def plot_stations_counts(self):
         
-        # Create a copy of the data and remove duplicate event IDs
+        
         data = self.picks.copy()
         data = data.drop_duplicates("ev_id")
         
-        # Count the number of events for each station code
+        # First, count the number of occurrences of each station_name
         station_counts = data.groupby('station_code')['ev_id'].count()
 
-        # Initialize the figure and axis for the bar plot
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-        station_counts.plot(kind='bar', color="coral", ax=ax)
+        # Plot the histogram
+        fig,ax = plt.subplots(1,1,figsize=(10, 6))
+        # plt.figure(figsize=(10, 6))
+        station_counts.plot(kind='bar',color="coral")
         
-        # Annotate each bar with its corresponding event count
         for idx, value in enumerate(station_counts):
             ax.text(idx, value, f'{value}', ha='center', va='bottom', fontsize=14)
         
-        # Set the title and axis labels with specific font sizes
-        ax.set_title('S-P Method\nNumber of events per station', fontdict={"size": 18})
-        ax.set_xlabel('Stations', fontdict={"size": 14})
-        ax.set_ylabel('Events', fontdict={"size": 14})
+        ax.set_title('S-P Method\nNumber of events per station',
+                     fontdict={"size":18})
+        ax.set_xlabel('Stations',fontdict={"size":14})
+        ax.set_ylabel('Events',fontdict={"size":14})
         
-        # Display the total number of events in a text box
+        # Add the total number of ev_ids in a text box
         total_ev_ids = station_counts.sum()
         text_str = f"Total events: {total_ev_ids}"
         ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=14,
                 verticalalignment='top', horizontalalignment='left',
                 bbox=dict(facecolor='white', alpha=0.5))
         
-        # Add grid lines to improve readability
-        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.grid(True, linestyle='--', alpha=0.7) 
         
-        # Rotate x-axis labels and set font size for better readability
-        plt.xticks(rotation=90, fontsize=14)
-        plt.yticks(fontsize=14)
+        plt.xticks(rotation=90, fontsize=14)  # Rotate x labels for readability
+        plt.yticks(fontsize=14)  # Rotate x labels for readability
         plt.tight_layout()  # Adjust layout to avoid cutting off labels
-        
-        # Save the figure if a path is provided, with specified dpi
-        if savefig:
-            plt.savefig(savefig, dpi=300, bbox_inches='tight')
-        
-        # Display the plot if show is True
-        if show:
-            plt.show()
+        plt.show()
+        # print(self.catalog)
     
-        return fig
     
 def plot_montecarlo_depths(path):   
     data = load_dataframe_from_sqlite(db_name=path)

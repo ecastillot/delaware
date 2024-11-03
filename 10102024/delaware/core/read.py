@@ -4,37 +4,62 @@ import copy
 import pandas as pd
 from delaware.core.eqviewer import Catalog,MulPicks
 from delaware.core.eqviewer_utils import get_distance_in_dataframe
-from delaware.core.database import save_dataframe_to_sqlite
-
+from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 class EQPicks():
-    def __init__(self,root,author,xy_epsg,catalog_header_line=0,
+    def __init__(self,root,author,
+                 xy_epsg,
+                 catalog_header_line=0,
+                 catalog_path=None,
+                 picks_path=None,
                  ):
         self.root = root
         self.author = author
         
-        picks_path = os.path.join(root,author,"picks.db")
-        catalog_path = os.path.join(root,author,"origin.csv")
         
-        for path in [picks_path,catalog_path]:
+        _picks_path = os.path.join(root,author,"picks.db")
+        _catalog_path = os.path.join(root,author,"origin.csv")
+        
+        if catalog_path is not None:
+            _catalog_path = catalog_path
+        if picks_path is not None:
+            _picks_path = picks_path
+        
+        for path in [_picks_path,_catalog_path]:
             if not os.path.isfile(path):
                 raise Exception(f"There is not {path}")
         
-        self.picks_path = picks_path
-        self.catalog_path = catalog_path
+        self.picks_path = _picks_path
+        self.catalog_path = _catalog_path
         self.xy_epsg = xy_epsg
         self.catalog_header_line = catalog_header_line
-        self.catalog = self._get_catalog()
+        catalog_fmt = os.path.splitext(self.catalog_path)[1]
+        self.catalog = self._get_catalog(catalog_fmt)
     
-    def _get_catalog(self):
-        catalog = pd.read_csv(self.catalog_path,parse_dates=["origin_time"],
-                              header=self.catalog_header_line)
-        catalog = catalog.drop_duplicates(subset=["ev_id"],ignore_index=True)
-        
-        if "magnitude" not in catalog.columns.to_list():
-            catalog["magnitude"] = 1 #due to pykonal database
+    def _get_catalog(self,catalog_fmt):
+        if catalog_fmt == ".csv":
+            catalog = pd.read_csv(self.catalog_path,parse_dates=["origin_time"],
+                                header=self.catalog_header_line)
+            catalog = catalog.drop_duplicates(subset=["ev_id"],ignore_index=True)
             
+            if "magnitude" not in catalog.columns.to_list():
+                catalog["magnitude"] = 1 #due to pykonal database
+                
+        elif catalog_fmt == ".db":
+            catalog = load_dataframe_from_sqlite(db_name=self.catalog_path)
+            catalog = catalog.drop_duplicates(subset=["ev_id"],ignore_index=True)
+                
+        else:
+            raise Exception(f"Bad catalog fmt {catalog_fmt}")
+                
         catalog = Catalog(catalog,xy_epsg=self.xy_epsg)
+        
         return catalog
+    
+    def __str__(self,extended=False):
+        msg = f"EQPicks-> {self.catalog}"
+        if extended:
+            msg += f"\n\t picks_path: {self.picks_path}"
+        return msg
     
     def copy(self):
         """Deep copy of the class"""

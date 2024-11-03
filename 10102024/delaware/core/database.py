@@ -53,7 +53,7 @@ def load_dataframe_from_sqlite(db_name, tables=None, starttime=None, endtime=Non
             tables = list(set(tables).intersection(all_tables))
             complement = list(set(all_tables).difference(tables))
             if debug:
-                print(f"{len(complement)} tables not found:")
+                print(f"{len(complement)} tables not found")
             
         # If no table is specified, load from all tables
         all_dataframes = []

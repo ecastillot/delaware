@@ -979,14 +979,16 @@ class Catalog():
                     region_lims=region_lims,
                     general_region=general_region,
                     region_from_src=region_from_src)
-            
+        
             
         if len(self) != 0:
             ev_ids = self.data["ev_id"].to_list()
             # print(picks_path,ev_ids)
-            
+            # print(ev_ids)
             picks = load_dataframe_from_sqlite(db_name=picks_path,
-                                      tables=ev_ids,debug=False)
+                                      tables=ev_ids,debug=True
+                                      )
+            # print(picks)
             if picks.empty:
                 picks = pd.DataFrame(columns=['ev_id', 'network', 
                                           'station', 'arrival_time',
@@ -1964,10 +1966,11 @@ class Stations():
                     save_dataframe_to_sqlite(picks.data,
                                             db_name=sp_picks_path,
                                         table_name=row.station)
-                    
-            all_events[row.station].append(new_catalog.data)
+            # new_catalog = Catalog(data=new_catalog,xy_epsg=self.xy_epsg)        
+            all_events[row.station].append(new_catalog)
+            
             if picks_path is not None:
-                all_picks[row.station].append(picks.data)
+                all_picks[row.station].append(picks)
             
         
         return all_events,all_picks

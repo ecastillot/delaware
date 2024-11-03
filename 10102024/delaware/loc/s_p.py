@@ -1,29 +1,185 @@
-# /**
-#  * @author Emmanuel Castillo
-#  * @email [castillo.280997@gmail.com]
-#  * @create date 2024-09-24 16:49:27
-#  * @modify date 2024-09-24 16:49:27
-#  * @desc [description]
-#  */
+
+from delaware.vel.vel import ScalarVelModel, ScalarVelPerturbationModel
+import os
+import logging
+import datetime
 from tqdm import tqdm
 import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
-from delaware.eqviewer.eqviewer import Catalog,Picks
+from delaware.core.eqviewer import Catalog,Picks
 import numpy as np
 
-class SP_Database():
-    def __init__(self,catalog_path,picks_path):
-        self.catalog = load_dataframe_from_sqlite(db_name=catalog_path)
-        self.picks = load_dataframe_from_sqlite(db_name=picks_path)
+
+logger = logging.getLogger("delaware.loc.s_p")
+
+def get_std_deviations(v_mean,vps_min,vps_max):
+    
+    sigma_p = (v_mean/2)*((vps_max-vps_min)/(vps_max+vps_min)) 
+    sigma_s = (v_mean/4)*((vps_max-vps_min)/(vps_max*vps_min))
+    
+    return sigma_p,sigma_s 
+
+class SP_MontecarloSetup():
+    def __init__(self,eqpicks,
+                 stations,
+                 vel_model,
+                 z_guess,
+                 output_folder,
+                 vps_min =1.4,
+                 vps_max = 2,
+                 n_perturbations=1000,
+                 scale_factor=1,
+                 configure_logging=True):
         
-        self.picks["time"] = pd.to_datetime(self.picks["time"])
+        self.eqpicks = eqpicks
+        self.stations = stations
+        self.vel_model = vel_model
+        self.z_guess = z_guess
+        self.scale_factor = scale_factor
+        self.vps_min = vps_min
+        self.vps_max = vps_max
+        self.n_perturbations = n_perturbations
+        self.d = z_guess/(10**scale_factor)
         
+        self.output_folder = output_folder
+        
+        folder_paths = ["vel","catalog","log"]
+        self.folder_paths = {x:os.path.join(self.output_folder,
+                                            self.eqpicks.author,
+                                            x) for x in \
+                                folder_paths
+                             }
+        for value in self.folder_paths.values():
+            if not os.path.isdir(value):
+                os.makedirs(value)
+        
+        if configure_logging:
+            self._setup_logging()
+            
+    def _setup_logging(self):
+        """
+        Set up logging configuration.
+
+        """
+        if not os.path.isdir(self.folder_paths["log"]):
+            os.makedirs(self.folder_paths["log"])
+            
+        log_file = os.path.join(self.folder_paths["log"],"print.log")
+        
+
+        timenow = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+        self.logging_path = log_file
+
+        # Create a logger instance for this class
+        logger.setLevel(logging.DEBUG)  # Set the log level to DEBUG for the logger
+
+        # Console log handler
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)  # Console handler logs INFO level and above
+
+        # File log handler
+        fh = logging.FileHandler(self.logging_path)
+        fh.setLevel(logging.DEBUG)  # File handler logs DEBUG level and above
+
+        # Formatter for log messages
+        formatter = logging.Formatter("[%(asctime)s] - %(name)s - %(levelname)s: %(message)s")
+        ch.setFormatter(formatter)
+        fh.setFormatter(formatter)
+
+        # Add handlers to the logger
+        logger.addHandler(ch)
+        logger.addHandler(fh)
+
+        # Prevent log messages from being passed to higher loggers
+        logger.propagate = 0
+                
+    def prepare_params(self):
+        content = f"reference_vel_model:{self.vel_model.name}\n"
+        content = f"folder_paths:{self.folder_paths}\n"
+        content += f"z_guess:{self.z_guess}\n"
+        content += f"d:{self.d}\n"
+        content += f"vps_min:{self.vps_min}\n"
+        content += f"vps_max:{self.vps_max}\n"
+        content += f"n_perturbations:{self.n_perturbations}"
+        
+        log_file = os.path.join(self.folder_paths["log"],"params.txt")
+        if not os.path.isdir(self.folder_paths["log"]):
+            os.makedirs(self.folder_paths["log"])
+            
+        logger.info(f"Preparing parameters:{log_file}")
+        
+        with open(log_file, "w") as file:
+            # Write the content to the file
+            file.write(content)
+        
+    def prepare_catalog(self):
+        logger.info(f"Preparing catalog:{self.folder_paths['catalog']}")
+        catalog, phases = self.stations.get_events_by_sp(catalog=self.eqpicks.catalog,
+                                                         picks_path=self.eqpicks.picks_path,
+                                                         rmax=self.d,
+                                                         zmin=self.z_guess,
+                                                         output_folder=self.folder_paths["catalog"]
+                                                         )
+        # print(catalog,phases)
+        
+    def prepare_velocities(self):
+        logger.info(f"Preparing velocities:{self.folder_paths['vel']}")
+        
+        
+        vel_model_output = os.path.join(self.folder_paths["vel"],self.vel_model.name+".png")
+        self.vel_model.plot_profile(savefig=vel_model_output,show=False)
+        
+        vp = self.vel_model.get_average_velocity("P",zmax=self.z_guess)
+        vs = self.vel_model.get_average_velocity("S",zmax=self.z_guess)
+        
+        sigma_p,sigma_s = get_std_deviations(vp,vps_min=self.vps_min,
+                                             vps_max=self.vps_max)
+        
+        svm = ScalarVelModel(p_value=vp,s_value=vs,
+                             name=self.vel_model.name)
+        
+        svm.get_perturbation_model(
+                                   output_folder=self.folder_paths["vel"],
+                                   n_perturbations=self.n_perturbations,
+                                   p_std_dev=sigma_p,
+                                   s_std_dev=sigma_s,
+                                   log_file = True,
+                                   )
+        
+    def run(self):
+        
+        self.prepare_params()
+        self.prepare_velocities()
+        self.prepare_catalog()
+    
+class SP_Montecarlo():
+    def __init__(self,root,depth,author,xy_epsg):
+        
+        folder_paths = ["vel","catalog","log"]
+        self.folder_paths = {x:os.path.join(root,f"z_{depth}",
+                                            author,
+                                            x) for x in \
+                                folder_paths
+                             }
+        
+        catalog_path = os.path.join(self.folder_paths["catalog"],"catalog_sp_method.db")
+        picks_path = os.path.join(self.folder_paths["catalog"],"picks_sp_method.db")
+        vel_path = os.path.join(self.folder_paths["vel"],"perturbations.npz")
+        
+        catalog = load_dataframe_from_sqlite(db_name=catalog_path)
+        picks = load_dataframe_from_sqlite(db_name=picks_path)
+        
+        picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
+        
+        self.catalog = Catalog(catalog,xy_epsg=xy_epsg)
+        self.picks = Picks(picks,author=author)
+        self.vel = ScalarVelPerturbationModel(vel_path)
     
     @property
     def n_stations(self):
-        stations = self.picks.drop_duplicates("station_code")
+        stations = self.picks.drop_duplicates("station")
         n_stations = len(stations)
         return n_stations
     
@@ -38,8 +194,7 @@ class SP_Database():
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
     
-    def run_montecarlo_analysis(self,z_guess,min_vps=1.5,
-                                max_vps=1.8,output_folder=None):
+    def run_single_montecarlo_analysis(self,z_guess,output_folder=None):
         """Considering the suggestion of uses guesses of z (alexandros idea)
 
         Args:
@@ -50,24 +205,39 @@ class SP_Database():
         """
         
         # Initialize tqdm for pandas
-        for n,event in tqdm(self.catalog.iterrows(),
-                            total=len(self.catalog),
-                            desc="Events"):
+        # for n,event in tqdm(self.catalog.iterrows(),
+        #                     total=len(self.catalog),
+        #                     desc="Events"):
+        for n,event in self.catalog.data.iterrows():
             
-            ev_id = event["id"]
-            picks_by_id = self.picks.query(f"ev_id == '{ev_id}'")
+            ev_id = event["ev_id"]
+            picks_by_id = self.picks.data.query(f"ev_id == '{ev_id}'")
             
             if picks_by_id.empty:
                 print(f"No picks in event {ev_id}")
                 continue
-            
+            # print(picks_by_id.info)
             p_phase = picks_by_id.query(f"phase_hint == 'P'") 
             s_phase = picks_by_id.query(f"phase_hint == 'S'") 
-            sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
+            sp_time = s_phase.iloc[0].arrival_time - p_phase.iloc[0].arrival_time
             sp_time = sp_time.total_seconds()
-            station = p_phase.iloc[0].station_code
+            station = p_phase.iloc[0].station
             
-            print(sp_time)
+            
+            vp_disp = round((max_p_vel -min_p_vel)/2,2)
+            vs_disp = round((max_s_vel -min_s_vel)/2,2)
+
+            vp = min_p_vel+vp_disp
+            vs = min_s_vel+vs_disp 
+            
+            z = (sp_time)*min_p_vel/(min_vps-1)
+            # zz = (sp_time)*min_p_vel/(min_vps-1)
+            # zzz = (sp_time)*max_p_vel/(max_vps-1)
+            print(sp_time,z)
+            # print(vp,vp_disp)
+            # print(vs,vs_disp )
+            # print(zz,zzz)
+            # exit()
             
             # data = {"z":[],"vp":[],"vs":[]}
             # for i in range(len(scalar_vel_perturbation)):
@@ -89,8 +259,6 @@ class SP_Database():
                 
             # save_dataframe_to_sqlite(data, output, table_name=ev_id)
         
-        
-    
     def run_montecarlo(self,scalar_vel_perturbation,output):
         
         """
@@ -172,143 +340,3 @@ class SP_Database():
         plt.yticks(fontsize=14)  # Rotate x labels for readability
         plt.tight_layout()  # Adjust layout to avoid cutting off labels
         plt.show()
-        # print(self.catalog)
-    
-    
-def plot_montecarlo_depths(path):   
-    data = load_dataframe_from_sqlite(db_name=path)
-    
-    # Assuming your DataFrame is named df
-    grouped = data.groupby('ev_id')
-
-    fig, ax = plt.subplots(1, 1)
-    # Plot histograms for each ev_id
-    for i,(ev_id, group) in enumerate(grouped):
-        ax.hist(group['z'], bins=20, alpha=0.7,density=False)
-        
-        zeros = np.zeros(len(group['original_z']))
-        
-        if i ==0:
-            label = "Original Depths"
-        else:
-            label=None
-            
-        ax.plot(group['original_z'],zeros, alpha=0.7,
-                marker="x", color="black", markersize=10,
-                label=label)
-        # ax.scatter(group['original_z'], zeros, alpha=0.7, 
-        #           marker='x', s=100, color='red')
-        
-    ax.set_title(f"Histogram of z",fontdict={"size":18})
-    ax.set_xlabel('z (km)',fontdict={"size":18})
-    ax.set_ylabel('Frequency',fontdict={"size":18})
-    ax.legend()
-    
-    plt.xticks(fontsize=14)  # Rotate x labels for readability
-    plt.yticks(fontsize=14)  # Rotate x labels for readability
-    plt.show()
-    
-def plot_montecarlo_depths_by_station(path,show: bool = True, savefig:str=None):   
-    data = load_dataframe_from_sqlite(db_name=path)
-    
-    # Assuming your DataFrame is named df
-    grouped = data.groupby('station')
-
-    fig, ax = plt.subplots(1, 1)
-    
-    colors = ["blue","green","magenta","brown"]
-    # Plot histograms for each ev_id
-    for i,(station, group) in enumerate(grouped):
-        zeros = np.zeros(len(group['original_z']))
-        
-        if i ==0:
-            label = "Original Depths"
-        else:
-            label=None
-            
-        ax.plot(group['original_z'],zeros, alpha=0.7,
-                marker="x", color="black", markersize=10,
-                label=label)
-        
-        
-        id_grouped = group.groupby('ev_id')
-        
-        for j,(ev_id, ev_group) in enumerate(id_grouped):
-            if j ==0:
-                sta_label = station
-            else:
-                sta_label=None
-            print(station,colors[i])
-            ax.hist(ev_group['z'], color=colors[i], 
-                    bins=30, alpha=0.3,
-                    # density=True,
-                    density=False,
-                     histtype='step',
-                    label=sta_label)
-        
-        # ax.scatter(group['original_z'], zeros, alpha=0.7, 
-        #           marker='x', s=100, color='red')
-        
-    ax.set_title(f"Histogram of z",fontdict={"size":18})
-    ax.set_xlabel('z (km)',fontdict={"size":18})
-    ax.set_ylabel('Frequency',fontdict={"size":18})
-    ax.legend()
-    
-    plt.xticks(fontsize=14)  # Rotate x labels for readability
-    plt.yticks(fontsize=14)  # Rotate x labels for readability
-    if savefig is not None:
-        fig.savefig(savefig)
-    
-    if show:
-        plt.show()
-    
-    return fig,ax
-
-
-def get_picks(event_ids,picks_path):
-    
-    return load_dataframe_from_sqlite(db_name=picks_path,
-                                      tables=event_ids)
-
-def get_events(origin, picks_path, event_ids=None,
-               starttime=None,endtime=None,
-               region=None, agencies=None,
-               region_from_src = None,
-               ):
-    
-
-    origin = origin.rename(columns = {"mag":"magnitude"})
-    catalog = Catalog(origin)
-    
-    catalog.filter("origin_time",starttime,endtime)
-    
-    if (region is not None) and (len(catalog) !=0):
-        catalog.filter_region(region)
-        
-    if (region_from_src is not None) and (len(catalog) !=0):
-        lat,lon, r_max, az_max =  region_from_src
-        catalog.filter_by_r_az(latitude=lat,
-                           longitude=lon,
-                           r=r_max,
-                           az=az_max)
-        
-    if (event_ids is not None) and (len(catalog) !=0):
-        catalog.select_data({"id":event_ids})
-        
-    if (agencies is not None) and (len(catalog) !=0):
-        catalog.select_data({"agency":agencies}) #agencies is a list
-        
-    if len(catalog) != 0:
-        event_ids = catalog.data["id"].to_list()
-        
-        picks = get_picks(event_ids=event_ids,picks_path=picks_path)
-        
-    
-    else :
-        picks = pd.DataFrame(columns=["ev_id"])
-    
-    picks = Picks(picks)
-    
-    
-    return catalog, picks
-    
