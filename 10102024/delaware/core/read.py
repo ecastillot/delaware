@@ -5,6 +5,7 @@ import pandas as pd
 from delaware.core.eqviewer import Catalog,MulPicks
 from delaware.core.eqviewer_utils import get_distance_in_dataframe
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
+
 class EQPicks():
     def __init__(self,root,author,
                  xy_epsg,

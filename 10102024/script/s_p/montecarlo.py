@@ -2,7 +2,7 @@ import pandas as pd
 import datetime as dt
 from delaware.utils import get_texnet_high_resolution_catalog
 from delaware.core.eqviewer import Stations
-from delaware.loc.s_p import SP_Montecarlo
+from delaware.loc.s_p import SP_Montecarlo,plot_montecarlo_depths_by_station
 from delaware.core.read import EQPicks
 from delaware.vel.vel import VelModel
 import numpy as np
@@ -25,11 +25,16 @@ for z_guess in z_array:
     #                   picks_path=picks_path
                     #   )
     spm = SP_Montecarlo(root,z_guess,author,proj)
-    print(spm.catalog)
-    print(spm.picks)
-    print(spm.vel.p_vel)
-    print(spm.vel.s_vel)
-    spm.vel.plot()
+    spm.run_montecarlo()
+    
+# plot_montecarlo_depths_by_station("/home/emmanuel/ecastillo/dev/delaware/10102024/data/loc/s_p/z_6.0/growclust/montecarlo/montecarlo.db")
+    # spm.plot_stations_counts()
+    # exit()
+    # print(spm.catalog)
+    # print(spm.picks)
+    # print(spm.vel.p_vel)
+    # print(spm.vel.s_vel)
+    # spm.vel.plot()
     # exit()
     # sp_setup = SP_MontecarloSetup(eqpicks=eqpicks,vel_model=vel_model,
     #         stations=stations,

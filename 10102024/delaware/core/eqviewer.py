@@ -1911,7 +1911,7 @@ class Stations():
                                                          self.xy_epsg, padding)
         return minmax_coords
 
-    def get_events_by_sp(self,catalog,rmax,zmin,
+    def get_events_by_sp(self,catalog,rmax,zmin=None,
                          picks_path=None,
                          output_folder=None):
         
@@ -1929,7 +1929,8 @@ class Stations():
         for i, row in tqdm(sta_data.iterrows(), total=len(sta_data),
                            desc="Processing stations"):
             new_catalog = catalog.copy()
-            new_catalog.filter("depth", start=zmin)
+            if zmin is not None:
+                new_catalog.filter("depth", start=zmin)
             new_catalog.filter_by_r_az(latitude=row.latitude,
                                     longitude=row.longitude,
                                     r=rmax)

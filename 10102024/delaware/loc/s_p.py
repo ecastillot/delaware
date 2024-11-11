@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 from delaware.core.eqviewer import Catalog,Picks
 import numpy as np
+import seaborn as sns
 
 
 logger = logging.getLogger("delaware.loc.s_p")
@@ -119,8 +120,8 @@ class SP_MontecarloSetup():
         catalog, phases = self.stations.get_events_by_sp(catalog=self.eqpicks.catalog,
                                                          picks_path=self.eqpicks.picks_path,
                                                          rmax=self.d,
-                                                         zmin=self.z_guess,
                                                          output_folder=self.folder_paths["catalog"]
+                #  zmin=self.z_guess, # it shouldn't be consider because we don't want to consider the catalog depth.
                                                          )
         # print(catalog,phases)
         
@@ -156,26 +157,35 @@ class SP_MontecarloSetup():
     
 class SP_Montecarlo():
     def __init__(self,root,depth,author,xy_epsg):
+        self.depth = depth
         
-        folder_paths = ["vel","catalog","log"]
+        folder_paths = ["vel","catalog","log","montecarlo"]
         self.folder_paths = {x:os.path.join(root,f"z_{depth}",
                                             author,
                                             x) for x in \
                                 folder_paths
                              }
         
-        catalog_path = os.path.join(self.folder_paths["catalog"],"catalog_sp_method.db")
-        picks_path = os.path.join(self.folder_paths["catalog"],"picks_sp_method.db")
-        vel_path = os.path.join(self.folder_paths["vel"],"perturbations.npz")
+        for value in self.folder_paths.values():
+            if not os.path.isdir(value):
+                os.makedirs(value)
         
-        catalog = load_dataframe_from_sqlite(db_name=catalog_path)
-        picks = load_dataframe_from_sqlite(db_name=picks_path)
+        self.catalog_path = os.path.join(self.folder_paths["catalog"],"catalog_sp_method.db")
+        self.picks_path = os.path.join(self.folder_paths["catalog"],"picks_sp_method.db")
+        self.vel_path = os.path.join(self.folder_paths["vel"],"perturbations.npz")
+        self.montecarlo_path = os.path.join(self.folder_paths["montecarlo"],"montecarlo.db")
+        self.montecarlo_depth_path = os.path.join(self.folder_paths["montecarlo"],"montecarlo_depth.png")
+        self.montecarlo_times_path = os.path.join(self.folder_paths["montecarlo"],"montecarlo_times.png")
+        self.stations_count_path = os.path.join(self.folder_paths["montecarlo"],"stations_counts.png")
+        
+        catalog = load_dataframe_from_sqlite(db_name=self.catalog_path)
+        picks = load_dataframe_from_sqlite(db_name=self.picks_path)
         
         picks["arrival_time"] = pd.to_datetime(picks["arrival_time"])
         
         self.catalog = Catalog(catalog,xy_epsg=xy_epsg)
         self.picks = Picks(picks,author=author)
-        self.vel = ScalarVelPerturbationModel(vel_path)
+        self.vel = ScalarVelPerturbationModel(self.vel_path)
     
     @property
     def n_stations(self):
@@ -194,102 +204,43 @@ class SP_Montecarlo():
         msg = f"Stations | {self.n_stations} stations, {self.n_events} events "
         return msg
     
-    def run_single_montecarlo_analysis(self,z_guess,output_folder=None):
-        """Considering the suggestion of uses guesses of z (alexandros idea)
-
-        Args:
-            z_guess (_type_): _description_
-            min_vps (float, optional): _description_. Defaults to 1.5.
-            max_vps (float, optional): _description_. Defaults to 1.8.
-            output_folder (_type_, optional): _description_. Defaults to None.
-        """
+    def run_montecarlo(self):
         
+        """
+        """
+        title = f"Depth: {self.depth} km"
+        
+        self.plot_stations_counts(savefig=self.stations_count_path,
+                                  title=title,
+                                  show=False)
+        
+        picks = self.picks.copy()
+        
+        all_data = []
         # Initialize tqdm for pandas
-        # for n,event in tqdm(self.catalog.iterrows(),
-        #                     total=len(self.catalog),
-        #                     desc="Events"):
-        for n,event in self.catalog.data.iterrows():
+        for n,event in tqdm(self.catalog.data.iterrows(),
+                            total=len(self.catalog),
+                            desc="Events"):
             
             ev_id = event["ev_id"]
-            picks_by_id = self.picks.data.query(f"ev_id == '{ev_id}'")
+            picks_by_id = picks.data.query(f"ev_id == '{ev_id}'")
             
             if picks_by_id.empty:
                 print(f"No picks in event {ev_id}")
                 continue
-            # print(picks_by_id.info)
+            
             p_phase = picks_by_id.query(f"phase_hint == 'P'") 
             s_phase = picks_by_id.query(f"phase_hint == 'S'") 
             sp_time = s_phase.iloc[0].arrival_time - p_phase.iloc[0].arrival_time
             sp_time = sp_time.total_seconds()
             station = p_phase.iloc[0].station
             
-            
-            vp_disp = round((max_p_vel -min_p_vel)/2,2)
-            vs_disp = round((max_s_vel -min_s_vel)/2,2)
-
-            vp = min_p_vel+vp_disp
-            vs = min_s_vel+vs_disp 
-            
-            z = (sp_time)*min_p_vel/(min_vps-1)
-            # zz = (sp_time)*min_p_vel/(min_vps-1)
-            # zzz = (sp_time)*max_p_vel/(max_vps-1)
-            print(sp_time,z)
-            # print(vp,vp_disp)
-            # print(vs,vs_disp )
-            # print(zz,zzz)
-            # exit()
-            
-            # data = {"z":[],"vp":[],"vs":[]}
-            # for i in range(len(scalar_vel_perturbation)):
-            #     vp = scalar_vel_perturbation.p_vel[i]
-            #     vs = scalar_vel_perturbation.s_vel[i]
-            #     vps =  vp/vs
-            #     z = (vp/vps)*sp_time
-            #     data["z"].append(z)
-            #     data["vp"].append(vp)
-            #     data["vs"].append(vs)
-                
-            # data = pd.DataFrame(data)
-                
-            # # Insert the model_id column to track each perturbation model
-            # data.insert(0, "ev_id", ev_id)
-            # data["station"] = station
-            # data["ts-tp"] = sp_time
-            # data["original_z"] = event["depth"]
-                
-            # save_dataframe_to_sqlite(data, output, table_name=ev_id)
-        
-    def run_montecarlo(self,scalar_vel_perturbation,output):
-        
-        """
-        Based on a scalar velocity perturbation done in advance.
-        First results presented on Castillo2025_102024
-        """
-        
-        # Initialize tqdm for pandas
-        for n,event in tqdm(self.catalog.iterrows(),
-                            total=len(self.catalog),
-                            desc="Events"):
-            
-            ev_id = event["id"]
-            picks_by_id = self.picks.query(f"ev_id == '{ev_id}'")
-            
-            if picks_by_id.empty:
-                print(f"No picks in event {ev_id}")
-                continue
-            
-            p_phase = picks_by_id.query(f"phase_hint == 'P'") 
-            s_phase = picks_by_id.query(f"phase_hint == 'S'") 
-            sp_time = s_phase.iloc[0].time - p_phase.iloc[0].time
-            sp_time = sp_time.total_seconds()
-            station = p_phase.iloc[0].station_code
-            
             data = {"z":[],"vp":[],"vs":[]}
-            for i in range(len(scalar_vel_perturbation)):
-                vp = scalar_vel_perturbation.p_vel[i]
-                vs = scalar_vel_perturbation.s_vel[i]
+            for i in range(len(self.vel)):
+                vp = self.vel.p_vel[i]
+                vs = self.vel.s_vel[i]
                 vps =  vp/vs
-                z = (vp/vps)*sp_time
+                z = (vp/(vps-1))*sp_time
                 data["z"].append(z)
                 data["vp"].append(vp)
                 data["vs"].append(vs)
@@ -301,18 +252,36 @@ class SP_Montecarlo():
             data["station"] = station
             data["ts-tp"] = sp_time
             data["original_z"] = event["depth"]
+            
+            # print(data)
+            # exit()
+            
+            # print(station,data.describe()) 
+            all_data.append(data)  
+            save_dataframe_to_sqlite(data, self.montecarlo_path, table_name=ev_id)
+        
+        all_data = pd.concat(all_data)
+        
+        
+        plot_montecarlo_depths_by_station(all_data,
+                                          title= title,
+                                          savefig=self.montecarlo_depth_path,
+                                          show=False)
+        plot_montecarlo_times_by_station(all_data,
+                                          title= title,
+                                         savefig=self.montecarlo_times_path,
+                                          show=False)
                 
-            save_dataframe_to_sqlite(data, output, table_name=ev_id)
-                
         
-    def plot_stations_counts(self):
+    def plot_stations_counts(self, title=None,savefig:str=None,
+             show=True):
         
         
-        data = self.picks.copy()
+        data = self.picks.data.copy()
         data = data.drop_duplicates("ev_id")
         
         # First, count the number of occurrences of each station_name
-        station_counts = data.groupby('station_code')['ev_id'].count()
+        station_counts = data.groupby('station')['ev_id'].count()
 
         # Plot the histogram
         fig,ax = plt.subplots(1,1,figsize=(10, 6))
@@ -322,8 +291,12 @@ class SP_Montecarlo():
         for idx, value in enumerate(station_counts):
             ax.text(idx, value, f'{value}', ha='center', va='bottom', fontsize=14)
         
-        ax.set_title('S-P Method\nNumber of events per station',
-                     fontdict={"size":18})
+        # ax.set_title('S-P Method\nNumber of events per station',
+        #              fontdict={"size":18})
+        if title is not None:
+            title = f"Number of events per station\n{title}"
+            ax.set_title(title,
+                            fontdict={"size":18})
         ax.set_xlabel('Stations',fontdict={"size":14})
         ax.set_ylabel('Events',fontdict={"size":14})
         
@@ -339,4 +312,109 @@ class SP_Montecarlo():
         plt.xticks(rotation=90, fontsize=14)  # Rotate x labels for readability
         plt.yticks(fontsize=14)  # Rotate x labels for readability
         plt.tight_layout()  # Adjust layout to avoid cutting off labels
+        
+        if savefig is not None:
+            fig.savefig(savefig, dpi=300, bbox_inches="tight")
+        
+        if show:
+            plt.show()
+            
+        return fig,ax
+
+def plot_montecarlo_times_by_station(data,title=None,show: bool = True, savefig:str=None):   
+    
+    data = data.drop_duplicates("ev_id")
+    # grouped = data.groupby('station')['ev_id']
+    fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    sns.boxplot(data=data,x="station",y="ts-tp",ax=ax)
+    
+    # Calculate the number of samples for each station
+    sample_counts = data['station'].value_counts()
+
+    # Annotate the box plot with sample counts
+    for station, count in sample_counts.items():
+        # Get the x position of each station
+        x_pos = data['station'].unique().tolist().index(station)
+        # Set the annotation above each box plot
+        ax.text(x_pos, data['ts-tp'].max(), f'n={count}', 
+                ha='center', va='bottom', color='black')
+    if title is not None:
+        title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
+        ax.set_title(title,
+                        fontdict={"size":18})
+    ax.set_xlabel('Stations',fontdict={"size":14})
+    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":14})
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
+    plt.tight_layout()  # Adjust layout to avoid cutting off labels
+        
+    if savefig is not None:
+        fig.savefig(savefig, dpi=300, bbox_inches="tight")
+    
+    if show:
         plt.show()
+    
+    return fig,ax
+    
+        
+def plot_montecarlo_depths_by_station(data,title=None,show: bool = True, savefig:str=None):   
+    
+    # Assuming your DataFrame is named df
+    grouped = data.groupby('station')
+
+    fig, ax = plt.subplots(1, 1)
+    
+    # colors = ["blue","green","magenta","brown","black","cyan"]
+    # Plot histograms for each ev_id
+    for i,(station, group) in enumerate(grouped):
+        zeros = np.zeros(len(group['original_z']))
+        
+        if i ==0:
+            label = "Original Depths"
+        else:
+            label=None
+            
+        ax.plot(group['original_z'],zeros, alpha=0.7,
+                marker="x", color="black", markersize=10,
+                label=label)
+        
+        
+        id_grouped = group.groupby('ev_id')
+        
+        for j,(ev_id, ev_group) in enumerate(id_grouped):
+            if j ==0:
+                sta_label = station
+            else:
+                sta_label=None
+            # print(station,colors[i])
+            ax.hist(ev_group['z'], 
+                    # color=colors[i], 
+                    bins=30, alpha=0.3,
+                    # density=True,
+                    density=False,
+                     histtype='step',
+                    label=sta_label)
+        
+        # ax.scatter(group['original_z'], zeros, alpha=0.7, 
+        #           marker='x', s=100, color='red')
+        
+    if title is not None:
+        title = f"Earthquake Depth Analysis\n{title}"
+        ax.set_title(title,
+                        fontdict={"size":18})
+    ax.set_xlabel('z (km)',fontdict={"size":18})
+    ax.set_ylabel('Frequency',fontdict={"size":18})
+    ax.set_xlim(0,20)
+    ax.legend()
+    
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
+    plt.tight_layout()  # Adjust layout to avoid cutting off labels
+        
+    if savefig is not None:
+        fig.savefig(savefig, dpi=300, bbox_inches="tight")
+    
+    if show:
+        plt.show()
+    
+    return fig,ax
