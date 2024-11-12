@@ -61,8 +61,8 @@ def prepare_cat2inv(cat, picks, attach_station=None):
         
         # Calculate distance and azimuth between event and station locations
         picks = get_distance_in_dataframe(
-            data=picks, lat1_name="latitude", lon1_name="longitude", 
-            lat2_name="eq_latitude", lon2_name="eq_longitude"
+            data=picks, lat1_name="eq_latitude", lon1_name="eq_longitude", 
+            lat2_name="latitude", lon2_name="longitude"
         )
 
         # Calculate travel time as the difference between arrival and origin time
