@@ -535,6 +535,8 @@ def get_event_ids(catalog):
         ev_ids.append(eventid)
     
     return ev_ids
+
+# def get_stations(client):
         
 def save_info(path, info):
     """
@@ -624,7 +626,9 @@ class CustomClient(FDSNClient):
         """
         super().__init__(*args, **kwargs)
         
-    def get_custom_events(self, *args, max_events_in_ram=1e6, output_folder=None, **kwargs):
+    def get_custom_events(self, *args, max_events_in_ram=1e6, 
+                          attach_station = None,
+                          output_folder=None, **kwargs):
         """
         Retrieves custom seismic event data including origins, picks, 
         and magnitudes.
@@ -635,6 +639,8 @@ class CustomClient(FDSNClient):
         max_events_in_ram : int, optional, default=1e6
             Maximum number of events to hold in memory (RAM) before stopping or 
             prompting to save the data to disk.
+        attach_station: dataframe, default=None
+            Attach station information. 'network',"station" columns are mandatory
         output_folder : str, optional, default=None
             Folder path where the event data will be saved if provided. If not 
             specified, data will only be stored in memory.
@@ -650,7 +656,7 @@ class CustomClient(FDSNClient):
         """
         # Retrieve the catalog of events using the get_events method
         catalog = self.get_events(*args, **kwargs)
-
+        
         # Extract event IDs from the catalog
         ev_ids = get_event_ids(catalog)
 
@@ -668,7 +674,12 @@ class CustomClient(FDSNClient):
 
             # Extract custom information for the event
             origin, picks, mags = get_custom_info(event)
-
+            
+            if attach_station is not None:
+                picks = pd.merge(picks,attach_station,
+                                    on=["network","station"],
+                                    how="inner")
+                    
             info = {
                 "origin": origin,
                 "picks": picks,
