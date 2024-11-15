@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from delaware.core.database import save_dataframe_to_sqlite,load_dataframe_from_sqlite
 
-
 class ScalarVelModel():
     def __init__(self,p_value,s_value,name) -> None:
         self.name = name
@@ -156,7 +155,8 @@ class VelModel:
 
     def plot_profile(self, zmin: float = None, zmax: float = None,
                      show_vp=True,show_vs=True,
-                     show: bool = True, savefig:str=None):
+                     show: bool = True, 
+                     savefig:str=None):
         """
         Plot velocity profile.
 
@@ -175,9 +175,15 @@ class VelModel:
 
         ax = fig.add_subplot(1, 1, 1)
         if show_vp:
-            ax.step(self.data["VP (km/s)"], self.data["Depth (km)"], 'k', linewidth=2.5, linestyle='-', label='VP (km/s)')
+            ax.step(self.data["VP (km/s)"], 
+                    self.data["Depth (km)"], 
+                    'k', linewidth=2.5, linestyle='-', 
+                    label='VP (km/s)')
         if show_vs:
-            ax.step(self.data["VS (km/s)"], self.data["Depth (km)"], 'r', linewidth=2.5, linestyle='-', label='VS (km/s)')
+            ax.step(self.data["VS (km/s)"], 
+                    self.data["Depth (km)"], 'r', 
+                    linewidth=2.5, linestyle='-', 
+                    label='VS (km/s)')
         ax.legend(loc='lower left')
 
         ax.set_xlabel('Velocity [km/s]')
