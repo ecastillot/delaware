@@ -46,8 +46,8 @@ proj = "EPSG:3857"
 data = pd.read_csv(vel_path)
 vel_model = VelModel(data=data,dtm=-0.7,name="db1d")
 
-x = vel_model.get_average_velocity("P",zmax=6)
-print(x)
+# x = vel_model.get_average_velocity("P",zmax=4)
+# print(x)
 
 # z_array = np.arange(1,10+0.5,0.5).5
 
