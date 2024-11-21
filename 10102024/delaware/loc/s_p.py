@@ -441,7 +441,7 @@ def plot_times_by_station(data,title=None,show: bool = True, savefig:str=None,
         ax.text(i, data['ts-tp'].max()-(data['ts-tp'].max()*0.1),
                 f'n={count}', 
                 ha='center', va='bottom', color='black',
-                fontsize=18)
+                fontsize=12)
     if title is not None:
         title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
         ax.set_title(title,
