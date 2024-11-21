@@ -418,3 +418,44 @@ def plot_montecarlo_depths_by_station(data,title=None,show: bool = True, savefig
         plt.show()
     
     return fig,ax
+
+def plot_times_by_station(data,title=None,show: bool = True, savefig:str=None,
+                          **plot_kwargs):   
+    
+    data = data.drop_duplicates("ev_id")
+    # grouped = data.groupby('station')['ev_id']
+    fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
+    
+    # Calculate the number of samples for each station
+    sample_counts = data['station'].value_counts()
+    if "order" in plot_kwargs.keys():
+        sample_counts = sample_counts.reindex(plot_kwargs["order"])
+    print(sample_counts)
+
+    # Annotate the box plot with sample counts
+    for i,(station, count) in enumerate(sample_counts.items()):
+        # Get the x position of each station
+        # x_pos = sample_counts.unique().tolist().index(station)
+        # Set the annotation above each box plot
+        ax.text(i, data['ts-tp'].max()-(data['ts-tp'].max()*0.1),
+                f'n={count}', 
+                ha='center', va='bottom', color='black',
+                fontsize=18)
+    if title is not None:
+        title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
+        ax.set_title(title,
+                        fontdict={"size":16})
+    ax.set_xlabel('Stations',fontdict={"size":14})
+    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":14})
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
+    plt.tight_layout()  # Adjust layout to avoid cutting off labels
+        
+    if savefig is not None:
+        fig.savefig(savefig, dpi=300, bbox_inches="tight")
+    
+    if show:
+        plt.show()
+    
+    return fig,ax

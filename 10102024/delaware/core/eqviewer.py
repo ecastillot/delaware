@@ -970,7 +970,6 @@ class Catalog():
                author=None,
                stations=None
                ):
-        print(self)
         self.query(starttime=starttime,
                     endtime=endtime,
                     ev_ids=ev_ids,
@@ -979,13 +978,12 @@ class Catalog():
                     region_lims=region_lims,
                     general_region=general_region,
                     region_from_src=region_from_src)
-        print(self)
         
             
         if len(self) != 0:
             ev_ids = self.data["ev_id"].to_list()
             # print(picks_path,ev_ids)
-            # print(ev_ids)
+            print(ev_ids)
             picks = load_dataframe_from_sqlite(db_name=picks_path,
                                       tables=ev_ids,debug=True
                                       )

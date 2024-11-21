@@ -94,7 +94,7 @@ def prepare_cat2vps(cat, picks, attach_station=None):
     
     return cat, picks
 
-def prepare_cat2inv(cat, picks, attach_station=None):
+def prepare_cat2inv(cat, picks, cat_columns_level=1,attach_station=None):
     """
     Prepare catalog and picks data for inversion by filtering, cleaning, 
     and computing distances and travel times.
@@ -106,6 +106,7 @@ def prepare_cat2inv(cat, picks, attach_station=None):
                           latitude, longitude, and magnitude.
     - picks (pd.DataFrame): Picks data with columns including event ID, station, 
                             phase hint (P or S), and arrival time.
+    - cata_columns_level (int): to identify the level of the column names
     - attach_station (pd.DataFrame, optional): Optional DataFrame to attach station 
                                               latitude and longitude.
 
@@ -114,7 +115,7 @@ def prepare_cat2inv(cat, picks, attach_station=None):
     """
     
     # Rename columns in the catalog to standardize names for latitude and longitude
-    cat.columns = cat.columns.get_level_values(1)
+    cat.columns = cat.columns.get_level_values(cat_columns_level)
     cat = cat.rename(columns={"latitude": "eq_latitude", "longitude": "eq_longitude"})
 
     # Convert arrival and origin times to datetime for time-based calculations
