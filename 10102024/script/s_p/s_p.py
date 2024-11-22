@@ -44,15 +44,19 @@ print(order)
 cat, picks = prepare_cat2inv(catalog,picks,cat_columns_level=0,attach_station=stations)
 picks["ts-tp"] = picks["tt_S"] - picks["tt_P"]
 
+picks['ts-tp'] = picks['ts-tp'].astype(float)
+stats_by_station = picks.groupby('station')['ts-tp'].describe()
+print(picks['ts-tp'].dtype)
+# print(picks)
+print(stats_by_station)
 
-output = os.path.join(dw_path,"script/s_p/s_p.png")
-plot_times_by_station(picks,order=order,
-                      palette=custom_palette,
-                      ylim=(0,2),
-                      savefig=output
-                    #   boxprops={"edgecolor": "red"},       # Red box border
-                    #     whiskerprops={"color": "red"},      # Red whisker lines
-                    #     capprops={"color": "red"},          # Red cap lines
-                    #     medianprops={"color": "red"}  
-                      )
-# print(cat,picks)
+# output = os.path.join(dw_path,"script/s_p/s_p.png")
+# plot_times_by_station(picks,order=order,
+#                       palette=custom_palette,
+#                       ylim=(0,2),
+#                       savefig=output
+#                     #   boxprops={"edgecolor": "red"},       # Red box border
+#                     #     whiskerprops={"color": "red"},      # Red whisker lines
+#                     #     capprops={"color": "red"},          # Red cap lines
+#                     #     medianprops={"color": "red"}  
+#                       )
