@@ -419,7 +419,9 @@ def plot_montecarlo_depths_by_station(data,title=None,show: bool = True, savefig
     
     return fig,ax
 
-def plot_times_by_station(data,title=None,show: bool = True, savefig:str=None,
+def plot_times_by_station(data,title=None,show: bool = True, 
+                          ylim=None,
+                          savefig:str=None,
                           **plot_kwargs):   
     
     data = data.drop_duplicates("ev_id")
@@ -438,7 +440,12 @@ def plot_times_by_station(data,title=None,show: bool = True, savefig:str=None,
         # Get the x position of each station
         # x_pos = sample_counts.unique().tolist().index(station)
         # Set the annotation above each box plot
-        ax.text(i, data['ts-tp'].max()-(data['ts-tp'].max()*0.1),
+        if ylim is not None:
+            posy = ylim[-1]
+        else:
+            posy = data['ts-tp'].max()
+        
+        ax.text(i, posy-posy*0.1,
                 f'n={count}', 
                 ha='center', va='bottom', color='black',
                 fontsize=12)
@@ -448,6 +455,12 @@ def plot_times_by_station(data,title=None,show: bool = True, savefig:str=None,
                         fontdict={"size":16})
     ax.set_xlabel('Stations',fontdict={"size":14})
     ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":14})
+    
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+    
+    ax.grid(True, linestyle='--', linewidth=0.7, alpha=0.7)
+    
     plt.xticks(fontsize=14)  # Rotate x labels for readability
     plt.yticks(fontsize=14)  # Rotate x labels for readability
     plt.tight_layout()  # Adjust layout to avoid cutting off labels

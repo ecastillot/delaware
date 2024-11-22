@@ -48,6 +48,7 @@ picks["ts-tp"] = picks["tt_S"] - picks["tt_P"]
 output = os.path.join(dw_path,"script/s_p/s_p.png")
 plot_times_by_station(picks,order=order,
                       palette=custom_palette,
+                      ylim=(0,2),
                       savefig=output
                     #   boxprops={"edgecolor": "red"},       # Red box border
                     #     whiskerprops={"color": "red"},      # Red whisker lines
