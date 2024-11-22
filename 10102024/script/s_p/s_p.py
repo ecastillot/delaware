@@ -10,6 +10,15 @@ dw_path = os.path.join("/home/emmanuel/ecastillo/dev/delaware",version)
 root = os.path.join(dw_path,"data/loc/s_p")
 author = "growclust"
 proj = "EPSG:3857"
+# Custom colors for the stations
+custom_palette = {"PB36": "#26fafa", 
+                  "PB35": "#2dfa26", 
+                  "PB28": "#ad16db", 
+                  "PB37": "#1a3be3", 
+                  "WB03": "#ffffff", 
+                  "SA02": "#f1840f", 
+                  "PB24": "#0ea024", 
+                  }
 
 stations_relpath = "data_git/stations/standard_stations.csv"
 stations_path = os.path.join(dw_path,stations_relpath)
@@ -22,6 +31,7 @@ catalog_path = os.path.join(root,"z_10.0",author,"catalog","catalog_sp_method.db
 picks_path = os.path.join(root,"z_10.0",author,"catalog","picks_sp_method.db")
 catalog = load_dataframe_from_sqlite(db_name=catalog_path)
 picks = load_dataframe_from_sqlite(db_name=picks_path)
+picks = picks[picks["station"].isin(list(custom_palette.keys()))]
 
 stations_with_picks = list(set(picks["station"].to_list()))
 order = stations.copy()
@@ -34,16 +44,6 @@ print(order)
 cat, picks = prepare_cat2inv(catalog,picks,cat_columns_level=0,attach_station=stations)
 picks["ts-tp"] = picks["tt_S"] - picks["tt_P"]
 
-# Custom colors for the stations
-custom_palette = {"PB36": "#26fafa", 
-                  "PB35": "#2dfa26", 
-                  "PB28": "#fac226", 
-                  "PB37": "#1a3be3", 
-                  "WB03": "#ffffff", 
-                  "SA02": "gray", 
-                  "WB05": "gray", 
-                  "PB24": "gray", 
-                  }
 
 output = os.path.join(dw_path,"script/s_p/s_p.png")
 plot_times_by_station(picks,order=order,
