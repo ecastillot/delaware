@@ -5,6 +5,7 @@ import lasio
 import numpy as np
 import matplotlib.pyplot as plt
 from delaware.vel.vel import VelModel
+from matplotlib import cm
 
 def get_well_names(folder):
     """
@@ -188,7 +189,7 @@ def get_dw_models():
     db1d_velmodel = VelModel(data=data,dtm=-0.7,name="db1d")
     return db1d_velmodel, sheng_velmodel
 
-def plot_velocity_logs(data, 
+def plot_all_velocity_logs(data, 
                        formations=None,
                        wells=None, 
                        depth="Depth[km]", 
@@ -228,9 +229,13 @@ def plot_velocity_logs(data,
         
         for i in range(len(axes)):
             if i == 0:
-                axes[i].plot(single_data[vel], single_data[depth], label=well_name)
+                axes[i].step(single_data[vel], 
+                        single_data[depth], 
+                        label=well_name)
             elif i == 1:
-                axes[i].plot(single_data['Vp_smoothed'], single_data[depth], label=well_name)
+                axes[i].step(single_data['Vp_smoothed'], 
+                        single_data[depth], 
+                        label=well_name)
 
     if not single_formation.empty:
         # print(single_formation)
@@ -271,8 +276,151 @@ def plot_velocity_logs(data,
     plt.show()
     
     return
+
+# Assign colors to formations globally
+def assign_global_colors(formations):
+    """Assign consistent colors to formations globally."""
+    unique_formations = sorted(formations.unique())  # Sort to ensure consistency
+    color_map = plt.cm.get_cmap("tab20", len(unique_formations))  # Use tab20 for distinct colors
+    return {formation: color_map(i) for i, formation in enumerate(unique_formations)}
+        
+def plot_velocity_logs(data, 
+                       formations=None,
+                       wells=None, 
+                       depth="Depth[km]", 
+                       vel="Vp[km/s]", 
+                       smooth="moving_average",
+                       xlims= None,
+                       ylims=None):
+    
+    sortby = wells
+    if wells is None:
+        wells = list(set(data["well_name"].tolist()))
+    
+    data = data[data["well_name"].isin(wells)]
+    
+    if sortby is None:
+        data = data.sort_values(["longitude"])
+        order = data["well_name"].unique()
+    else:
+        data["well_name"] = pd.Categorical(data["well_name"], categories=wells, ordered=True)
+        data = data.sort_values("well_name")
+        order = data["well_name"].unique()
+        
+    grouped_data = data.groupby("well_name")
+    
+    # if smooth is not None:
+    fig, axes = plt.subplots(1, len(wells), 
+                             figsize=(10, 10)# Adjusted figure size for better clarity
+                                )  
+    
+    db1d_velmodel, sheng_velmodel = get_dw_models()
+    
+    for i,well_name in enumerate(order):
+        single_data = grouped_data.get_group(well_name)
+        single_data = single_data.sort_values("TVD[km]")
         
         
+        # print(single_formation)
+        
+        #elevation
+        elevation_km = - single_data["elevation[km]"].iloc[0]
+        axes[i].axhline(y= elevation_km, 
+                        color='black', linestyle='-', linewidth=1)
+        
+        axes[i].step(db1d_velmodel.data["VP (km/s)"], 
+                    db1d_velmodel.data["Depth (km)"], 'blue', 
+                    linewidth=2.5, linestyle='-', 
+                    label='DB1D')
+        axes[i].step(sheng_velmodel.data["VP (km/s)"], 
+                sheng_velmodel.data["Depth (km)"], 
+                'orange', linewidth=2.5, linestyle='-', 
+                label='Sheng (2022)')
+        
+        if depth == "Depth[km]":
+            single_data[depth] = single_data["TVD[km]"] + elevation_km
+        
+        if smooth == "moving_average":
+            single_data['Vp_smoothed'] = single_data['Vp[km/s]'].rolling(window=100, 
+                                                                         center=True).mean()
+        
+        
+        if smooth is not None:
+            axes[i].step(single_data['Vp_smoothed'], 
+                        single_data[depth], 
+                        "red",
+                        label=well_name)
+        else:
+            axes[i].step(single_data[vel], 
+                            single_data[depth], 
+                            "red",
+                            label=well_name)
+
+        # if not single_formation.empty:
+            # print(single_formation)
+            # print(single_data["elevation[km]"].iloc[0])
+            # for row,f in single_formation.iterrows():
+            #     depth_f = (f["TVD_Top"] * 0.0003048) - single_data["elevation[km]"].iloc[0]
+            #     label_f = f["FormationName"]
+            #     axes[i].axhline(y=depth_f, color='k', linestyle='--', linewidth=0.5)
+
+            #     axes[i].text(1.02, depth_f, label_f, color='black', fontsize=8,
+            #             ha='left', va='top', 
+            #             transform=axes[i].get_yaxis_transform())  # Label
+        
+        
+        ##formations
+        api12 = well_name[0:-3]
+        # print(api12)
+        single_formation = formations[formations["API_UWI_12"]==api12]
+        single_formation = single_formation.sort_values("TVD_Top",
+                                                            ignore_index=True)
+        single_formation = single_formation.drop_duplicates("FormationName",
+                                                            ignore_index=True)
+            
+        # Inside your main function
+        # Assign global colors based on all formations
+        all_formations = formations["FormationName"].drop_duplicates()
+        global_formation_colors = assign_global_colors(all_formations)
+
+        # Modify the plotting code
+        if not single_formation.empty:
+            legend_handles = []
+            plotted_formations = set()  # Track formations already added to the legend for this axis
+            
+            for _, f in single_formation.iterrows():
+                depth_f = (f["TVD_Top"] * 0.0003048) - single_data["elevation[km]"].iloc[0]
+                formation_name = f["FormationName"]
+                color = global_formation_colors.get(formation_name, "gray")
+                
+                # Plot hlines with consistent global colors
+                axes[i].axhline(y=depth_f, color=color, linestyle="--", linewidth=1)
+                
+                # Build the legend dynamically based on the plotting order
+                if formation_name not in plotted_formations:
+                    legend_handles.append(
+                        plt.Line2D([0], [0], color=color, lw=2, label=formation_name)
+                    )
+                    plotted_formations.add(formation_name)
+            
+            # Add legend for formations
+            axes[i].legend(handles=legend_handles, loc="lower left", fontsize=8)
+        
+        
+        if xlims is not None:
+            axes[i].set_xlim(xlims[0],xlims[1])
+        if ylims is not None:
+            axes[i].set_ylim(ylims[0],ylims[1])
+        axes[i].invert_yaxis()  # Invert y-axis
+        
+        axes[i].set_title(well_name)
+        # axes[i].grid()
+    
+
+    plt.tight_layout()  # Adjust layout for clarity
+    plt.show()
+    
+    return        
         
     
     
@@ -298,5 +446,6 @@ data = pd.read_csv(output)
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 formations = pd.read_csv(formations)
 # plot_velocity_logs(data,depth="TVD[km]")
-plot_velocity_logs(data,depth="Depth[km]",ylims=(-2,6),formations=formations)
+plot_velocity_logs(data,depth="Depth[km]",ylims=(-2,6),
+                   formations=formations)
 # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
