@@ -408,7 +408,7 @@ def plot_velocity_logs(data,
         if not single_formation.empty:
             
             for _, f in single_formation.iterrows():
-                depth_f = (f["TVD_Top"] * 0.0003048) - single_data["elevation[km]"].iloc[0]
+                depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
                 formation_name = f["FormationName"]
                 color = global_formation_colors.get(formation_name, "gray")
                 
@@ -498,5 +498,6 @@ formations = pd.read_csv(formations)
 plot_velocity_logs(data,depth="Depth[km]",
                    ylims=(-2,6),
                    xlims=(1.5,6.5),
+                #    smooth=None,
                    formations=formations)
 # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
