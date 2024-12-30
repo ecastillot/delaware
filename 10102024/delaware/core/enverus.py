@@ -291,7 +291,9 @@ def plot_velocity_logs(data,
                        vel="Vp[km/s]", 
                        smooth="moving_average",
                        xlims= None,
-                       ylims=None):
+                       ylims=None,
+                       grid = True,
+                       minor_ticks = True):
     
     sortby = wells
     if wells is None:
@@ -311,10 +313,32 @@ def plot_velocity_logs(data,
     
     # if smooth is not None:
     fig, axes = plt.subplots(1, len(wells), 
-                             figsize=(10, 10)# Adjusted figure size for better clarity
+                             sharey=True,
+                             figsize=(12, 14)# Adjusted figure size for better clarity
                                 )  
     
     db1d_velmodel, sheng_velmodel = get_dw_models()
+    
+    
+    vel_model_style = {'DB1D':{"linewidth":1.5,
+                               "color":'black',
+                               "linestyle":'-',
+                               "vel_model":db1d_velmodel
+                               },
+                       'Sheng (2022)':{"linewidth":1.5,
+                               "color":'black',
+                               "linestyle":'--',
+                               "vel_model":sheng_velmodel
+                               }
+                       }
+    vel_legend_handles = []
+    for key in vel_model_style.keys():
+        legend_line = plt.Line2D([0], [0], 
+                                   color=vel_model_style[key]["color"], 
+                                   lw=vel_model_style[key]["linewidth"], 
+                                   linestyle = vel_model_style[key]["linestyle"],
+                                   label=key)
+        vel_legend_handles.append(legend_line)
     
     for i,well_name in enumerate(order):
         single_data = grouped_data.get_group(well_name)
@@ -328,14 +352,16 @@ def plot_velocity_logs(data,
         axes[i].axhline(y= elevation_km, 
                         color='black', linestyle='-', linewidth=1)
         
-        axes[i].step(db1d_velmodel.data["VP (km/s)"], 
-                    db1d_velmodel.data["Depth (km)"], 'blue', 
-                    linewidth=2.5, linestyle='-', 
-                    label='DB1D')
-        axes[i].step(sheng_velmodel.data["VP (km/s)"], 
-                sheng_velmodel.data["Depth (km)"], 
-                'orange', linewidth=2.5, linestyle='-', 
-                label='Sheng (2022)')
+        # vel models
+        for key in vel_model_style.keys():
+            vel_model = vel_model_style[key]["vel_model"]
+            axes[i].step(vel_model.data["VP (km/s)"], 
+                    vel_model.data["Depth (km)"], 
+                    color=vel_model_style[key]["color"], 
+                    linewidth=vel_model_style[key]["linewidth"], 
+                    linestyle=vel_model_style[key]["linestyle"], 
+                    label=key)
+            
         
         if depth == "Depth[km]":
             single_data[depth] = single_data["TVD[km]"] + elevation_km
@@ -349,24 +375,15 @@ def plot_velocity_logs(data,
             axes[i].step(single_data['Vp_smoothed'], 
                         single_data[depth], 
                         "red",
+                        linewidth=2.5,
                         label=well_name)
         else:
             axes[i].step(single_data[vel], 
                             single_data[depth], 
                             "red",
+                            linewidth=2.5,
                             label=well_name)
 
-        # if not single_formation.empty:
-            # print(single_formation)
-            # print(single_data["elevation[km]"].iloc[0])
-            # for row,f in single_formation.iterrows():
-            #     depth_f = (f["TVD_Top"] * 0.0003048) - single_data["elevation[km]"].iloc[0]
-            #     label_f = f["FormationName"]
-            #     axes[i].axhline(y=depth_f, color='k', linestyle='--', linewidth=0.5)
-
-            #     axes[i].text(1.02, depth_f, label_f, color='black', fontsize=8,
-            #             ha='left', va='top', 
-            #             transform=axes[i].get_yaxis_transform())  # Label
         
         
         ##formations
@@ -382,11 +399,13 @@ def plot_velocity_logs(data,
         # Assign global colors based on all formations
         all_formations = formations["FormationName"].drop_duplicates()
         global_formation_colors = assign_global_colors(all_formations)
+        
+        # Create a list for global legend handles
+        global_legend_handles = []
+        
 
         # Modify the plotting code
         if not single_formation.empty:
-            legend_handles = []
-            plotted_formations = set()  # Track formations already added to the legend for this axis
             
             for _, f in single_formation.iterrows():
                 depth_f = (f["TVD_Top"] * 0.0003048) - single_data["elevation[km]"].iloc[0]
@@ -394,30 +413,60 @@ def plot_velocity_logs(data,
                 color = global_formation_colors.get(formation_name, "gray")
                 
                 # Plot hlines with consistent global colors
-                axes[i].axhline(y=depth_f, color=color, linestyle="--", linewidth=1)
+                axes[i].axhline(y=depth_f, color=color, linestyle="--", linewidth=1.5)
                 
-                # Build the legend dynamically based on the plotting order
-                if formation_name not in plotted_formations:
-                    legend_handles.append(
-                        plt.Line2D([0], [0], color=color, lw=2, label=formation_name)
+                # Add to global legend handles if not already added
+                if not any(handle.get_label() == formation_name for handle in global_legend_handles):
+                    global_legend_handles.append(
+                        plt.Line2D([0], [0], color=color, lw=2,linestyle="--", label=formation_name)
                     )
-                    plotted_formations.add(formation_name)
+        # ylim = axes[i].get_ylim()  # Get y-axis limits    
+        
             
-            # Add legend for formations
-            axes[i].legend(handles=legend_handles, loc="lower left", fontsize=8)
-        
-        
         if xlims is not None:
             axes[i].set_xlim(xlims[0],xlims[1])
         if ylims is not None:
             axes[i].set_ylim(ylims[0],ylims[1])
-        axes[i].invert_yaxis()  # Invert y-axis
         
         axes[i].set_title(well_name)
-        # axes[i].grid()
+        
+        ## grid
+        if grid:
+            if minor_ticks:
+                xlim = axes[i].get_xlim()  # Get x-axis limits
+                ylim = axes[i].get_ylim()  # Get y-axis limits
+                axes[i].set_xticks(np.arange(xlim[0], xlim[1], 0.5), minor=True)
+                axes[i].set_yticks(np.arange(ylim[0], ylim[1], 0.5), minor=True)
+                axes[i].grid(color='gray', linewidth=0.5,linestyle=":",which='minor')
+                
+            axes[i].grid(color='black', linewidth=0.5,linestyle=":")
+        
+        
+        axes[i].invert_yaxis()  # Invert y-axis
     
-
+    bottom_adjust = 0.2
+    
+    # # Add legend for formations
+    # axes[i].legend(handles=legend_handles, loc="lower left", fontsize=8)
+    # Add a single, consolidated legend after plotting all axes
+    fig.legend(
+        handles=global_legend_handles,
+        loc="upper left",
+        fontsize=10,
+        ncol=4,  # Adjust the number of columns as needed
+        bbox_to_anchor=(0.01, bottom_adjust - 0.03)  # Position the legend below the last axis
+    )
+    # Add another legend for velocity models
+    fig.legend(
+        handles=vel_legend_handles,
+        loc="upper left",
+        fontsize=10,
+        ncol=1,  # Adjust the number of columns as needed
+        bbox_to_anchor=(0.75, bottom_adjust - 0.03)  # Position this legend slightly to the right
+    )
+    
     plt.tight_layout()  # Adjust layout for clarity
+    plt.subplots_adjust(bottom=bottom_adjust)  # Add space at the bottom for the legend
     plt.show()
     
     return        
@@ -446,6 +495,8 @@ data = pd.read_csv(output)
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 formations = pd.read_csv(formations)
 # plot_velocity_logs(data,depth="TVD[km]")
-plot_velocity_logs(data,depth="Depth[km]",ylims=(-2,6),
+plot_velocity_logs(data,depth="Depth[km]",
+                   ylims=(-2,6),
+                   xlims=(1.5,6.5),
                    formations=formations)
 # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
