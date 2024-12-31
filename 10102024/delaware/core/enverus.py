@@ -289,7 +289,7 @@ def plot_velocity_logs(data,
                        wells=None, 
                        depth="Depth[km]", 
                        vel="Vp[km/s]", 
-                       smooth="moving_average",
+                       smooth_interval=None,
                        xlims= None,
                        ylims=None,
                        grid = True,
@@ -311,7 +311,6 @@ def plot_velocity_logs(data,
         
     grouped_data = data.groupby("well_name")
     
-    # if smooth is not None:
     fig, axes = plt.subplots(1, len(wells), 
                              sharey=True,
                              figsize=(12, 14)# Adjusted figure size for better clarity
@@ -366,29 +365,35 @@ def plot_velocity_logs(data,
         if depth == "Depth[km]":
             single_data[depth] = single_data["TVD[km]"] + elevation_km
         
-        if smooth == "moving_average":
-            single_data['Vp_smoothed'] = single_data['Vp[km/s]'].rolling(window=100, 
-                                                                         center=True).mean()
+        if smooth_interval is not None:
+            single_data['Depth_interval'] = (single_data['Depth[km]'] // smooth_interval) * smooth_interval
+            result = single_data.groupby('Depth_interval')['Vp[km/s]'].median().reset_index()
+            result.columns = ['Depth[km]', 'Vp[km/s]']
+            
+            if result.empty:
+                print(f"{well_name} empty using smooth_interval = {smooth_interval} km")
+                continue
+            else:
+                single_data = result
+                
+            
+            print(single_data)
+            # single_data['Vp_smoothed'] = single_data['Vp[km/s]'].rolling(window=100, 
+            #                                                              center=True).mean()
         
         
-        if smooth is not None:
-            axes[i].step(single_data['Vp_smoothed'], 
+        axes[i].step(single_data[vel], 
                         single_data[depth], 
                         "red",
                         linewidth=2.5,
                         label=well_name)
-        else:
-            axes[i].step(single_data[vel], 
-                            single_data[depth], 
-                            "red",
-                            linewidth=2.5,
-                            label=well_name)
 
         
         
         ##formations
         api12 = well_name[0:-3]
         # print(api12)
+        # print(formations)
         single_formation = formations[formations["API_UWI_12"]==api12]
         single_formation = single_formation.sort_values("TVD_Top",
                                                             ignore_index=True)
@@ -490,14 +495,40 @@ def plot_velocity_logs(data,
 
 
 # 3
-output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi.csv"
+# output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi.csv"
+# data = pd.read_csv(output)
+# formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
+# formations = pd.read_csv(formations)
+# # plot_velocity_logs(data,depth="TVD[km]")
+# plot_velocity_logs(data,depth="Depth[km]",
+#                    ylims=(-2,6),
+#                    xlims=(1.5,6.5),
+#                 #    smooth=None,
+#                    formations=formations)
+# # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
+
+
+## enverus sheng
+
+# 2
+# well_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-Wells-7d7bb_2024-12-31.csv"
+# formation_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
+# formation = pd.read_csv(formation_path)
+# well = pd.read_csv(well_path)
+# folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/data"
+# data = get_sonics_data(folder,formation,well)
+# output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
+# data.to_csv(output,index=False)
+
+output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
 data = pd.read_csv(output)
-formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
+formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
 formations = pd.read_csv(formations)
 # plot_velocity_logs(data,depth="TVD[km]")
 plot_velocity_logs(data,depth="Depth[km]",
                    ylims=(-2,6),
                    xlims=(1.5,6.5),
-                #    smooth=None,
-                   formations=formations)
+                   smooth_interval=0.1,
+                   formations=formations
+                )
 # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
