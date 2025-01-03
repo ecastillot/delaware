@@ -7,6 +7,186 @@ import matplotlib.pyplot as plt
 from delaware.vel.vel import VelModel
 from matplotlib import cm
 
+import time
+from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+
+def get_web_preferences(download_folder, hide=False):
+    """
+    Web preferences for Firefox Web Driver.
+
+    Parameters:
+    -----------
+        download_folder: str
+            Path to the folder where downloaded files will be saved.
+        hide: bool
+            If true, the web driver will run in headless mode.
+
+    Returns:
+    --------
+        options: Options
+            Configured options for the Firefox WebDriver.
+    """
+    options = Options()
+
+    # Set Firefox preferences
+    options.set_preference('browser.download.folderList', 2)  # Use a custom location for downloads
+    options.set_preference('browser.download.manager.showWhenStarting', False)
+    options.set_preference('browser.download.dir', download_folder)
+    options.set_preference('browser.helperApps.neverAsk.saveToDisk', 
+                           "application/force-download,application/vnd.google-earth.kml+xml")
+
+    # Run in headless mode if specified
+    if hide:
+        options.add_argument('--headless')
+
+    # Automatically set the binary location
+    firefox_binary = find_firefox_binary()
+    if firefox_binary:
+        options.binary_location = firefox_binary
+    else:
+        raise FileNotFoundError("Firefox binary could not be found!")
+
+    print(options.binary_location)
+    return options
+
+def mv_downloaded_files(download_folder):
+    name = os.path.basename(download_folder)
+    filepaths = []
+    for downloaded_file in glob.glob(os.path.join(download_folder,"*")):
+        basename = os.path.basename(downloaded_file)
+        dirname = os.path.dirname(downloaded_file)
+        filepath = os.path.join(dirname,".".join((name,basename.split(".")[-1])))
+
+        msg = f"mv {downloaded_file} {filepath}"
+        os.system(msg)
+
+        filepaths.append(filepath)
+    return filepaths
+
+def find_firefox_binary():
+    """
+    Automatically find the Firefox binary path.
+
+    Returns:
+    --------
+        str: Path to the Firefox binary, or None if not found.
+    """
+    # Use 'which' on Linux/macOS and 'where' on Windows
+    command = "which firefox" if os.name != "nt" else "where firefox"
+    path = os.popen(command).read().strip()
+    return path if path else None
+
+def find_geckodriver():
+    """
+    Automatically find the Geckodriver executable path.
+
+    Returns:
+    --------
+        str: Path to the Geckodriver executable, or None if not found.
+    """
+    # Use 'which' on Linux/macOS and 'where' on Windows
+    command = "which geckodriver" if os.name != "nt" else "where geckodriver"
+    path = os.popen(command).read().strip()
+    return path if path else None
+
+class Client():
+    def __init__(self,user,pss,
+                 link=None,hide_driver=False):
+        self.user = user
+        self.pss = pss
+        self.hide_driver = hide_driver
+        
+        if link is None:
+            link = rf'https://login.auth.enverus.com/'
+            
+        self.link = link
+    
+    def query(self,log_df,
+              url_fmt=None,
+              download_folder=None):
+        
+        
+        if url_fmt is None:
+            url_fmt = "https://prism.enverus.com/prism/well/{well_id}/wellLog/{log_id}"
+        
+        log_df = log_df.drop_duplicates(subset=["WellID","LogId"],ignore_index=True)
+        
+        
+            
+        
+        # exit()
+        
+        # Step 2: Configure Chrome options
+        if download_folder is not None:
+            
+            if not os.path.isdir(download_folder):
+                os.makedirs(download_folder)
+            chrome_options = Options()
+            prefs = {
+                "download.default_directory": download_folder,  # Set default download directory
+                "download.prompt_for_download": False,  # Disable the download prompt
+                "directory_upgrade": True,  # Ensure the download folder exists
+            }
+            chrome_options.add_experimental_option("prefs", prefs)
+            
+        else:
+            chrome_options = None
+            
+        driver = webdriver.Chrome( options=chrome_options)
+        driver.set_window_size(1800, 1200) #For a correct size for the screenshot
+        driver.get(self.link)
+        
+        
+        # c = '//*[@id="auth0"]/div/div/form/div/div/div[3]/span/div/div/div/div/div/div/div/div/div/div[1]/div'
+        c = '//*[@id="auth0"]/div/div/form/div/div/div[3]/span/div/div/div/div/div/div/div/div/div/div[1]/div/input'
+        input_field = WebDriverWait(driver, 10).until(
+                    EC.visibility_of_element_located((By.XPATH, c))
+                )
+        input_field.send_keys(self.user)
+        
+        c = '//*[@id="auth0"]/div/div/form/div/div/div[3]/span/div/div/div/div/div/div/div/div/div/div[2]/div[1]/div/input'
+        input_field = WebDriverWait(driver, 10).until(
+                    EC.visibility_of_element_located((By.XPATH, c))
+                )
+        input_field.send_keys(self.pss)
+        
+        c = '//*[@id="auth0"]/div/div/form/div/div/button'
+        driver.find_element(By.XPATH,c).click()
+        
+        c = '//*[@id="app-tray-section"]/di-carousel/div/div[1]'
+        element = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, c))
+                    )
+        element.click()
+        
+        # Wait for the new tab to open
+        WebDriverWait(driver, 10).until(lambda d: len(d.window_handles) > 1)
+
+        # Switch to the new tab
+        new_tab = driver.window_handles[1]  # The second tab (index starts at 0)
+        driver.switch_to.window(new_tab)
+        
+        for i,row in log_df.iterrows():
+            url = url_fmt.format(well_id=row["WellID"], log_id=row["LogId"])
+            driver.get(url)
+            print(f"Downloaded: {url}")
+        
+        
+        # Keep the browser open until manually closed by you
+        input("Press Enter to close the browser...")  # This will keep the browser open until you press Enter
+
+        # Close the driver
+        driver.quit()
+        
+        
+        
+        
+        
+
 def get_well_names(folder):
     """
     Extract unique well names from LAS files in a given folder.
@@ -347,15 +527,20 @@ def plot_velocity_logs(data,
         # print(single_formation)
         
         #elevation
-        elevation_km = - single_data["elevation[km]"].iloc[0]
+        elevation_km = - round(single_data["elevation[km]"].iloc[0],1)
         axes[i].axhline(y= elevation_km, 
                         color='black', linestyle='-', linewidth=1)
         
         # vel models
         for key in vel_model_style.keys():
             vel_model = vel_model_style[key]["vel_model"]
-            axes[i].step(vel_model.data["VP (km/s)"], 
-                    vel_model.data["Depth (km)"], 
+            
+            data2plot = vel_model.data.copy()
+            data2plot["Depth (km)"] = data2plot["Depth (km)"]+elevation_km
+            data2plot = data2plot[data2plot["Depth (km)"]>=elevation_km]
+            
+            axes[i].step(data2plot["VP (km/s)"], 
+                    data2plot["Depth (km)"], 
                     color=vel_model_style[key]["color"], 
                     linewidth=vel_model_style[key]["linewidth"], 
                     linestyle=vel_model_style[key]["linestyle"], 
@@ -499,13 +684,12 @@ def plot_velocity_logs(data,
 # data = pd.read_csv(output)
 # formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 # formations = pd.read_csv(formations)
-# # plot_velocity_logs(data,depth="TVD[km]")
 # plot_velocity_logs(data,depth="Depth[km]",
 #                    ylims=(-2,6),
 #                    xlims=(1.5,6.5),
-#                 #    smooth=None,
+#                    smooth_interval=0.1,
 #                    formations=formations)
-# # plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
+# plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
 
 
 ## enverus sheng
@@ -520,15 +704,25 @@ def plot_velocity_logs(data,
 # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
 # data.to_csv(output,index=False)
 
-output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
-data = pd.read_csv(output)
-formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
-formations = pd.read_csv(formations)
-# plot_velocity_logs(data,depth="TVD[km]")
-plot_velocity_logs(data,depth="Depth[km]",
-                   ylims=(-2,6),
-                   xlims=(1.5,6.5),
-                   smooth_interval=0.1,
-                   formations=formations
-                )
-# plot_velocity_logs(data,depth="TVD[km]",ylims=(-2,6))
+# output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
+# data = pd.read_csv(output)
+# formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
+# formations = pd.read_csv(formations)
+# plot_velocity_logs(data,depth="Depth[km]",
+#                    ylims=(-2,6),
+#                    xlims=(1.5,6.5),
+#                    smooth_interval=0.1,
+#                    formations=formations
+#                 )
+
+
+## eneverus get data
+user = "emmanuel.castillotaborda@utdallas.edu"
+pss = "Sismologia#1804"
+download_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/test"
+
+df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-Logs-158d7_2024-12-23.csv")
+
+client = Client(user,pss)
+client.query(log_df=df,
+            download_folder=download_folder)

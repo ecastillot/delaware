@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <meta charset="utf-8"/>
+		<meta http-equiv="Content-Security-Policy" content="connect-src login.auth.enverus.dev login.auth.enverus.com zpns.zoom.us us01apizva.zoom.us us01campaign.zoom.us file.zoom.us file-paa.zoom.us us01ccistatic.zoom.us wss:; style-src 'unsafe-inline' enverus.com *.enverus.com fonts.googleapis.com; img-src blob: data: enverus.com *.zoom.us *.enverus.com getlogo.net secure.gravatar.com; script-src 'none'; script-src-elem 'unsafe-inline' cdn.auth0.com us01ccistatic.zoom.us file.zoom.us login.auth.enverus.com login.auth.enverus.dev secure.gravatar.com gateway.zscalerthree.net; font-src fonts.gstatic.com; frame-src *.zoom.us; child-src blob:; base-uri 'none'; object-src 'none';"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>Sign In with Auth0</title>
+
+  	<link rel="shortcut icon" type="image/png" href="https://www.enverus.com/wp-content/uploads/2021/09/cropped-favicon-32x32.png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    <script type="text/javascript">
+      window.SolvvySettings = {
+        offset: {
+          vertical: '10px'
+        }
+      };
+    </script>
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: url("https://www.enverus.com/wp-content/uploads/2022/08/MicrosoftTeams-image.png") no-repeat;
+            margin: 0;
+        }
+
+        body {
+            background: url("https://www.enverus.com/wp-content/uploads/2022/08/MicrosoftTeams-image.png") no-repeat;
+            background-repeat: no-repeat;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+            min-height: 500px;
+            font-family: Roboto, Arial, sans-serif;
+            font-weight: 400;
+        }
+
+        .do-not-display nav, .do-not-display #learn-more, .do-not-display .court-text, .do-not-display .evolve-marketing{
+            display: none;
+        }
+
+        #login {
+            max-width: 1600px;
+            min-height: calc(100vh - 100px);
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .intro {
+            text-align: center;
+            padding: 100px 0 50px 0;
+        }
+
+        .intro h1 {
+            margin: 0 0 5px 0;
+        }
+
+        .intro p {
+            margin: 0;
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            font-family: Roboto, sans-serif;
+            font-size: 25.5px;
+            font-weight: 500;
+            line-height: 31px;
+            letter-spacing: -0.136853px;
+            padding-left: 23px;
+        }
+
+        @media (min-width: 1280px) {
+            .intro {
+                text-align: left;
+                position: absolute;
+                top: 150px;
+                left: 150px;
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .intro {
+                padding: 25px 0 15px 0;
+            }
+            .intro p {
+                font-size: 16px;
+            }
+
+            img {
+                width: 250px;
+            }
+        }
+
+        .footer {
+            height: 150px;
+            width: 100%;
+            bottom: 0px;
+            right: 0px;
+            left: 0px;
+            position: fixed;
+            background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75));
+        }
+
+        .footer-text {
+            bottom: 10px;
+            right: 25px;
+            width: 100%;
+            text-align: right;
+            position: fixed;
+            color: #fff;
+        }
+
+        .footer-text a {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .footer-text a:hover {
+            text-decoration: none;
+        }
+
+        .footer-text a:after {
+            content: '|';
+            margin: 0 12px;
+        }
+
+        .court-text {
+            display:inline-block;
+        }
+
+        @media (max-height: 800px) {
+            .footer {
+                position: relative;
+                height: 100px;
+            }
+
+            .footer-text {
+                left: 0px;
+                right: 0px;
+                padding: 0 25px;
+                text-align: left;
+                position: absolute;
+            }
+
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .container-ratedpower {
+            text-align: center;
+            z-index: 10;
+            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.76);
+            padding: 30px;
+            background: #D9EDDF;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding-right: 0px;
+            }
+            .container-ratedpower {
+                padding-right: 0px;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .container {
+                position: absolute;
+                top: 100px;
+                right: 100px;
+                text-align: right;
+            }
+          
+            .container-ratedpower {
+                position: absolute;
+                top: 100px;
+                right: 100px;
+                text-align: right;
+            }
+
+            #auth0 .auth0-lock .auth0-lock-center {
+                width: 425px;
+            }
+
+            #auth0 .auth0-lock .auth0-lock-widget {
+                width: 425px;
+            }
+        }
+
+        nav {
+            overflow: auto;
+            margin-bottom: 50px;
+        }
+
+        nav ul, nav li {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        nav li {
+            display: inline-block;
+            margin-left: 33px;
+        }
+
+        nav li:first-child {
+            margin-left: 0;
+        }
+
+        nav a {
+            color: #E8944C;
+            text-transform: uppercase;
+            text-decoration: none;
+            display: inline-block;
+            line-height: 1;
+            padding: 13px 20px;
+            border: 1px solid #979797;
+            background: #121212;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 700px) {
+            nav {
+                margin-bottom: 10px;
+            }
+
+            nav li {
+                display: inline-block;
+                margin-left: 15px;
+            }
+
+            nav a {
+                padding: 10px;
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+        }
+
+        #auth0 {
+            background: #D9EDDF;
+            width: 100%;
+            padding: 40px 20px 60px 20px;
+            display: inline-block;
+            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.76);
+            z-index: 1;
+        }
+
+        @media (max-width: 700px) {
+            #auth0 {
+                box-shadow: none;
+                padding: 20px 20px 60px 20px;
+            }
+
+            #auth0 .auth0-lock-header-welcome .auth0-lock-name {
+                font-size: 22px;
+            }
+        }
+
+        #auth0 .auth0-lock {
+            color: #000;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-content {
+            padding: 0;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-cred-pane {
+            height: 100%;
+            border-radius: 0;
+            background: transparent;
+            position: relative;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-alternative {
+            display: block;
+            margin-top: -20px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-header-logo {
+            vertical-align: top;
+            height: 24px !important;
+            display: inline-block;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-header {
+            text-align: center;
+            padding: 0;
+            height: auto;
+            color: #000;
+            position: relative;
+            background: #D9EDDF;
+            border-radius: 0px 0px 0 0;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        #auth0 .auth0-lock-name {
+            color: #000;
+            font-family: Roboto, sans-serif;
+            font-size: 27px;
+            font-weight: 500;
+            line-height: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -0.05192303px;
+            margin-bottom: 15px;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        #auth0 .auth0-lock-name:before {
+            content: '|';
+            padding: 0 10px 0 0;
+        }
+
+        .auth0-lock.auth0-lock .auth0-lock-widget {
+            width: 100%;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-wrap {
+            border: none !important;
+            border-radius: 3px !important;
+        }
+
+        .auth0-lock-input {
+            width: 100% !important;
+            height: 52px !important;
+            border-radius: 3px !important;
+            background: #ffffff !important;
+            font-size: 18px !important;
+            color: #58585a !important;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-header-bg {
+            display: none;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-alternative .auth0-lock-alternative-link {
+            color: #000;
+            font-size: 14px;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-show-password:focus + .auth0-lock-alternative {
+            display: block;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-error-msg {
+            background: transparent;
+            box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.6);
+            margin: 0;
+            border-radius: 0;
+            position: relative;
+            left: inherit;
+            top: inherit;
+            display: block;
+            padding: 5px 0 0 5px;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #000 !important;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-error-msg span {
+            background: transparent;
+            padding: 0;
+            display: inline;
+            position: relative;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-error-msg:after {
+            display: none;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-submit {
+            border: 0;
+            padding: 0px;
+            display: block;
+            box-sizing: border-box;
+            overflow: hidden;
+            transition: 0.2s ease-in-out;
+            color: #fff;
+            text-transform: uppercase;
+            width: 100%;
+            height: 46px;
+            border-radius: 3px;
+            background: #3c8321;
+            font-size: 17px !important;
+            font-weight: 400 !important;
+            line-height: 20px !important;
+            text-align: center !important;
+            letter-spacing: -0.03269228px;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-submit svg g {
+            fill: #fff !important;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-submit.logout {
+            margin-top: 15px;
+        }
+
+        #auth0 .auth0-lock .auth0-label-submit {
+            height: 44px;
+            line-height: 44px;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-block {
+            margin-bottom: 25px;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-wrap {
+            border-radius: 0;
+            border: 2px solid #f79548;
+            position: relative;
+            background: #ffffff;
+            transition: border-color 0.8s;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-wrap-with-icon {
+            padding: 0 40px 0 0;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-input-wrap-with-icon .auth0-lock-icon-box {
+            width: 12px;
+            height: 14px;
+            top: auto;
+            bottom: 14px;
+            right: 14px;
+            left: inherit;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-form p {
+            color: #000;
+        }
+
+        #auth0 .auth0-lock .auth0-lock-form .auth0-lock-check-spam-msg {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        #auth0 .auth0-lock-back-button {}
+
+        #auth0 .auth0-lock .auth0-sso-notice-container {
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(0, 0, 0, 0.54);
+            padding: 10px 0;
+            margin: 0 -20px 20px -20px;
+            text-align: center;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-close-button, #auth0 .auth0-lock.auth0-lock .auth0-lock-back-button {
+            box-sizing: content-box !important;
+            background: #fff;
+            border-radius: 100px;
+            height: 10px;
+            width: 10px;
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: #333;
+            z-index: 100;
+            border: 6px solid #fff;
+            cursor: pointer;
+            line-height: 0;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-back-button {
+            left: 0px;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-social-button.auth0-lock-social-big-button[data-provider=""], #auth0 .auth0-lock.auth0-lock .auth0-lock-social-button.auth0-lock-social-big-button[data-provider="auth0"] {
+            background-color: #000;
+        }
+
+        #auth0 .auth0-lock.auth0-lock .auth0-lock-social-button.auth0-lock-social-big-button .auth0-lock-social-button-text {
+            box-sizing: border-box;
+            display: block;
+            overflow: hidden;
+            width: 100%;
+            padding-left: 54px;
+            padding-right: 15px;
+            line-height: 40px;
+            text-align: left;
+            text-transform: uppercase;
+            text-overflow: ellipsis;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.7px;
+            color: #fff;
+            white-space: nowrap;
+            transition: background 0.3s;
+            -webkit-transition: background 0.3s;
+        }
+
+        #help {
+            width: 100%;
+            position: relative;
+            text-align: center;
+            color: #000000;
+            background: #D9EDDF;
+            margin: -43px auto 25px auto;
+            z-index: 2;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            padding: 0 16px;
+        }
+
+        #help a {
+            color: #3c8321;
+        }
+
+        #help a:hover {
+            text-decoration: none;
+        }
+      
+        #ratedpower {
+            width: 100%;
+            position: relative;
+            text-align: center;
+            color: #000000;
+            background: #D9EDDF;
+            z-index: 2;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border-bottom: 1px solid gray;
+            display: none;
+        }
+        #intelligence {
+            width: 100%;
+            position: relative;
+            text-align: center;
+            color: #000000;
+            background: #D9EDDF;
+            margin: -53px auto 35px auto;
+            z-index: 2;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            padding: 0 16px;
+            display: none;
+        }
+
+        #intelligence a {
+            color: #3c8321;
+        }
+
+        #intelligence a:hover {
+            text-decoration: none;
+        }
+
+        #learn-more {
+            text-align: center;
+            color: #fff;
+            width: 100%;
+            height: 125px;
+            background: #191919;
+            padding: 20px 0;
+            margin: -3px auto 0 auto;
+            box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.76);
+        }
+
+        @media (max-width: 700px) {
+            #learn-more {
+                box-shadow: none;
+            }
+        }
+
+        #learn-more p {
+            color: #ffffff;
+            font-family: Roboto, sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 23px;
+            text-align: center;
+            letter-spacing: -0.1019689px;
+            margin-top: 0;
+        }
+
+        .evolve-marketing {
+            display: none;
+        }
+
+        #learn-more a {
+            display: inline-block;
+            width: 253px;
+            height: 42px;
+            line-height: 42px;
+            border-radius: 3px;
+            border: solid 1px #ff8300;
+            background: #ff8c00;
+            font-family: Roboto, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -0.3069229px;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .evolve-marketing img,
+        .evolve-marketing a {
+            z-index: 1;
+        }
+
+        .evolve-marketing img {
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+        }
+
+        .evolve-marketing a {
+            font-size: 25px;
+            position: absolute;
+            bottom: 35px;
+            left: 10px;
+        }
+
+        @media screen and (max-width: 1280px) {
+            .evolve-marketing {
+                display: none;
+            }
+        }
+
+        @media (min-height: 800px) {
+            #livesdk__campaign div {
+                margin-bottom: 15px; 
+            }
+        }
+    </style>
+</head>
+<body>
+<!--[if IE 8]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.2.5/ie8.js"></script>
+<![endif]-->
+<!--[if lte IE 9]>
+<script src="https://cdn.auth0.com/js/base64.js"></script>
+<script src="https://cdn.auth0.com/js/es5-shim.min.js"></script>
+<![endif]-->
+<script>
+  // Object.assign Polyfill
+  if (typeof Object.assign != 'function') {
+    // Must be writable: true, enumerable: false, configurable: true
+    Object.defineProperty(Object, 'assign', {
+      value: function assign(target, varArgs) { // .length of function is 2
+        'use strict';
+        if (target == null) { // TypeError if undefined or null
+          throw new TypeError('Cannot convert undefined or null to object');
+        }
+        var to = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+          var nextSource = arguments[index];
+          if (nextSource != null) { // Skip over if undefined or null
+            for (var nextKey in nextSource) {
+              // Avoid bugs when hasOwnProperty is shadowed
+              if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                to[nextKey] = nextSource[nextKey];
+              }
+            }
+          }
+        }
+        return to;
+      },
+      writable: true,
+      configurable: true
+    });
+  }
+</script>
+<script>
+  if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+    document.body.classList.add("do-not-display");
+  }
+</script>
+<script>
+function overwriteCssValue(selectorText, cssAttribute, newValue) {
+    var styleSheets = document && document.styleSheets
+        ? Array.prototype.slice.call(document.styleSheets)
+        : [];
+
+    for (var i = 0; i < styleSheets.length; i++) {
+        try {
+            // Ensure the stylesheet has rules we can access
+            if (!styleSheets[i] || !styleSheets[i].cssRules) {
+                continue;
+            }
+
+            for (var j = 0; j < styleSheets[i].cssRules.length; j++) {
+                var ruleSelectorText = styleSheets[i].cssRules[j] && styleSheets[i].cssRules[j].selectorText
+                    ? styleSheets[i].cssRules[j].selectorText
+                    : '';
+
+                if (ruleSelectorText && ruleSelectorText.trim() === selectorText.trim()) {
+                    // Update the CSS property safely
+                    styleSheets[i].cssRules[j].style.setProperty(cssAttribute, newValue);
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not access stylesheet:', e);
+        }
+    }
+    return false; // If no matching rule was found
+}
+</script>
+<section id="login">
+    <div class="intro">
+        <h1><img src="https://www.enverus.com/wp-content/uploads/2022/11/Enverus_Logo_W_AUTH0.svg" width="375px" height="100px"/></h1>
+        <p>Creating the future of energy together.</p>
+    </div>
+    <div id="widgetcontainer" class="container">
+        <div id="ratedpower">
+            <img src="https://www.enverus.com/wp-content/uploads/2024/09/logo-screen-color.svg" height="110px" />
+        </div>
+        <div id="auth0">
+        </div>
+        <div id="intelligence">
+            New to Enverus Intelligence? <a href="https://www.enverus.com/solutions/energy-analytics/ep-old/prism/intelligence/" target="_blank">Click Here</a>
+        </div>
+        <div id="help">
+            By clicking "Sign In", I acknowledge the Enverus <a href="https://www.enverus.com/wp-content/uploads/2024/03/Enverus-Blank-Order-Form-incl.-Current-MSA-2024.pdf" target="_blank">Master Subscription Agreement</a>
+        </div>
+    </div>
+</section>
+<div class="footer">
+		<div class="evolve-marketing">
+        	<a href="https://go.enverus.com/l/191022/2022-03-07/n4qvs9">
+      	        <img src="" width="600px" height="314px" />
+    	    </a>
+		</div>
+        <div id="footer-text-div" class="footer-text">
+        <div class="court-text">Courthouse Contractor, PayGo, or Free Trial Account: <a id="courthouse_link" href="https://app.drillinginfo.com/courthouse/login" target="_blank">Click Here</a></div>
+            <a href="https://www.enverus.com/other/more-info-request/">Subscribe</a>
+            <a href="https://www.enverus.com/about-enverus">About Us</a>
+            <a href="https://www.enverus.com/contact-us">Contact Us</a>
+            <a href="https://www.enverus.com/privacy-policy">Privacy &amp; Terms</a>
+        </div>             
+</div>
+<script src="https://cdn.auth0.com/js/lock/11.9/lock.min.js"></script>
+<script>
+  // Decode utf8 characters properly
+  var config = JSON.parse(decodeURIComponent(escape(window.atob('eyJpY29uIjoiaHR0cHM6Ly93d3cuZW52ZXJ1cy5jb20vd3AtY29udGVudC91cGxvYWRzLzIwMjIvMTEvRW52ZXJ1c19Mb2dvX1dfQVVUSDAuc3ZnIiwiYXNzZXRzVXJsIjoiIiwiYXV0aDBEb21haW4iOiJsb2dpbi5hdXRoLmVudmVydXMuY29tIiwiYXV0aDBUZW5hbnQiOiJyc2VnIiwiY2xpZW50Q29uZmlndXJhdGlvbkJhc2VVcmwiOiJodHRwczovL2xvZ2luLmF1dGguZW52ZXJ1cy5jb20vIiwiY2FsbGJhY2tPbkxvY2F0aW9uSGFzaCI6ZmFsc2UsImNhbGxiYWNrVVJMIjoiaHR0cHM6Ly9wcmlzbS5lbnZlcnVzLmNvbS9sb2dpbiIsImNkbiI6Imh0dHBzOi8vY2RuLmF1dGgwLmNvbS8iLCJjbGllbnRJRCI6Ik1pSzVpdVI2anVSUWV5N2Q5Y1F0YnI4clJ1QW9JbHJZIiwiZGljdCI6eyJzaWduaW4iOnsidGl0bGUiOiJQcmlzbSJ9fSwiZXh0cmFQYXJhbXMiOnsicHJvdG9jb2wiOiJvYXV0aDIiLCJhdWRpZW5jZSI6Imh0dHBzOi8vYXBpLmVudmVydXMuY29tIiwicmVzcG9uc2VfdHlwZSI6ImNvZGUiLCJzY29wZSI6Im9wZW5pZCIsIl9jc3JmIjoiSFNqMmJBQXQtWjNSeEtUUGNMLTdIWjI5VnhsNXFvaTRnMVFzIiwiX2ludHN0YXRlIjoiZGVwcmVjYXRlZCIsInN0YXRlIjoiaEtGbzJTQk1OV0pCVW1JM1Z6VjRTVjlQT1dkbE4yaDVaRUZaZUc1eWFGRkZRbmh4WTZGdXBXeHZaMmx1bzNScFpOa2dNRXBmWWpGbFgxZFBiMTlUVGtveWRrYzBOMFV5T0VNNFEwTkNXazk1UTBPalkybGsyU0JOYVVzMWFYVlNObXAxVWxGbGVUZGtPV05SZEdKeU9ISlNkVUZ2U1d4eVdRIn0sImludGVybmFsT3B0aW9ucyI6eyJwcm90b2NvbCI6Im9hdXRoMiIsImF1ZGllbmNlIjoiaHR0cHM6Ly9hcGkuZW52ZXJ1cy5jb20iLCJyZXNwb25zZV90eXBlIjoiY29kZSIsInNjb3BlIjoib3BlbmlkIiwiX2NzcmYiOiJIU2oyYkFBdC1aM1J4S1RQY0wtN0haMjlWeGw1cW9pNGcxUXMiLCJfaW50c3RhdGUiOiJkZXByZWNhdGVkIiwic3RhdGUiOiJoS0ZvMlNCTU5XSkJVbUkzVnpWNFNWOVBPV2RsTjJoNVpFRlplRzV5YUZGRlFuaHhZNkZ1cFd4dloybHVvM1JwWk5rZ01FcGZZakZsWDFkUGIxOVRUa295ZGtjME4wVXlPRU00UTBOQ1drOTVRME9qWTJsazJTQk5hVXMxYVhWU05tcDFVbEZsZVRka09XTlJkR0p5T0hKU2RVRnZTV3h5V1EifSwid2lkZ2V0VXJsIjoiaHR0cHM6Ly9jZG4uYXV0aDAuY29tL3cyL2F1dGgwLXdpZGdldC01LjIubWluLmpzIiwiaXNUaGlyZFBhcnR5Q2xpZW50IjpmYWxzZSwiYXV0aG9yaXphdGlvblNlcnZlciI6eyJ1cmwiOiJodHRwczovL2xvZ2luLmF1dGguZW52ZXJ1cy5jb20iLCJpc3N1ZXIiOiJodHRwczovL2xvZ2luLmF1dGguZW52ZXJ1cy5jb20vIn0sImNvbG9ycyI6eyJwYWdlX2JhY2tncm91bmQiOiIjMDAwMDAwIiwicHJpbWFyeSI6IiM2MzVkZmYifX0='))));
+  config.extraParams = config.extraParams || {};
+  var connection = config.connection;
+  var prompt = config.prompt;
+  var languageDictionary;
+  var language;
+  if (config.dict && config.dict.signin && config.dict.signin.title) {
+    var signInTitle;
+    switch (config.dict.signin.title) {
+        case "Drillinginfo":
+            signInTitle = "Enverus";
+            break;
+        case "Transform Enterprise":
+            signInTitle = "Subsurface Studio";
+            break;
+        default:
+            signInTitle = config.dict.signin.title;
+    }
+    var usernamePlaceholder;
+    switch (config.dict.signin.title) {
+         case "EnergyLink":
+         case "MineraliQ":
+            usernamePlaceholder = "email";
+            break;
+         default:
+            usernamePlaceholder = "username/email";
+    }
+    
+    languageDictionary = {title: signInTitle, usernameOrEmailInputPlaceholder: usernamePlaceholder};
+    if(config.dict.signin.title === "Exceltools" || config.dict.signin.title === "Mobile" || config.dict.signin.title === "Transform Enterprise") {
+      document.body.classList.add("do-not-display");
+    } else { // Excluded ExcelTools, and Mobile from adding the ZVA chatbot
+        // ZVA Self-Help Chatbot
+        var zvaScript = document.createElement("script");
+        zvaScript.src = "https://us01ccistatic.zoom.us/us01cci/web-sdk/chat-client.js";
+        zvaScript.setAttribute("data-env", "us01");
+        zvaScript.setAttribute("data-apikey", "_4BYD6CcQDmIfPtZkNPDWg");
+        document.body.appendChild(zvaScript);
+    }
+    if(config.dict.signin.title === "Intelligence") {
+        // help div shifted a litle bit below in order for the new intelligence div to have more space to be displayed.
+        document.getElementById("help").style.margin = '-28px auto 10px auto';
+        document.getElementById("intelligence").style.display = 'block';
+    }
+    if(config.dict.signin.title === "RatedPower") {
+        document.getElementById("ratedpower").style.display = 'block';
+        document.getElementById("widgetcontainer").className = "container-ratedpower"
+        document.getElementById("auth0").style.boxShadow = 'none';
+    }
+    if (config.dict.signin.title === "Mobile Suite" || config.dict.signin.title === "Mobile") {
+      document.getElementById("footer-text-div").style.display = "none";
+      document.body.classList.add("do-not-display");
+      window.addEventListener('DOMContentLoaded', function() {
+        overwriteCssValue('.auth0-lock.auth0-lock', 'z-index', '101');
+      });
+    }    
+  } else if (typeof config.dict === 'string') {
+    language = config.dict;
+  }
+  var loginHint = config.extraParams.login_hint;
+  var lock = new Auth0Lock(config.clientID, config.auth0Domain, {
+    configurationBaseUrl: config.clientConfigurationBaseUrl,
+    overrides: {
+      __tenant: config.auth0Tenant,
+      __token_issuer: config.authorizationServer.issuer
+    },
+    container: 'auth0',
+    auth: {
+      redirectUrl: config.callbackURL,
+      responseType: (config.internalOptions || {}).response_type ||
+      config.callbackOnLocationHash ? 'token' : 'code',
+      params: config.internalOptions
+    },
+    assetsUrl: config.assetsUrl,
+    allowedConnections: connection ? [connection] : null,
+    rememberLastLogin: false,
+    language: language,
+    languageDictionary: Object.assign({}, languageDictionary, {
+      loginSubmitLabel: 'Sign In',
+      forgotPasswordAction: 'Reset Password?',
+      forgotPasswordTitle: 'Reset Password',
+      forgotPasswordInstructions: 'Please enter your email address. We will send you an email to reset your password. <span class="auth0-lock-check-spam-msg">If you do not get it, please check the spam/junk folder in you mailbox.</span>',
+      error: {
+        login: {
+          password_change_required: 'Please ensure you have entered your username and password correctly.'
+        }
+      }
+    }),
+    theme: {
+      logo: 'https://www.enverus.com/wp-content/uploads/2022/09/e-logo-2.svg',
+      primaryColor: '#3c8321'
+    },
+    prefill: loginHint ? {email: loginHint, username: loginHint} : null,
+    closable: false,
+    allowShowPassword: true
+    // uncomment if you want small buttons for social providers
+    // socialButtonStyle: 'small'
+  });
+
+  if (config.auth0Tenant === 'rseg-dev') {
+    document.getElementById("courthouse_link").href = "https://app.dev.drillinginfo.com/courthouse/login";
+  }
+  lock.show();
+</script>
+</body>
+</html>
