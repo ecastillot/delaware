@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from delaware.vel.vel import VelModel
 from matplotlib import cm
-
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import time
 from selenium.webdriver.common.by import By
 from selenium import webdriver
@@ -504,23 +504,25 @@ def assign_global_colors(formations):
 
     # Create a dictionary mapping formations to their respective colors
     return {formation: color_map(i) for i, formation in enumerate(unique_formations)}
-
-
         
-def plot_velocity_logs(data, 
-                       formations=None,
-                       wells=None, 
-                       depth="Depth[km]", 
-                       vel="Vp[km/s]", 
-                       smooth_interval=None,
-                       xlims=None,
-                       ylims=None,
-                       grid=True,
-                       formations_key_order=None,
-                       axes_limit=6,
-                       minor_ticks=True,
-                       show=True,
-                       savefig=None):
+def plot_velocity_logs(
+    data,
+    formations=None,
+    wells=None,
+    stations=None,
+    depth="Depth[km]",
+    vel="Vp[km/s]",
+    smooth_interval=None,
+    xlims=None,
+    ylims=None,
+    region=None,
+    grid=True,
+    formations_key_order=None,
+    axes_limit=6,
+    minor_ticks=True,
+    show=True,
+    savefig=None,
+    ):
     """
     Plot velocity logs for wells with optional formation boundaries and smoothing.
 
@@ -533,7 +535,10 @@ def plot_velocity_logs(data,
         smooth_interval (float): Interval for smoothing velocity data. Default is None.
         xlims (tuple): Limits for the x-axis (velocity). Default is None.
         ylims (tuple): Limits for the y-axis (depth). Default is None.
+        region (tuple): Longitude/latitude limits for the map plot. Default is None.
         grid (bool): Whether to include gridlines. Default is True.
+        formations_key_order (str): Key for ordering formations. Default is None.
+        axes_limit (int): Maximum number of wells per plot. Default is 6.
         minor_ticks (bool): Whether to include minor gridlines. Default is True.
         show (bool): Whether to display the plot. Default is True.
         savefig (str): Path to save the figure. Default is None.
@@ -541,14 +546,13 @@ def plot_velocity_logs(data,
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-
-    # Filter the wells to be plotted based on the input list. If `wells` is None, include all wells.
+    # Filter the wells to be plotted. If no wells are provided, include all wells.
     sortby = wells
     if wells is None:
         wells = list(set(data["well_name"].tolist()))
     data = data[data["well_name"].isin(wells)]
-    
-    # Sort wells based on the provided order or their longitude (default behavior).
+
+    # Sort wells based on input order or by longitude.
     if sortby is None:
         data = data.sort_values(["longitude"])
         order = data["well_name"].unique()
@@ -556,65 +560,121 @@ def plot_velocity_logs(data,
         data["well_name"] = pd.Categorical(data["well_name"], categories=wells, ordered=True)
         data = data.sort_values("well_name")
         order = data["well_name"].unique()
-    
-    # Load velocity model references (e.g., DB1D and Sheng (2022)).
+
+    # Load reference velocity models (e.g., DB1D, Sheng (2022)).
     db1d_velmodel, sheng_velmodel = get_dw_models()
-    
-    # Define styles for velocity models, including color, line style, and thickness.
+
+    # Define line styles for velocity models.
     vel_model_style = {
-        'DB1D': {
+        "DB1D": {
             "linewidth": 1.5,
-            "color": 'black',
-            "linestyle": '-',
-            "vel_model": db1d_velmodel
+            "color": "black",
+            "linestyle": "-",
+            "vel_model": db1d_velmodel,
         },
-        'Sheng (2022)': {
+        "Sheng (2022)": {
             "linewidth": 1.5,
-            "color": 'black',
-            "linestyle": '--',
-            "vel_model": sheng_velmodel
-        }
+            "color": "black",
+            "linestyle": "--",
+            "vel_model": sheng_velmodel,
+        },
     }
-    
-    # Create legend elements for velocity models for later use in the figure.
+
+    # Create legend elements for velocity models.
     vel_legend_handles = []
     for key, style in vel_model_style.items():
-        legend_line = plt.Line2D([0], [0],
-                                 color=style["color"], 
-                                 lw=style["linewidth"], 
-                                 linestyle=style["linestyle"],
-                                 label=key)
+        legend_line = plt.Line2D(
+            [0], [0], color=style["color"], lw=style["linewidth"], linestyle=style["linestyle"], label=key
+        )
         vel_legend_handles.append(legend_line)
-    
+
     # Assign global colors for formations if formation data is provided.
     if formations is not None:
         global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
-        
-        # Determine formations' order based on a specified key (default: "FormationName").
         if formations_key_order is None:
             formations_key_order = "FormationName"
         formations_order = formations.copy().drop_duplicates("FormationName")
         formations_order = formations_order.sort_values(formations_key_order, ignore_index=True)
-        formations_order = formations_order["FormationName"].to_list()
-    
-    # Group velocity data by wells to facilitate plotting.
+        formations_order = formations_order["FormationName"].tolist()
+
+    # Group data by wells.
     grouped_data = data.groupby("well_name")
-    
-    # Divide wells into manageable batches if the number exceeds `axes_limit`.
+
+    # Split wells into batches if there are more wells than axes_limit.
     n_wells = len(wells)
     if n_wells > axes_limit:
         real_order = [order[i:i + axes_limit] for i in range(0, len(order), axes_limit)]
     else:
         real_order = [order]
-    
-    # Loop through each batch of wells for plotting.
+
+    # Plot each batch of wells.
     for k, batch_order in enumerate(real_order):
-        # Create subplots for the wells in the current batch.
-        fig, axes = plt.subplots(1, len(batch_order), sharey=True, figsize=(12, 14))  # Adjust size as needed
-        
+        # Map plot to show well and station locations.
+        map_fig, map_ax = plt.subplots(figsize=(14, 8))
+        wells_in_batch = [grouped_data.get_group(w).iloc[0] for w in batch_order]
+        wells_in_batch = pd.DataFrame(wells_in_batch)
+
+        # Plot stations if provided.
+        if stations is not None:
+            map_ax.scatter(
+                stations["longitude"], stations["latitude"],
+                marker="^", linestyle="None", color="gray", s=30, label="Stations"
+            )
+
+        # Plot wells on the map.
+        for well_name, lon, lat in zip(wells_in_batch["well_name"], wells_in_batch["longitude"], wells_in_batch["latitude"]):
+            map_ax.scatter(lon, lat, marker="*", s=200, edgecolor="black", linewidth=1, label="Log: " + well_name)
+
+        # Set map region if provided.
+        if region is not None:
+            map_ax.set_xlim(region[0], region[1])
+            map_ax.set_ylim(region[2], region[3])
+
+        # Add gridlines.
+        if grid:
+            map_ax.grid(color="black", linewidth=0.5, linestyle=":")
+
+        # Add scale bar.
+        scalebar = AnchoredSizeBar(
+            map_ax.transData,
+            0.5,
+            "25 km",
+            loc="lower right",
+            pad=0.5,
+            color="black",
+            frameon=False,
+            size_vertical=0.005,
+        )
+        scalebar2 = AnchoredSizeBar(
+            map_ax.transData,
+            0.25,
+            loc="lower right",
+            label="",
+            pad=0.5,
+            color="white",
+            frameon=False,
+            size_vertical=0.005,
+        )
+        map_ax.add_artist(scalebar)
+        map_ax.add_artist(scalebar2)
+
+        # Add axis labels and legend.
+        map_ax.set_xlabel("Longitude")
+        map_ax.set_ylabel("Latitude")
+        map_fig.legend(loc="upper left", ncol=1, bbox_to_anchor=(0.8, 0.7))
+        map_fig.tight_layout(rect=[0, 0, 0.82, 1])
+
+        # Save the map figure if savefig is provided.
+        if savefig:
+            base, ext = os.path.splitext(savefig)
+            path_name = f"{base}_m{k}{ext}"
+            map_fig.savefig(path_name,dpi=300)
+
+        # Plot velocity logs.
+        fig, axes = plt.subplots(1, len(batch_order), sharey=True, figsize=(12, 14))
         global_legend_handles = []
-        
-        # Iterate through each well in the batch.
+
+        # Process each well in the batch.
         for i, well_name in enumerate(batch_order):
             print("Well:", well_name)
             
@@ -710,8 +770,8 @@ def plot_velocity_logs(data,
         
         if savefig:
             base, ext = os.path.splitext(savefig)
-            path_name = f"{base}_{k}{ext}"
-            fig.savefig(path_name)
+            path_name = f"{base}_p{k}{ext}"
+            fig.savefig(path_name,dpi=300)
         if show:
             plt.show()
         
@@ -797,9 +857,19 @@ if __name__ == "__main__":
     data = pd.read_csv(output)
     formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
     formations = pd.read_csv(formations)
+    stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
+    stations = pd.read_csv(stations_path)
+    region = [-104.843290,-103.799420,
+              31.396100,31.915050]
+    
+    savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus/enverus_aoi.png"
     plot_velocity_logs(data,depth="Depth[km]",
                        ylims=(-2,6),
                        xlims=(1.5,6.5),
                        smooth_interval=0.1,
-                       formations=formations
+                       region=region,
+                       stations=stations,
+                       formations=formations,
+                       savefig=savefig,
+                       show=False
                     )
