@@ -672,6 +672,11 @@ def plot_velocity_logs(
 
         # Plot velocity logs.
         fig, axes = plt.subplots(1, len(batch_order), sharey=True, figsize=(12, 14))
+        
+        ## in case there is only one axis, it's necessary to put in a list
+        if len(batch_order) == 1:
+            axes = [axes]
+        
         global_legend_handles = []
 
         # Process each well in the batch.
@@ -808,27 +813,49 @@ if __name__ == "__main__":
 
 
     ## enverus sheng
+    
+    ## eneverus get data
+    # user = "emmanuel.castillotaborda@utdallas.edu"
+    # pss = "Sismologia#1804"
+    # download_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/all_data"
+
+    # df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-Logs-6e26d_2024-12-31.csv")
+
+    # client = Client(user,pss)
+    # client.query(log_df=df,
+    #             download_folder=download_folder)
 
     # 2
     # well_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-Wells-7d7bb_2024-12-31.csv"
     # formation_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
     # formation = pd.read_csv(formation_path)
     # well = pd.read_csv(well_path)
-    # folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/data"
+    # folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/all_data"
     # data = get_sonics_data(folder,formation,well)
-    # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
+    # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng_all_data.csv"
     # data.to_csv(output,index=False)
 
-    # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng.csv"
-    # data = pd.read_csv(output)
-    # formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
-    # formations = pd.read_csv(formations)
-    # plot_velocity_logs(data,depth="Depth[km]",
-    #                    ylims=(-2,6),
-    #                    xlims=(1.5,6.5),
-    #                    smooth_interval=0.1,
-    #                    formations=formations
-    #                 )
+    output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/wells_aoiSheng_all_data.csv"
+    data = pd.read_csv(output)
+    formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOISheng/env_csv-FormationTops-e90fb_2024-12-31.csv"
+    formations = pd.read_csv(formations)
+    
+    stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
+    stations = pd.read_csv(stations_path)
+    region = [-104.843290,-103.799420,
+              31.396100,31.915050]
+    
+    savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus_sheng/enverus_sheng.png"
+    plot_velocity_logs(data,depth="Depth[km]",
+                       ylims=(-2,6),
+                       xlims=(1.5,6.5),
+                       smooth_interval=0.1,
+                       region=region,
+                       stations=stations,
+                       formations=formations,
+                       savefig=savefig,
+                       show=False
+                    )
 
 
     ## eneverus get data
@@ -853,23 +880,23 @@ if __name__ == "__main__":
     # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
     # data.to_csv(output,index=False)
     
-    output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
-    data = pd.read_csv(output)
-    formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
-    formations = pd.read_csv(formations)
-    stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-    stations = pd.read_csv(stations_path)
-    region = [-104.843290,-103.799420,
-              31.396100,31.915050]
+    # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
+    # data = pd.read_csv(output)
+    # formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
+    # formations = pd.read_csv(formations)
+    # stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
+    # stations = pd.read_csv(stations_path)
+    # region = [-104.843290,-103.799420,
+    #           31.396100,31.915050]
     
-    savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus/enverus_aoi.png"
-    plot_velocity_logs(data,depth="Depth[km]",
-                       ylims=(-2,6),
-                       xlims=(1.5,6.5),
-                       smooth_interval=0.1,
-                       region=region,
-                       stations=stations,
-                       formations=formations,
-                       savefig=savefig,
-                       show=False
-                    )
+    # savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus/enverus_aoi.png"
+    # plot_velocity_logs(data,depth="Depth[km]",
+    #                    ylims=(-2,6),
+    #                    xlims=(1.5,6.5),
+    #                    smooth_interval=0.1,
+    #                    region=region,
+    #                    stations=stations,
+    #                    formations=formations,
+    #                    savefig=savefig,
+    #                    show=False
+    #                 )
