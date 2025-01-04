@@ -500,9 +500,12 @@ def assign_global_colors(formations):
 
     # Generate a color map with a sufficient number of distinct colors
     color_map = plt.cm.get_cmap("tab20", len(unique_formations))
+    # color_map = plt.colormaps.get_cmap("tab20", len(unique_formations))
 
     # Create a dictionary mapping formations to their respective colors
     return {formation: color_map(i) for i, formation in enumerate(unique_formations)}
+
+
         
 def plot_velocity_logs(data, 
                        formations=None,
@@ -513,6 +516,8 @@ def plot_velocity_logs(data,
                        xlims=None,
                        ylims=None,
                        grid=True,
+                       formations_key_order=None,
+                       axes_limit=6,
                        minor_ticks=True,
                        show=True,
                        savefig=None):
@@ -537,13 +542,13 @@ def plot_velocity_logs(data,
         matplotlib.figure.Figure: The generated figure.
     """
 
-    # Sort wells if specified, otherwise include all wells in the data
+    # Filter the wells to be plotted based on the input list. If `wells` is None, include all wells.
     sortby = wells
     if wells is None:
         wells = list(set(data["well_name"].tolist()))
     data = data[data["well_name"].isin(wells)]
     
-    # Sort data based on wells or longitude
+    # Sort wells based on the provided order or their longitude (default behavior).
     if sortby is None:
         data = data.sort_values(["longitude"])
         order = data["well_name"].unique()
@@ -552,16 +557,10 @@ def plot_velocity_logs(data,
         data = data.sort_values("well_name")
         order = data["well_name"].unique()
     
-    # Group data by wells
-    grouped_data = data.groupby("well_name")
-    
-    # Set up the figure with subplots for each well
-    fig, axes = plt.subplots(1, len(wells), sharey=True, figsize=(12, 14))  # Adjust size as needed
-    
-    # Load velocity models for reference lines
+    # Load velocity model references (e.g., DB1D and Sheng (2022)).
     db1d_velmodel, sheng_velmodel = get_dw_models()
     
-    # Define styles for velocity models
+    # Define styles for velocity models, including color, line style, and thickness.
     vel_model_style = {
         'DB1D': {
             "linewidth": 1.5,
@@ -577,7 +576,7 @@ def plot_velocity_logs(data,
         }
     }
     
-    # Create legend handles for velocity models
+    # Create legend elements for velocity models for later use in the figure.
     vel_legend_handles = []
     for key, style in vel_model_style.items():
         legend_line = plt.Line2D([0], [0],
@@ -587,92 +586,135 @@ def plot_velocity_logs(data,
                                  label=key)
         vel_legend_handles.append(legend_line)
     
-    # Iterate through wells and plot velocity logs
-    for i, well_name in enumerate(order):
-        single_data = grouped_data.get_group(well_name).sort_values("TVD[km]")
-        elevation_km = -round(single_data["elevation[km]"].iloc[0], 1)
+    # Assign global colors for formations if formation data is provided.
+    if formations is not None:
+        global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
         
-        # Plot elevation line
-        axes[i].axhline(y=elevation_km, color='black', linestyle='-', linewidth=1)
+        # Determine formations' order based on a specified key (default: "FormationName").
+        if formations_key_order is None:
+            formations_key_order = "FormationName"
+        formations_order = formations.copy().drop_duplicates("FormationName")
+        formations_order = formations_order.sort_values(formations_key_order, ignore_index=True)
+        formations_order = formations_order["FormationName"].to_list()
+    
+    # Group velocity data by wells to facilitate plotting.
+    grouped_data = data.groupby("well_name")
+    
+    # Divide wells into manageable batches if the number exceeds `axes_limit`.
+    n_wells = len(wells)
+    if n_wells > axes_limit:
+        real_order = [order[i:i + axes_limit] for i in range(0, len(order), axes_limit)]
+    else:
+        real_order = [order]
+    
+    # Loop through each batch of wells for plotting.
+    for k, batch_order in enumerate(real_order):
+        # Create subplots for the wells in the current batch.
+        fig, axes = plt.subplots(1, len(batch_order), sharey=True, figsize=(12, 14))  # Adjust size as needed
         
-        # Plot velocity models
-        for key, style in vel_model_style.items():
-            vel_model = style["vel_model"]
-            data2plot = vel_model.data.copy()
-            data2plot["Depth (km)"] += elevation_km
-            data2plot = data2plot[data2plot["Depth (km)"] >= elevation_km]
-            axes[i].step(data2plot["VP (km/s)"], 
-                         data2plot["Depth (km)"], 
-                         color=style["color"], 
-                         linewidth=style["linewidth"], 
-                         linestyle=style["linestyle"], 
-                         label=key)
+        global_legend_handles = []
         
-        # Adjust depth for elevation and smoothing (if applied)
-        if depth == "Depth[km]":
-            single_data[depth] = single_data["TVD[km]"] + elevation_km
-        if smooth_interval is not None:
-            single_data['Depth_interval'] = (single_data['Depth[km]'] // smooth_interval) * smooth_interval
-            result = single_data.groupby('Depth_interval')['Vp[km/s]'].median().reset_index()
-            result.columns = ['Depth[km]', 'Vp[km/s]']
-            if result.empty:
-                print(f"{well_name} empty using smooth_interval = {smooth_interval} km")
-                continue
-            else:
-                single_data = result
-        
-        # Plot velocity log
-        axes[i].step(single_data[vel], 
-                     single_data[depth], 
-                     "red", 
-                     linewidth=2.5, 
-                     label=well_name)
-
-        # Plot formation boundaries
-        if formations is not None:
-            single_formation = formations[formations["API_UWI_12"] == well_name[:-3]]
-            single_formation = single_formation.sort_values("TVD_Top", ignore_index=True)
-            global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
-            global_legend_handles = []
+        # Iterate through each well in the batch.
+        for i, well_name in enumerate(batch_order):
+            print("Well:", well_name)
             
-            for _, f in single_formation.iterrows():
-                depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
-                formation_name = f["FormationName"]
-                color = global_formation_colors.get(formation_name, "gray")
-                axes[i].axhline(y=depth_f, color=color, linestyle="--", linewidth=1.5)
-                
-                if not any(handle.get_label() == formation_name for handle in global_legend_handles):
-                    global_legend_handles.append(
-                        plt.Line2D([0], [0], color=color, lw=2, linestyle="--", label=formation_name)
-                    )
+            # Extract data for the current well and sort by depth.
+            single_data = grouped_data.get_group(well_name).sort_values("TVD[km]")
+            elevation_km = -round(single_data["elevation[km]"].iloc[0], 1)
+            
+            # Plot a horizontal line to represent the well's elevation.
+            axes[i].axhline(y=elevation_km, color='black', linestyle='-', linewidth=1)
+            
+            # Add velocity model lines to the plot.
+            for key, style in vel_model_style.items():
+                vel_model = style["vel_model"]
+                data2plot = vel_model.data.copy()
+                data2plot["Depth (km)"] += elevation_km
+                data2plot = data2plot[data2plot["Depth (km)"] >= elevation_km]
+                axes[i].step(data2plot["VP (km/s)"], 
+                            data2plot["Depth (km)"], 
+                            color=style["color"], 
+                            linewidth=style["linewidth"], 
+                            linestyle=style["linestyle"], 
+                            label=key)
+            
+            # Adjust depth based on elevation and apply smoothing if required.
+            if depth == "Depth[km]":
+                single_data[depth] = single_data["TVD[km]"] + elevation_km
+            if smooth_interval is not None:
+                single_data['Depth_interval'] = (single_data['Depth[km]'] // smooth_interval) * smooth_interval
+                result = single_data.groupby('Depth_interval')['Vp[km/s]'].median().reset_index()
+                result.columns = ['Depth[km]', 'Vp[km/s]']
+                if result.empty:
+                    print(f"{well_name} empty using smooth_interval = {smooth_interval} km")
+                    continue
+                else:
+                    single_data = result
+            
+            # Plot the velocity log for the well.
+            axes[i].step(single_data[vel], 
+                        single_data[depth], 
+                        "red", 
+                        linewidth=2.5, 
+                        label=well_name)
 
-        # Adjust axis limits
-        if xlims:
-            axes[i].set_xlim(xlims)
-        if ylims:
-            axes[i].set_ylim(ylims)
-        axes[i].set_title(well_name)
+            # Plot formation boundaries for the well.
+            if formations is not None:
+                single_formation = formations[formations["API_UWI_12"] == well_name[:-3]]
+                single_formation = single_formation.sort_values("TVD_Top", ignore_index=True)
+                
+                for _, f in single_formation.iterrows():
+                    depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
+                    formation_name = f["FormationName"]
+                    color = global_formation_colors.get(formation_name, "gray")
+                    axes[i].axhline(y=depth_f, color=color, linestyle="--", linewidth=1.5)
+                    
+                    # Add the formation to the legend if not already present.
+                    if not any(handle.get_label() == formation_name for handle in global_legend_handles):
+                        global_legend_handles.append(
+                            plt.Line2D([0], [0], color=color, lw=2, linestyle="--", label=formation_name)
+                        )
+                        
+            # Apply axis limits and invert y-axis for depth.
+            if xlims:
+                axes[i].set_xlim(xlims)
+            if ylims:
+                axes[i].set_ylim(ylims)
+            axes[i].invert_yaxis()
+            
+            # Set labels and titles for the subplot.
+            axes[i].set_title(well_name)
+            axes[i].set_xlabel("Velocity [km/s]")
+            
+            # Add gridlines to the plot.
+            if grid:
+                axes[i].grid(color='black', linewidth=0.5, linestyle=":")
+                if minor_ticks:
+                    axes[i].minorticks_on()  # Enable minor ticks
+                    axes[i].grid(color='gray', linewidth=0.5, linestyle=":", which='minor')
         
-        # Add gridlines
-        if grid:
-            if minor_ticks:
-                axes[i].grid(color='gray', linewidth=0.5, linestyle=":", which='minor')
-            axes[i].grid(color='black', linewidth=0.5, linestyle=":")
-        axes[i].invert_yaxis()  # Invert y-axis for depth
-    
-    # Add legends for formations and velocity models
-    fig.legend(handles=global_legend_handles, loc="upper left", fontsize=10, ncol=4)
-    fig.legend(handles=vel_legend_handles, loc="upper left", fontsize=10, ncol=1, bbox_to_anchor=(0.75, 0.2))
-    
-    # Finalize layout and save/show plot
-    plt.tight_layout()
-    plt.subplots_adjust(bottom=0.2)
-    if savefig:
-        fig.savefig(savefig)
-    if show:
-        plt.show()
-    
-    return fig    
+        # Sort and add legend for formations.
+        if formations is not None:
+            global_legend_handles = sorted(
+                global_legend_handles,
+                key=lambda handle: formations_order.index(handle.get_label()) if handle.get_label() in formations_order else float('inf')
+            )
+            fig.legend(handles=global_legend_handles, loc="upper left", fontsize=10, ncol=4, bbox_to_anchor=(0.05, 0.2))
+        
+        # Add velocity model legend to the figure.
+        fig.legend(handles=vel_legend_handles, loc="upper left", fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
+        
+        # Finalize layout and save or display the plot.
+        fig.tight_layout()
+        fig.subplots_adjust(bottom=0.26)
+        
+        if savefig:
+            base, ext = os.path.splitext(savefig)
+            path_name = f"{base}_{k}{ext}"
+            fig.savefig(path_name)
+        if show:
+            plt.show()
+        
         
     
 if __name__ == "__main__":
@@ -730,12 +772,34 @@ if __name__ == "__main__":
 
 
     ## eneverus get data
-    user = "emmanuel.castillotaborda@utdallas.edu"
-    pss = "Sismologia#1804"
-    download_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/test"
+    # user = "emmanuel.castillotaborda@utdallas.edu"
+    # pss = "Sismologia#1804"
+    # download_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/test"
 
-    df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-Logs-158d7_2024-12-23.csv")
+    # df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-Logs-158d7_2024-12-23.csv")
 
-    client = Client(user,pss)
-    client.query(log_df=df,
-                download_folder=download_folder)
+    # client = Client(user,pss)
+    # client.query(log_df=df,
+    #             download_folder=download_folder)
+    
+    ## all data
+    
+    # well_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-Wells-6e346_2024-12-23.csv"
+    # formation_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
+    # formation = pd.read_csv(formation_path)
+    # well = pd.read_csv(well_path)
+    # folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/all_data"
+    # data = get_sonics_data(folder,formation,well)
+    # output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
+    # data.to_csv(output,index=False)
+    
+    output = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
+    data = pd.read_csv(output)
+    formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
+    formations = pd.read_csv(formations)
+    plot_velocity_logs(data,depth="Depth[km]",
+                       ylims=(-2,6),
+                       xlims=(1.5,6.5),
+                       smooth_interval=0.1,
+                       formations=formations
+                    )
