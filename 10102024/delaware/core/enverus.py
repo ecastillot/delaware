@@ -516,6 +516,7 @@ def plot_velocity_logs(
     xlims=None,
     ylims=None,
     region=None,
+    scale_bar=None,
     grid=True,
     formations_key_order=None,
     axes_limit=6,
@@ -634,29 +635,31 @@ def plot_velocity_logs(
         if grid:
             map_ax.grid(color="black", linewidth=0.5, linestyle=":")
 
-        # Add scale bar.
-        scalebar = AnchoredSizeBar(
-            map_ax.transData,
-            0.5,
-            "25 km",
-            loc="lower right",
-            pad=0.5,
-            color="black",
-            frameon=False,
-            size_vertical=0.005,
-        )
-        scalebar2 = AnchoredSizeBar(
-            map_ax.transData,
-            0.25,
-            loc="lower right",
-            label="",
-            pad=0.5,
-            color="white",
-            frameon=False,
-            size_vertical=0.005,
-        )
-        map_ax.add_artist(scalebar)
-        map_ax.add_artist(scalebar2)
+        if scale_bar is not None:
+            distance = scale_bar
+            # Add scale bar.
+            scalebar = AnchoredSizeBar(
+                map_ax.transData,
+                distance/100,
+                f"{int(distance/2)} km",
+                loc="lower right",
+                pad=0.5,
+                color="black",
+                frameon=False,
+                size_vertical=0.005,
+            )
+            scalebar2 = AnchoredSizeBar(
+                map_ax.transData,
+                distance/100/2,
+                loc="lower right",
+                label="",
+                pad=0.5,
+                color="white",
+                frameon=False,
+                size_vertical=0.005,
+            )
+            map_ax.add_artist(scalebar)
+            map_ax.add_artist(scalebar2)
 
         # Add axis labels and legend.
         map_ax.set_xlabel("Longitude")
@@ -842,14 +845,15 @@ if __name__ == "__main__":
     
     stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
     stations = pd.read_csv(stations_path)
-    region = [-104.843290,-103.799420,
-              31.396100,31.915050]
+    region = [-103.3612838603971795,-103.1225914879300092,
+              31.0731668393013969,31.2365797422041531]
     
     savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus_sheng/enverus_sheng.png"
     plot_velocity_logs(data,depth="Depth[km]",
                        ylims=(-2,6),
                        xlims=(1.5,6.5),
                        smooth_interval=0.1,
+                       scale_bar=10,
                        region=region,
                        stations=stations,
                        formations=formations,
@@ -894,6 +898,7 @@ if __name__ == "__main__":
     #                    ylims=(-2,6),
     #                    xlims=(1.5,6.5),
     #                    smooth_interval=0.1,
+                        # scale_bar=50,
     #                    region=region,
     #                    stations=stations,
     #                    formations=formations,
