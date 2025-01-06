@@ -849,17 +849,17 @@ if __name__ == "__main__":
               31.0731668393013969,31.2365797422041531]
     
     savefig = "/home/emmanuel/ecastillo/dev/delaware/10102024/figures/enverus_sheng/enverus_sheng.png"
-    plot_velocity_logs(data,depth="Depth[km]",
-                       ylims=(-2,6),
-                       xlims=(1.5,6.5),
-                       smooth_interval=0.1,
-                       scale_bar=10,
-                       region=region,
-                       stations=stations,
-                       formations=formations,
-                       savefig=savefig,
-                       show=False
-                    )
+    # plot_velocity_logs(data,depth="Depth[km]",
+    #                    ylims=(-2,6),
+    #                    xlims=(1.5,6.5),
+    #                    smooth_interval=0.15,
+    #                    scale_bar=10,
+    #                    region=region,
+    #                    stations=stations,
+    #                    formations=formations,
+    #                 #    savefig=savefig,
+    #                    show=True
+    #                 )
 
 
     ## eneverus get data
@@ -898,10 +898,11 @@ if __name__ == "__main__":
     #                    ylims=(-2,6),
     #                    xlims=(1.5,6.5),
     #                    smooth_interval=0.1,
-                        # scale_bar=50,
+    #                     scale_bar=50,
     #                    region=region,
     #                    stations=stations,
     #                    formations=formations,
-    #                    savefig=savefig,
-    #                    show=False
+    #                 #    wells = ["42-109-31362-00-00"],
+    #                 #    savefig=savefig,
+    #                    show=True
     #                 )
