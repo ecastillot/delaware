@@ -5,9 +5,7 @@ import lasio
 import numpy as np
 import matplotlib.pyplot as plt
 from delaware.vel.vel import VelModel
-from matplotlib import cm
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
-import time
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -790,6 +788,17 @@ if __name__ == "__main__":
     # 1 
     # folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/data"
     # well_pad_names = get_well_pad_names(folder)
+
+    # Cpeng
+    ## eneverus get data
+    user = "emmanuel.castillotaborda@utdallas.edu"
+    pss = "Sismologia#1804"
+    download_folder = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_cpeng/all_data"
+    df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_cpeng/env_csv-Logs-9eb6d_2025-01-30.csv")
+    client = Client(user,pss)
+    client.query(log_df=df,
+                download_folder=download_folder)
+
 
     # 2
     # well_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-Wells-6e346_2024-12-23.csv"

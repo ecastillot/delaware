@@ -877,7 +877,6 @@ class Catalog():
         minmax_coords = ut.get_minmax_coords_from_points(self.data, self.xy_epsg, padding)
         return minmax_coords
 
-
     def get_region(self,padding=[]):
         """
         It gets the region according to the limits in the catalog
