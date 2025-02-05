@@ -81,7 +81,7 @@ for year in range(2019,2025):
     # Add a text label (e.g., for the subplot)
     plt.text(text_loc[0], text_loc[1], 'A', horizontalalignment='left', verticalalignment="top", 
             transform=plt.gca().transAxes, fontsize="large", fontweight="normal", bbox=box)
-
+    plt.title(year)
 
 
     #Figure 2
