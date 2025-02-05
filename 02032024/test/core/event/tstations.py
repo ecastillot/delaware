@@ -13,6 +13,9 @@ stations["sta_id"] = stations.apply(sta_id, axis=1)
 stations = Stations(stations, xy_epsg=proj , author="texnet")
 
 stations.filter_rectangular_region(x+y)
+
+data = stations.data
+data.to_csv("/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_stations.csv")
 print(stations)
 
 

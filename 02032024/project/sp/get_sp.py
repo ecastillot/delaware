@@ -2,8 +2,8 @@ import pandas as pd
 from delaware.core.event.stations import Stations
 from delaware.core.event.events import get_texnet_high_resolution_catalog
 
-output_folder = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data"
-events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust/origin_r.csv"
+output_folder = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data_4km"
+events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust/origin.csv"
 picks_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust/picks.db"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/data_git/stations/delaware_onlystations_160824.csv"
 proj = "EPSG:3857"
@@ -21,7 +21,7 @@ stations.filter_rectangular_region(x+y)
 events = get_texnet_high_resolution_catalog(events_path,xy_epsg=proj,
                                             author=author)
 print(events)
-sp_events = stations.get_events_by_sp(catalog=events,rmax=1,
+sp_events = stations.get_events_by_sp(catalog=events,rmax=4,
                           picks_path=picks_path,
                           output_folder=output_folder)
 print(sp_events)

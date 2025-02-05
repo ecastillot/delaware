@@ -28,8 +28,9 @@ def prepare_sp_analysis(cat, picks, cat_columns_level=1):
     cat = cat.rename(columns={"latitude": "eq_latitude", "longitude": "eq_longitude"})
 
     # Convert arrival and origin times to datetime for time-based calculations
-    picks["time"] = pd.to_datetime(picks["time"])
-    cat["origin_time"] = pd.to_datetime(cat["origin_time"])
+    picks["time"] = pd.to_datetime(picks["time"],format="mixed")
+    cat["origin_time"] = pd.to_datetime(cat["origin_time"],format="mixed")
+    
 
     # Define the essential columns to keep in each DataFrame
     cat_columns = ["ev_id", "origin_time", "eq_latitude", "eq_longitude", "magnitude"]
@@ -65,13 +66,17 @@ def prepare_sp_analysis(cat, picks, cat_columns_level=1):
     # Keep only the necessary columns
     picks = picks[picks_columns + ["tt", "r", "az"]]
     
+    picks.drop_duplicates(subset=["ev_id", "station", "r", "az","time"],inplace=True)
+    
     # Reset the index of the DataFrame
     picks.reset_index(inplace=True, drop=True)
+    
+    print(picks)
     
     # Pivot the DataFrame to have separate columns for P and S phases
     picks = picks.pivot(index=["ev_id", "station", "r", "az"], 
                         columns="phase_hint", values=["time", "tt"]).reset_index()
-
+    
     # Flatten multi-level columns for simplicity
     picks.columns = ['_'.join(col).strip('_') for col in picks.columns.values]
     
