@@ -20,9 +20,11 @@ sta_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_sta
 
 data = pd.read_csv(output,parse_dates=["origin_time"])
 
+print(list(range(min(data['yr']), max(data['yr']) + 2)))
+
 # Plot histogram with bins centered on each year
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.hist(data['yr'], bins=range(min(data['yr']), max(data['yr']) + 1),
+ax.hist(data['yr'], bins=range(min(data['yr']), max(data['yr']) + 2),
         color="green",
         edgecolor='black', alpha=0.7)
 
