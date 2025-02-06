@@ -17,14 +17,14 @@ starttime = UTCDateTime(2017, 1, 1)
 endtime   = UTCDateTime(2024, 8, 1)
 events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust/origin.csv"
 output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi.csv"
-events = get_texnet_high_resolution_catalog(events_path,xy_epsg="EPSG:3116",
-                                            author="texnet")
+# events = get_texnet_high_resolution_catalog(events_path,xy_epsg="EPSG:3116",
+#                                             author="texnet")
 
 
-events.filter_rectangular_region(x+y)
-data = events.data
+# events.filter_rectangular_region(x+y)
+# data = events.data
 
-data.to_csv(output,index=False)
+# data.to_csv(output,index=False)
 
 
 data = pd.read_csv(output,parse_dates=["origin_time"])

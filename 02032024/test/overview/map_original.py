@@ -10,12 +10,20 @@ import os
 import matplotlib as mpl
 import numpy as np
 
+
 # Dates
 x = (-104.84329,-103.79942)
 y = (31.3961,31.91505)
 result_label = "TexNet"
 output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_original.csv"
 sta_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_stations.csv"
+fig_out = os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map_original.jpg")
+
+
+#FOr comparison
+x = (-104.6,-104.2)
+y = (31.6,31.75)
+fig_out = os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map_original_zoom.jpg")
 
 data = pd.read_csv(output,parse_dates=["origin_time"])
 sta_data = pd.read_csv(sta_path)
@@ -72,5 +80,5 @@ plt.text(text_loc[0], text_loc[1], 'C', horizontalalignment='left', verticalalig
          transform=plt.gca().transAxes, fontsize="large", fontweight="normal", bbox=box)
 
 
-fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map_original.jpg"), bbox_inches = "tight", dpi = 300)
+fig.savefig(fig_out, bbox_inches = "tight", dpi = 300)
 plt.show()

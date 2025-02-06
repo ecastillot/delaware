@@ -18,6 +18,11 @@ events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growcl
 output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi.csv"
 sta_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_stations.csv"
 
+# #FOr comparison
+x = (-104.6,-104.2)
+y = (31.6,31.75)
+fig_out = os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map_zoom.jpg")
+
 data = pd.read_csv(output,parse_dates=["origin_time"])
 sta_data = pd.read_csv(sta_path)
 
@@ -73,5 +78,5 @@ plt.text(text_loc[0], text_loc[1], 'C', horizontalalignment='left', verticalalig
          transform=plt.gca().transAxes, fontsize="large", fontweight="normal", bbox=box)
 
 
-fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map.jpg"), bbox_inches = "tight", dpi = 300)
+fig.savefig(fig_out , bbox_inches = "tight", dpi = 300)
 plt.show()
