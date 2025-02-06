@@ -1,4 +1,4 @@
-from delaware.core.event.events import get_texnet_high_resolution_catalog
+from delaware.core.event.events import get_texnet_high_resolution_catalog,get_texnet_original_usgs_catalog,get_texnet_original_catalog
 from delaware.core.event.picks import read_picks
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
@@ -15,17 +15,22 @@ x = (-104.84329,-103.79942)
 y = (31.3961,31.91505)
 starttime = UTCDateTime(2017, 1, 1)
 endtime   = UTCDateTime(2024, 8, 1)
-events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust/origin.csv"
-output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi.csv"
-events = get_texnet_high_resolution_catalog(events_path,xy_epsg="EPSG:3116",
+# events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/usgs_20170101_20240922/all_origin.csv"
+# output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_usgs_original.csv"
+# events = get_texnet_high_resolution_catalog(events_path,xy_epsg="EPSG:3116",
+#                                             author="texnet",mode="texnet")
+events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/texnet_events.csv"
+output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_original.csv"
+events = get_texnet_original_catalog(events_path,xy_epsg="EPSG:3116",
                                             author="texnet")
+
 
 
 events.filter_rectangular_region(x+y)
 data = events.data
 
 data.to_csv(output,index=False)
-
+# exit()
 
 data = pd.read_csv(output,parse_dates=["origin_time"])
 
@@ -67,5 +72,5 @@ ax2.set_ylim(0,6)
 ax2.tick_params(labelsize=15)
 
 
-fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "hist.jpg"), bbox_inches = "tight", dpi = 300)
+fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "hist_original.jpg"), bbox_inches = "tight", dpi = 300)
 plt.show()

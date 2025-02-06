@@ -12,8 +12,62 @@ import pandas as pd
 
 from datetime import datetime
 
-def get_texnet_high_resolution_catalog(path,xy_epsg,author,
+
+def get_texnet_original_usgs_catalog(path,xy_epsg,author,
                                        depth_lims=[0,20],
+                                        region_lims=None):
+    df = pd.read_csv(path,parse_dates=["origin_time"],header=1)
+    
+    catalog = Events(df,xy_epsg=xy_epsg,author=author)
+    
+    if depth_lims is not None:
+        catalog.filter("depth",start=depth_lims[0],end=depth_lims[1])
+    
+    # region_lims #lonw,lone,lats,latn
+    if region_lims is not None:
+        catalog.filter_rectangular_region(region_lims)
+    
+        
+    catalog.sort_values(by="origin_time")
+    return catalog
+
+def get_texnet_original_catalog(path,xy_epsg,author,
+                                       depth_lims=[0,20],
+                                        region_lims=None):
+    df = pd.read_csv(path)
+# EventID,Evaluation Status,Origin Date,Origin Time,Local Magnitude,Moment Magnitude,
+# Latitude (WGS84),Latitude Error (km),Longitude (WGS84),
+# Longitude Error (km),Depth of Hypocenter (Km.  Rel to MSL),
+# Depth of Hypocenter (Km. Rel to Ground Surface),
+# Depth Uncertainty (Km. Corresponds to 1 st dev),
+# RMS,UsedPhaseCount,UsedStationCount,Author,EventType,LocationName,
+# Nodal Plane 1 - Strike,Nodal Plane 1 - Dip,Nodal Plane 1 - Rake,
+# Nodal Plane 2 - Strike,Nodal Plane 2 - Dip,Nodal Plane 2 - Rake,Focal Mechanism Method ID,
+# Focal Mechanism - Azimuthal Gap,Focal Mechanism - Misfit,Maximum Station Distance (km),
+# Minimum Station Distance (km),Last Updated
+    df['origin_time'] = pd.to_datetime(df['Origin Date'] + ' ' + df['Origin Time'])
+    df = df.rename(columns={"Latitude (WGS84)":"latitude",
+                            "Longitude (WGS84)":"longitude",
+                            "Depth of Hypocenter (Km. Rel to Ground Surface)":"depth",
+                            "Local Magnitude":"magnitude",
+                            "EventID":"ev_id"})
+    
+    catalog = Events(df,xy_epsg=xy_epsg,author=author)
+    
+    if depth_lims is not None:
+        catalog.filter("depth",start=depth_lims[0],end=depth_lims[1])
+    
+    # region_lims #lonw,lone,lats,latn
+    if region_lims is not None:
+        catalog.filter_rectangular_region(region_lims)
+    
+        
+    catalog.sort_values(by="origin_time")
+    return catalog
+
+def get_texnet_high_resolution_catalog(path,xy_epsg,author,
+                                       mode="highres",
+                                       depth_lims=None,
                                         region_lims=None):
     df = pd.read_csv(path)
     # Function to create datetime
@@ -27,11 +81,18 @@ def get_texnet_high_resolution_catalog(path,xy_epsg,author,
 
     # Apply function to create 'origin_time'
     df['origin_time'] = df.apply(create_datetime, axis=1)
-    df = df.rename(columns={"latR":"latitude",
-                            "lonR":"longitude",
-                            "depR":"depth",
-                            "mag":"magnitude",
-                            "EventId":"ev_id"})
+    if mode == "highres":
+        df = df.rename(columns={"latR":"latitude",
+                                "lonR":"longitude",
+                                "depR":"depth",
+                                "mag":"magnitude",
+                                "EventId":"ev_id"})
+    else:
+        df = df.rename(columns={"latC":"latitude",
+                                "lonC":"longitude",
+                                "depC":"depth",
+                                "mag":"magnitude",
+                                "EventId":"ev_id"})
     
     catalog = Events(df,xy_epsg=xy_epsg,author=author)
     
