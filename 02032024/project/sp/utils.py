@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -99,17 +100,24 @@ def plot_times_by_station(data,title=None,show: bool = True,
     
     data = data.drop_duplicates("ev_id")
     # grouped = data.groupby('station')['ev_id']
-    fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    fig,ax = plt.subplots(1,1,figsize=(16, 10))
     sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
     
     # Calculate the number of samples for each station
     sample_counts = data['station'].value_counts()
     if "order" in plot_kwargs.keys():
         sample_counts = sample_counts.reindex(plot_kwargs["order"])
+
+    # sample_counts.dropna(inplace=True,ignore_index=True)
     print(sample_counts)
 
     # Annotate the box plot with sample counts
     for i,(station, count) in enumerate(sample_counts.items()):
+        
+        if not pd.notna(count):
+            print(pd.notna(count))
+            continue
+        
         # Get the x position of each station
         # x_pos = sample_counts.unique().tolist().index(station)
         # Set the annotation above each box plot
@@ -119,7 +127,7 @@ def plot_times_by_station(data,title=None,show: bool = True,
             posy = data['ts-tp'].max()
         
         ax.text(i, posy-posy*0.1,
-                f'n={count}', 
+                f'n={int(count)}', 
                 ha='center', va='bottom', color='black',
                 fontsize=12)
     if title is not None:

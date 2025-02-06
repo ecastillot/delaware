@@ -10,7 +10,7 @@ stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/station
 output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/s_p_5km.png"
 
 picks = load_from_sqlite(picks_path)
-catalog = load_from_sqlite(catalog_path,)
+catalog = load_from_sqlite(catalog_path)
 
 stations = pd.read_csv(stations_path)
 stations_columns = ["network","station","latitude","longitude","elevation"]
