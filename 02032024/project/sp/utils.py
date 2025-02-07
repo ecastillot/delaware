@@ -134,16 +134,16 @@ def plot_times_by_station(data,title=None,show: bool = True,
         title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
         ax.set_title(title,
                         fontdict={"size":16})
-    ax.set_xlabel('Stations',fontdict={"size":14})
-    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":14})
+    ax.set_xlabel('Stations',fontdict={"size":18})
+    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":18})
     
     if ylim is not None:
         ax.set_ylim(*ylim)
     
     ax.grid(True, linestyle='--', linewidth=0.7, alpha=0.7)
     
-    plt.xticks(fontsize=14)  # Rotate x labels for readability
-    plt.yticks(fontsize=14)  # Rotate x labels for readability
+    plt.xticks(fontsize=16)  # Rotate x labels for readability
+    plt.yticks(fontsize=16)  # Rotate x labels for readability
     plt.tight_layout()  # Adjust layout to avoid cutting off labels
         
     if savefig is not None:
