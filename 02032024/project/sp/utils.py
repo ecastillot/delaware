@@ -126,9 +126,9 @@ def plot_times_by_station(data,title=None,show: bool = True,
         else:
             posy = data['ts-tp'].max()
         
-        ax.text(i, posy-posy*0.1,
+        ax.text(i, posy-posy*0.07,
                 f'n={int(count)}', 
-                ha='center', va='bottom', color='black',
+                ha='center', va='bottom', color='red',
                 fontsize=12)
     if title is not None:
         title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
