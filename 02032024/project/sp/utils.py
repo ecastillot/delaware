@@ -100,7 +100,7 @@ def plot_times_by_station(data,title=None,show: bool = True,
     
     data = data.drop_duplicates("ev_id")
     # grouped = data.groupby('station')['ev_id']
-    fig,ax = plt.subplots(1,1,figsize=(16, 10))
+    fig,ax = plt.subplots(1,1,figsize=(10, 6))
     sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
     
     # Calculate the number of samples for each station
@@ -129,21 +129,22 @@ def plot_times_by_station(data,title=None,show: bool = True,
         ax.text(i, posy-posy*0.07,
                 f'n={int(count)}', 
                 ha='center', va='bottom', color='red',
+                bbox=dict(facecolor='white', edgecolor='black', alpha=0.7,),
                 fontsize=12)
     if title is not None:
         title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
         ax.set_title(title,
-                        fontdict={"size":16})
-    ax.set_xlabel('Stations',fontdict={"size":18})
-    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":18})
+                        fontdict={"size":14})
+    ax.set_xlabel('Stations',fontdict={"size":16})
+    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":16})
     
     if ylim is not None:
         ax.set_ylim(*ylim)
     
     ax.grid(True, linestyle='--', linewidth=0.7, alpha=0.7)
     
-    plt.xticks(fontsize=16)  # Rotate x labels for readability
-    plt.yticks(fontsize=16)  # Rotate x labels for readability
+    plt.xticks(fontsize=14)  # Rotate x labels for readability
+    plt.yticks(fontsize=14)  # Rotate x labels for readability
     plt.tight_layout()  # Adjust layout to avoid cutting off labels
         
     if savefig is not None:
