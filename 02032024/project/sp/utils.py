@@ -194,10 +194,14 @@ def sup_fig_1(data,title=None,show: bool = True,
         else:
             posy = data['ts-tp'].max()
         
-        ax.text(i, posy-posy*0.07,
+        ax.text(i, 0.07,
                 f'n={int(count)}', 
                 ha='center', va='bottom', color='red',
-                bbox=dict(facecolor='white', edgecolor='black', alpha=0.7,),
+                bbox=dict(facecolor='white', 
+                          edgecolor=None, 
+                          alpha=0.7,
+                          pad=0.2
+                          ),
                 fontsize=6,rotation=90)
     if title is not None:
         title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
