@@ -96,11 +96,14 @@ def prepare_sp_analysis(cat, picks, cat_columns_level=1):
 def plot_times_by_station(data,title=None,show: bool = True, 
                           ylim=None,
                           savefig:str=None,
+                          ax=None,
                           **plot_kwargs):   
     
     data = data.drop_duplicates("ev_id")
     # grouped = data.groupby('station')['ev_id']
-    fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    if ax is None:
+        fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    
     sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
     
     # Calculate the number of samples for each station
@@ -146,11 +149,76 @@ def plot_times_by_station(data,title=None,show: bool = True,
     plt.xticks(fontsize=14)  # Rotate x labels for readability
     plt.yticks(fontsize=14)  # Rotate x labels for readability
     plt.tight_layout()  # Adjust layout to avoid cutting off labels
+    if ax is None:    
+        if savefig is not None:
+            fig.savefig(savefig, dpi=300, bbox_inches="tight")
+    
+        if show:
+            plt.show()
+    else:
+        return ax
+    
+def sup_fig_1(data,title=None,show: bool = True, 
+                          ylim=None,
+                          savefig:str=None,
+                          ax=None,
+                          **plot_kwargs):   
+    
+    data = data.drop_duplicates("ev_id")
+    # grouped = data.groupby('station')['ev_id']
+    if ax is None:
+        fig,ax = plt.subplots(1,1,figsize=(10, 6))
+    
+    sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
+    
+    # Calculate the number of samples for each station
+    sample_counts = data['station'].value_counts()
+    if "order" in plot_kwargs.keys():
+        sample_counts = sample_counts.reindex(plot_kwargs["order"])
+
+    # sample_counts.dropna(inplace=True,ignore_index=True)
+    print(sample_counts)
+
+    # Annotate the box plot with sample counts
+    for i,(station, count) in enumerate(sample_counts.items()):
         
-    if savefig is not None:
-        fig.savefig(savefig, dpi=300, bbox_inches="tight")
+        if not pd.notna(count):
+            print(pd.notna(count))
+            continue
+        
+        # Get the x position of each station
+        # x_pos = sample_counts.unique().tolist().index(station)
+        # Set the annotation above each box plot
+        if ylim is not None:
+            posy = ylim[-1]
+        else:
+            posy = data['ts-tp'].max()
+        
+        ax.text(i, posy-posy*0.07,
+                f'n={int(count)}', 
+                ha='center', va='bottom', color='red',
+                bbox=dict(facecolor='white', edgecolor='black', alpha=0.7,),
+                fontsize=6,rotation=90)
+    if title is not None:
+        title = r'$t_{\mathrm{s}} - t_{\mathrm{p}}$' +f' Analysis\n{title}'
+        ax.set_title(title,
+                        fontdict={"size":14})
+    ax.set_xlabel('Stations',fontdict={"size":16})
+    ax.set_ylabel(r'$t_{\mathrm{s}} - t_{\mathrm{p}}$ (s)',fontdict={"size":12})
     
-    if show:
-        plt.show()
+    if ylim is not None:
+        ax.set_ylim(*ylim)
     
-    return fig,ax
+    ax.grid(True, linestyle='--', linewidth=0.7, alpha=0.7)
+    
+    ax.set_xticklabels(ax.get_xticklabels(), fontsize=10, rotation=60) # Rotate x labels for readability
+    ax.set_yticklabels(ax.get_yticklabels(), fontsize=10) # Rotate x labels for readability
+    plt.tight_layout()  # Adjust layout to avoid cutting off labels
+    if ax is None:    
+        if savefig is not None:
+            fig.savefig(savefig, dpi=300, bbox_inches="tight")
+    
+        if show:
+            plt.show()
+    else:
+        return ax
