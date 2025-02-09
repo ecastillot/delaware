@@ -6,7 +6,7 @@ from utils import prepare_sp_analysis,plot_times_by_station
 catalog_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/WDB_3km/catalog_sp_method.db"
 picks_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/WDB_3km/picks_sp_method.db"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/fig_1.png"
+output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/WDB_3km.png"
 
 picks = load_from_sqlite(picks_path)
 catalog = load_from_sqlite(catalog_path)
