@@ -8,7 +8,7 @@ from delaware.core.database.database import load_from_sqlite
 from project.sp.utils import prepare_sp_analysis,sup_fig_1
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/sup_fig_1/fig_1.png"
+output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/sup_fig_1/supfig_1.png"
 radii = [1,2,3,4,5]
 
 custom_palette = {"PB35": "#26fafa", 
@@ -114,8 +114,8 @@ for n,r in enumerate(radii):
 # fig.text(0.15, 0.07, "W", ha="center", va="center", fontsize=12, fontweight="bold")
 # fig.text(0.95, 0.07, "E", ha="center", va="center", fontsize=12, fontweight="bold")
 
-# fig.savefig(output_path, dpi=300, bbox_inches="tight")
 plt.tight_layout()  # Improve spacing
+fig.savefig(output_path, dpi=300, bbox_inches="tight")
 plt.show()
 
 
