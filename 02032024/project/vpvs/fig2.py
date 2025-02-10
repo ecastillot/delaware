@@ -6,13 +6,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from project.vpvs.utils import plot_vij_histogram,plot_vij_histogram_station
 import glob
-
+from matplotlib.lines import Line2D
 
 
 clusters_r = [1,2,3]
 
 fig, axes = plt.subplots(3,2,figsize=(10, 6))
 global_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vpvs"
+output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vpvs/fig_2.png"
+
 
 custom_palette = {
                     # "PB35": "#26fafa", 
@@ -64,17 +66,22 @@ for i,cluster in enumerate(clusters_r):
     Q3 = cat['v_ij'].quantile(0.90)
     iqr_cat = cat[(cat['v_ij'] >= Q1) & (cat['v_ij'] <= Q3)]
     
-    plot_vij_histogram(iqr_cat,cluster,
+    ax = plot_vij_histogram(iqr_cat,cluster,
                        bins= np.arange(1.4,1.9,0.025),
                     ax=axes[i][0],
                     max="red",
                     #    output=output
                     )
+    text_loc = [0.05, 0.2]
+    ax.text(text_loc[0], text_loc[1], 
+                f"R{cluster}", 
+                horizontalalignment='left', 
+                verticalalignment="top", 
+                transform=ax.transAxes, 
+                fontsize="medium", 
+                fontweight="normal",
+                bbox=box)
 
-# num_stations = len(custom_palette.items())
-# rows, cols = (num_stations // 3) + 1, min(3, num_stations)  # Adjust grid to fit
-# print(rows, cols)
-# exit()
 for n,(key,val) in enumerate(custom_palette.items()):
     query = glob.glob(os.path.join(global_path,"stations",f"{key}*.csv"))
     for path in query:
@@ -94,13 +101,44 @@ for n,(key,val) in enumerate(custom_palette.items()):
         else:
             max = None
             
-        plot_vij_histogram_station(iqr_data,color=r_color[r],
+        ax= plot_vij_histogram_station(iqr_data,color=r_color[r],
                                    ax=axes[n][1],
                                    max=max)
+        text_loc = [0.05, 0.2]
+        ax.text(text_loc[0], text_loc[1], 
+                    f"{station}", 
+                    horizontalalignment='left', 
+                    verticalalignment="top", 
+                    transform=ax.transAxes, 
+                    fontsize="medium", 
+                    fontweight="normal",
+                    bbox=box)
     
-    # # print(iqr_results_df.describe())
-    # # plot_vij_histogram(iqr_results_df,station_name,bins=bins,output=output_fig)
-    # print(query)
+legend_elements = [Line2D([0], [0], color=color, 
+                lw=2, label=f"{key} km") \
+                    for key, color in r_color.items()]
 
+legend_max = [Line2D([0], [0], color="red", 
+                lw=2, linestyle="--",label=f"Max. Value")\
+                    ]
 
+fig.legend(handles=legend_elements, 
+        #    loc='lower right', , 
+        # loc='lower center',
+           ncol=len(r_color), 
+        #    loc=(0.5, 0.035),
+           loc=(0.5, 1-0.1),
+           frameon=False,title="Radius")
+
+fig.legend(handles=legend_max, 
+        #    loc='lower right', , 
+        # loc='lower center',
+           ncol=len(r_color), 
+        #    loc=(0.25, 0.05),
+           loc=(0.25, 1-0.1),
+           frameon=False)
+
+# plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
+plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
+plt.savefig(output_path, dpi=300, bbox_inches='tight')
 plt.show()
