@@ -198,9 +198,9 @@ def sup_fig_1(data,title=None,show: bool = True,
                 f'n={int(count)}', 
                 ha='center', va='bottom', color='red',
                 bbox=dict(facecolor='white', 
-                          edgecolor=None, 
+                          edgecolor='white', 
                           alpha=0.7,
-                          pad=0.2
+                          pad=0.4
                           ),
                 fontsize=6,rotation=90)
     if title is not None:

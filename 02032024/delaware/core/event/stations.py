@@ -52,12 +52,14 @@ class Stations(Points):
             new_catalog.filter_by_r_az(latitude=row.latitude,
                                     longitude=row.longitude,
                                     r=rmax)
+            # print(row.station,row.latitude,row.longitude,new_catalog)
             
             if new_catalog.empty:
                 # print("bad",i,new_catalog)
                 continue
             
             if picks_path is not None:
+                
                 picks = new_catalog.get_picks(picks_path,stations=self)
                 picks.select_data({"station":[row.station]})
                 picks.drop_picks_with_single_phase(inplace=True)

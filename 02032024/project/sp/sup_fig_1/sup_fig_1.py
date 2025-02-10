@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import string
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -17,13 +18,17 @@ custom_palette = {"PB35": "#26fafa",
                   "WB03": "#ffffff", 
                   "SA02": "#f1840f", 
                   "PB24": "#0ea024", 
+                  "PB24": "#0ea024", 
+                  "PB24": "#0ea024", 
+                  "PB04": "red", 
+                  "PB16": "red", 
                   }
 
 all_stations = pd.read_csv(stations_path)
 
 fig = plt.figure(figsize=(14, 8))
 gs = gridspec.GridSpec(6, 6, figure=fig)  # 2 rows, 3 columns
-gs.update(wspace = 0.5, hspace = 1.5)
+gs.update(wspace = 0.3, hspace = 2)
 
 # Define axes with correct positioning
 axes = []
@@ -44,7 +49,7 @@ for n,r in enumerate(radii):
 
   picks = load_from_sqlite(picks_path)
   catalog = load_from_sqlite(catalog_path)
-
+  
   stations_columns = ["network","station","latitude","longitude","elevation"]
   stations = all_stations[stations_columns]
 
@@ -76,8 +81,30 @@ for n,r in enumerate(radii):
                         show=False,
                         ax=axes[n]  # Assign the correct subplot
                         )
+  ax.set_xlabel("")
+  ax.set_title(f"{r} km",
+                  fontdict={"size":10,
+                            "weight":"bold"})
+  
+  if n>1:
+    ax.yaxis.set_label_position("right")
+    ax.yaxis.tick_right()
+    text_loc = [0.025, 0.92]
+  else:
+    text_loc = [0.05, 0.92]
     
 
+  box = dict(boxstyle='round', 
+             facecolor='white', 
+             alpha=1)
+  ax.text(text_loc[0], text_loc[1], 
+          f"{string.ascii_lowercase[n]})", 
+          horizontalalignment='left', 
+          verticalalignment="top", 
+         transform=ax.transAxes, 
+         fontsize="large", 
+         fontweight="normal",
+         bbox=box)
 
 
 # fig.subplots_adjust(bottom=0.2)
