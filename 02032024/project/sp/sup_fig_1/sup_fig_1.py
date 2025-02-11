@@ -9,7 +9,7 @@ from project.sp.utils import prepare_sp_analysis,sup_fig_1
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
 output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/sup_fig_1/supfig_1.png"
-sp_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1_test"
+sp_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1"
 radii = [1,2,3,4,5]
 
 custom_palette = {"PB35": "#26fafa", 
@@ -70,7 +70,7 @@ for n,r in enumerate(radii):
   picks['ts-tp'] = picks['ts-tp'].astype(float)
   stats_by_station = picks.groupby('station')['ts-tp'].describe()
 
-  general_palette = dict([(x,"gray") for x in order])
+  general_palette = dict([(x,"lightgray") for x in order])
 
   for key,value in custom_palette.items():
     general_palette[key] = value

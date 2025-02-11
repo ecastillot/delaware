@@ -5,7 +5,7 @@ from delaware.core.event.events import get_texnet_high_resolution_catalog,get_te
 
 events_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust_and_sheng/origin.csv"
 picks_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data/eq/aoi/growclust_and_sheng/picks.db"
-output_folder = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1_test"
+output_folder = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/data_git/stations/delaware_onlystations_160824.csv"
 proj = "EPSG:3857"
 author= "texnet"
@@ -14,7 +14,7 @@ only_stations = ["PB37","PB28","PB35","PB36","SA02","PB24","WB03"]
 sheng_stations = ["PB04","PB16"]
 x = (-104.84329,-103.79942)
 y = (31.3961,31.91505)
-radii = [1,2,4,5]
+radii = [1,2,3,4,5]
 # radii = [3]
 
 stations_df = pd.read_csv(stations_path)
