@@ -96,8 +96,8 @@ for n,(key,val) in enumerate(custom_palette.items()):
         Q3 = data['v_ij'].quantile(0.90)
         iqr_data = data[(data['v_ij'] >= Q1) & (data['v_ij'] <= Q3)]
         
-        if r=="15":
-            max = "red"
+        if (r=="15") or(r=="20"):
+            max = r_color[r]
         else:
             max = None
             
@@ -139,6 +139,6 @@ fig.legend(handles=legend_max,
            frameon=False)
 
 # plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
-plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
+# plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
 plt.show()

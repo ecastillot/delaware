@@ -70,8 +70,8 @@ for n,(key,val) in enumerate(custom_palette.items()):
         Q3 = data['v_ij'].quantile(0.90)
         iqr_data = data[(data['v_ij'] >= Q1) & (data['v_ij'] <= Q3)]
         
-        if r=="15":
-            max = "red"
+        if (r=="15") or(r=="20"):
+            max = r_color[r]
         else:
             max = None
         
@@ -80,8 +80,6 @@ for n,(key,val) in enumerate(custom_palette.items()):
                                    ax=axes[col][row],
                                    max=max)
         # Set y-axis label only for the first column
-        if col != 0:
-            axes[row, col].set_ylabel("")
             # axes[row, col].tick_params(left=False)  # Hide y-ticks on other columns
             
         
@@ -94,10 +92,16 @@ for n,(key,val) in enumerate(custom_palette.items()):
                     fontsize="medium", 
                     fontweight="normal",
                     bbox=box)
- 
- 
+
+for ncol in range(cols): 
+    for nrow in range(rows):
+        if ncol != 0 :
+            axes[nrow,ncol].set_ylabel("")
 # axes[1, 2].set_visible(False)    
 # axes[2, 2].set_visible(False)    
+
+
+fig.subplots_adjust(wspace=0.15)  # Modify as needed
 
 legend_elements = [Line2D([0], [0], color=color, 
                 lw=2, label=f"{key} km") \
@@ -123,7 +127,9 @@ fig.legend(handles=legend_max,
            loc=(0.25, 1-0.1),
            frameon=False)
 
+
+
 # plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
-plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
+# plt.subplots_adjust(bottom=0.2)  # Adjust bottom spacing to fit the legend
 plt.savefig(output_path, dpi=300, bbox_inches='tight')
 plt.show()
