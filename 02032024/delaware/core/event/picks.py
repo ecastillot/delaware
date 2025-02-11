@@ -10,8 +10,9 @@ from .data import QuakeDataFrame
 from ..database.database import load_from_sqlite,load_chunks_from_sqlite
 import pandas as pd
 
-def read_picks(path, author, ev_ids=None, custom_params=None, drop_duplicates=True,
-               mode="utdquake",debug=False):
+def read_picks(path, author, ev_ids=None, custom_params=None, 
+               drop_duplicates=True,parse_dates=None,
+               mode="utdquake",sortby=None,debug=False):
     """
     Load earthquake picks from an SQLite database and return a Picks object.
 
@@ -29,6 +30,7 @@ def read_picks(path, author, ev_ids=None, custom_params=None, drop_duplicates=Tr
             Defaults to None.
         drop_duplicates (bool, optional): Whether to drop duplicate rows from the data.
             Defaults to True.
+        sortby (str, optional): Column name to sort the resulting DataFrame by. Defaults to None.
 
     Returns:
         Picks: A `Picks` object containing the loaded pick data and associated author information.
@@ -38,17 +40,20 @@ def read_picks(path, author, ev_ids=None, custom_params=None, drop_duplicates=Tr
         - If `ev_ids` is None, all tables in the database are considered.
         - The `Picks` class must be defined elsewhere in your code to handle the loaded data.
     """
+    
+    
     # Load pick data from the SQLite database using the helper function
     picks = load_from_sqlite(
         db_path=path,           # Path to the SQLite database
         tables=ev_ids,          # Event IDs (table names) to load picks from
         custom_params=custom_params,  # Optional custom filtering parameters
         drop_duplicates=drop_duplicates,
-        sortby="time" ,
+        parse_dates=parse_dates,
+        sortby=sortby,
         debug=debug# Sort the data by the "time" column
     )
         
-        
+      
     if mode =="utdquake":
         if picks.empty:
             return Picks(pd.DataFrame(columns=['ev_id', 'network', 'station', 'time', 'phase_hint']), 

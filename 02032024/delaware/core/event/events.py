@@ -167,7 +167,8 @@ class Events(Points):
         return self  
     
     def get_picks(self, picks_path,ev_ids=None,
-                  stations =None,author=None):
+                  stations =None,author=None,
+                  parse_dates=None):
         
         if len(self) != 0:
             default_ev_ids = self.data["ev_id"].to_list()
@@ -182,8 +183,13 @@ class Events(Points):
         else :
             raise Exception(f"No events found. Your Events object is empty.")
        
+        if parse_dates is None:
+            parse_dates = ["time"]
+            
         picks = read_picks(picks_path,author=author,
-                               ev_ids=ev_ids,mode="utdquake")
+                            ev_ids=ev_ids,
+                            parse_dates=parse_dates,
+                            mode="utdquake")
         
         if picks.empty:
             return picks

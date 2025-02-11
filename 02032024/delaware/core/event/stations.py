@@ -30,6 +30,7 @@ class Stations(Points):
     
     def get_events_by_sp(self,catalog,rmax,
                          zmin=None,
+                         parse_dates=None,
                          picks_path=None,
                          output_folder=None):
         
@@ -60,7 +61,8 @@ class Stations(Points):
             
             if picks_path is not None:
                 
-                picks = new_catalog.get_picks(picks_path,stations=self)
+                picks = new_catalog.get_picks(picks_path,stations=self,
+                                parse_dates=parse_dates)
                 picks.select_data({"station":[row.station]})
                 picks.drop_picks_with_single_phase(inplace=True)
                 
@@ -86,7 +88,8 @@ class Stations(Points):
                 if picks_path is not None:
                     save_to_sqlite(picks.data,
                                     db_path=sp_picks_path,
-                                    table_name=row.station)
+                                    table_name=row.station
+                                    )
         
         # new_catalog = Catalog(data=new_catalog,xy_epsg=self.xy_epsg)        
             all_events[row.station].append(new_catalog)

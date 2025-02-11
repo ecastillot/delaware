@@ -9,6 +9,7 @@ from project.sp.utils import prepare_sp_analysis,sup_fig_1
 
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
 output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/sup_fig_1/supfig_1.png"
+sp_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1_test"
 radii = [1,2,3,4,5]
 
 custom_palette = {"PB35": "#26fafa", 
@@ -43,8 +44,8 @@ axes.append(fig.add_subplot(gs[4:6, 2:6]))
 
 for n,r in enumerate(radii):
   print(r)
-  catalog_path = f"/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1/{r}_km/catalog_sp_method.db"
-  picks_path = f"/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/sup_fig_1/{r}_km/picks_sp_method.db"
+  catalog_path = f"{sp_path}/{r}_km/catalog_sp_method.db"
+  picks_path = f"{sp_path}/{r}_km/picks_sp_method.db"
 
 
   picks = load_from_sqlite(picks_path)

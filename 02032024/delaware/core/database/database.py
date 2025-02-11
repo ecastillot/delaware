@@ -188,12 +188,17 @@ def load_table(
             drop_subset = list(custom_params.keys()) if custom_params else None
             df = df.drop_duplicates(subset=drop_subset, ignore_index=True)
 
+        if "arrival_time" in list(df.columns.to_list()):
+            df = df.rename(columns={"arrival_time":"time"})  
+            
+        # print(df.info())
         # Sort the DataFrame if a sort column is specified
         if sortby:
             df = df.sort_values(by=sortby, ignore_index=True)
 
         # Add the DataFrame to the list
         all_dataframes.append(df)
+
 
     # Combine all DataFrames into one
     if all_dataframes:
