@@ -156,7 +156,7 @@ def plot_times_by_station(data,title=None,show: bool = True,
         if show:
             plt.show()
     else:
-        return ax
+        return fig, ax
     
 def sup_fig_1(data,title=None,show: bool = True, 
                           ylim=None,
