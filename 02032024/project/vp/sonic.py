@@ -7,7 +7,7 @@ from delaware.core.enverus import plot_velocity_logs,well_fig
 mydata = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp/vp.png"
+output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp/vp_ok.png"
 
 data = pd.read_csv(mydata)
 formations = pd.read_csv(formations)
