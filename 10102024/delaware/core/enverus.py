@@ -794,7 +794,8 @@ def well_fig(df,formations,
     xlims=None,
     ylims=None,
     minor_ticks=True,
-    smooth_interval=None,):
+    smooth_interval=None,
+    output_mean=None):
     
     
     # Load reference velocity models (e.g., DB1D, Sheng (2022)).
@@ -982,8 +983,296 @@ def well_fig(df,formations,
                     linestyle="--",
                     # label="basement"
                     )
+        
+        if output_mean is not None:
+            guess.to_csv(output_mean,index=False)
 
 
+        
+        legend_line2 = plt.Line2D(
+            [0], [0], color="red", 
+            lw=1.5, 
+            linestyle="--", label="Vp in basement",
+        )
+        well_legend_handles.append(legend_line2)
+                
+    ax.tick_params(axis='both', which='major', 
+                   length=6, width=1.5,
+                #    labelsize=14
+                   )
+    
+    
+    # Apply axis limits and invert y-axis for depth.
+    if xlims:
+        ax.set_xlim(xlims)
+    if ylims:
+        ax.set_ylim(ylims)
+    ax.invert_yaxis()
+    
+    # Set labels and titles for the subplot.
+    # ax.set_title(well_name)
+    ax.set_xlabel("Velocity [km/s]")
+    
+    ax.legend(handles=well_legend_handles, loc="lower left", 
+               fontsize=6, )
+    
+    # Add gridlines to the plot.
+    if grid:
+        ax.grid(color='black', linewidth=0.5, linestyle=":")
+        if minor_ticks:
+            ax.minorticks_on()  # Enable minor ticks
+            ax.grid(color='gray', linewidth=0.5, linestyle=":", which='minor')
+
+    return ax,global_legend_handles,vel_legend_handles
+
+def z_fig(df,formations,
+             formation_well_name,
+             sp_25, sp_75,vp_vs,
+             ax,
+             z_color="gray",
+             depth="Depth[km]",
+    vel="Vp[km/s]",
+    formations_key_order=None,
+    form_linestyle="--",
+    data_color=None,
+    grid=True,
+    mean=True,
+    xlims=None,
+    ylims=None,
+    minor_ticks=True,
+    smooth_interval=None,
+    output_mean=None,
+    region=None
+    ):
+    
+    
+    # Load reference velocity models (e.g., DB1D, Sheng (2022)).
+    db1d_velmodel, sheng_velmodel = get_dw_models()
+    # Define line styles for velocity models.
+    vel_model_style = {
+        "DB1D": {
+            "linewidth": 1.5,
+            "color": "black",
+            "linestyle": ":",
+            "vel_model": db1d_velmodel,
+        },
+        "Sheng (2022)": {
+            "linewidth": 1.5,
+            "color": "black",
+            "linestyle": "--",
+            "vel_model": sheng_velmodel,
+        },
+    }
+    # Create legend elements for velocity models.
+    vel_legend_handles = []
+    for key, style in vel_model_style.items():
+        legend_line = plt.Line2D(
+            [0], [0], color=style["color"], lw=style["linewidth"], linestyle=style["linestyle"], label=key
+        )
+        vel_legend_handles.append(legend_line)
+    
+    
+    df = df.sort_values("TVD[km]")
+    elevation_km = -round(df["elevation[km]"].iloc[0], 1)
+    # Plot a horizontal line to represent the well's elevation.
+    ax.axhline(y=elevation_km, color='black',
+            linestyle='-', linewidth=1)
+    
+    z_values = np.linspace(0,12,100)
+    # Add velocity model lines to the plot.
+    for key, style in vel_model_style.items():
+        vel_model = style["vel_model"]
+        
+        v_mean_db1d = [vel_model.get_average_velocity(phase_hint="P", zmax=z) \
+                                                    for z in z_values]
+        v_mean_db1d = np.array(v_mean_db1d)
+        
+        ax.plot(v_mean_db1d, z_values,
+                color=style["color"], 
+                    linewidth=style["linewidth"], 
+                    linestyle=style["linestyle"], 
+                label='DB1D')
+        # print(vel_model)
+        # exit()
+        # data2plot = vel_model.data.copy()
+        
+        # if key == "DB1D":
+        #     data2plot.loc[0,"Depth (km)"] = elevation_km
+            
+        
+        # data2plot = data2plot[data2plot["Depth (km)"] >= elevation_km]
+        # ax.step(data2plot["VP (km/s)"], 
+        #             data2plot["Depth (km)"], 
+        #             color=style["color"], 
+        #             linewidth=style["linewidth"], 
+        #             linestyle=style["linestyle"], 
+        #             # label=key
+        #             )
+    
+    wells_data = {}
+    well_legend_handles = []
+    grouped_data = df.groupby("well_name")
+    colors = plt.cm.tab10.colors[:grouped_data.ngroups]
+    for i,(well_name,single_data) in enumerate(grouped_data):
+        print("Well:", well_name)
+        
+        single_data = single_data.sort_values("TVD[km]")
+        elevation_km = -round(single_data["elevation[km]"].iloc[0], 1)
+            
+        # Adjust depth based on elevation and apply smoothing if required.
+        if depth == "Depth[km]":
+            single_data[depth] = single_data["TVD[km]"] + elevation_km
+        
+        if data_color is not None:
+            color= data_color 
+        else:
+            color = colors[i]
+        
+        # ax.plot(single_data[vel], 
+        #         single_data[depth],
+        #         # color="gray",
+        #         color=color,
+        #         alpha=0.2,linewidth=0.5,
+        #         # label=well_name
+        #         )
+        
+        legend_line = plt.Line2D(
+            [0], [0], color=color, 
+            lw=1.5, 
+            linestyle="-", label=well_name,
+        )
+        well_legend_handles.append(legend_line)
+    
+        # drop inf
+        # Replace inf values with NaN
+        single_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+        single_data.dropna(inplace=True,subset=['Vp[km/s]'])
+        
+        if smooth_interval is not None:
+            single_data['Depth_interval'] = (single_data['Depth[km]'] // smooth_interval) * smooth_interval
+            result = single_data.groupby('Depth_interval')['Vp[km/s]'].median().reset_index()
+            result.columns = ['Depth[km]', 'Vp[km/s]']
+            if result.empty:
+                print(f"{well_name} empty using smooth_interval = {smooth_interval} km")
+                continue
+            else:
+                single_data = result
+        
+        wells_data[well_name] = single_data[[vel,depth]]
+        if not mean:
+            # Plot the velocity log for the well.
+            ax.step(single_data[vel], 
+                        single_data[depth], 
+                        # "red", 
+                        linestyle="-",
+                        color=color,
+                        linewidth=1.5)
+            
+            
+    
+    global_legend_handles = {}
+    # Plot formation boundaries for the well.
+    if formations is not None:
+        
+        global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
+        if formations_key_order is None:
+            formations_key_order = "FormationName"
+        formations_order = formations.copy().drop_duplicates("FormationName")
+        formations_order = formations_order.sort_values(formations_key_order, ignore_index=True)
+        formations_order = formations_order["FormationName"].tolist()
+        
+        single_formation = formations[formations["API_UWI_12"] == formation_well_name[:-3]]
+        single_formation = single_formation.sort_values("TVD_Top", ignore_index=True)
+        
+        for _, f in single_formation.iterrows():
+            depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
+            formation_name = f["FormationName"]
+            color = global_formation_colors.get(formation_name, "gray")
+            ax.axhline(y=depth_f, color=color, linestyle=form_linestyle, linewidth=1)
+            
+            # Add the formation to the legend if not already present.
+            global_legend_handles[formation_name] = plt.Line2D([0], [0], color=color, lw=2,
+                                                               linestyle=form_linestyle, 
+                                                               label=formation_name)
+     
+     
+    if mean:
+        # Define common depth bins (from min to max depth across all wells)
+        min_depth = min(df['Depth[km]'].min() for df in wells_data.values())
+        max_depth = max(df['Depth[km]'].max() for df in wells_data.values())
+        min_depth = round(min_depth,2)
+        max_depth = round(max_depth,2)
+        depth_bins = np.arange(min_depth, max_depth + 0.1, 0.1)
+        # Create an empty DataFrame for results
+        mean_velocity = pd.DataFrame({'Depth[km]': depth_bins})
+
+        # Compute the mean velocity for each depth bin
+        velocities = []
+        for well, df in wells_data.items():
+            interpol = np.interp(depth_bins, round(df['Depth[km]'],2), 
+                                        df['Vp[km/s]'], left=np.nan, right=np.nan)
+            velocities.append(interpol)
+            
+        mean_velocity['Vp_mean[km/s]'] = np.nanmean(np.array(velocities), axis=0)
+        
+        # append DW velocity
+        mean_velocity.dropna(inplace=True,subset=['Vp_mean[km/s]'])
+        
+        # ax.step(mean_velocity['Vp_mean[km/s]'], 
+        #             mean_velocity[depth], 
+        #             color="red",
+        #             linewidth=1.5, 
+        #             linestyle="-",
+        #             label="mean")
+        
+        legend_line = plt.Line2D(
+            [0], [0], color="red", 
+            lw=2.5, 
+            linestyle="-", label="mean",
+        )
+        well_legend_handles.append(legend_line)
+        
+        last_value = mean_velocity.loc[len(mean_velocity)-1,:]
+        
+        guess = mean_velocity.copy()
+        
+        guess.loc[len(guess)] = [last_value['Depth[km]']+0.1, 6]
+        guess.loc[len(guess)] = [10, 6]
+        ax.step(guess['Vp_mean[km/s]'], 
+                    guess[depth], 
+                    color="red",
+                    linewidth=1.5, 
+                    linestyle="--",
+                    # label="basement"
+                    )
+        
+        if output_mean is not None:
+            guess.to_csv(output_mean,index=False)
+
+        my_vel = guess.copy()
+        my_vel = my_vel.rename(columns={"Depth[km]":"Depth (km)","Vp_mean[km/s]":"VP (km/s)"})
+        my_vel["VS (km/s)"] = my_vel["VP (km/s)"] / 1.732
+        if region is not None:
+            name = f"R{region}"
+        else:
+            name = well_name
+        my_vel = VelModel(my_vel,name=name)
+        
+        avg_vel = [my_vel.get_average_velocity(phase_hint="P", zmax=z) \
+                                                    for z in z_values]
+        
+        ax.plot(avg_vel, z_values, 'red', 
+            linewidth=2.5, linestyle='-', 
+            label="Vp in "+name)
+        
+        vp = np.linspace(2,7,100)
+        z1 = vp*(sp_25/(vp_vs-1))+ elevation_km
+        z2 = vp*(sp_75/(vp_vs-1))+ elevation_km
+        
+        ax.plot(vp,z1,color=z_color,linewidth=1.5)
+        ax.plot(vp,z2,color=z_color,linewidth=1.5)
+        ax.fill_between(vp, z1, z2, color=z_color, alpha=0.3)  # Color span between y1 and y2
+        
         
         legend_line2 = plt.Line2D(
             [0], [0], color="red", 

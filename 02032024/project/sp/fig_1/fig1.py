@@ -10,6 +10,8 @@ picks_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/data/fig
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
 output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/fig_1/fig_1.png"
 
+csv_output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/fig_1/fig_1_picks.csv"
+
 custom_palette = {"PB35": "#26fafa", 
                   "PB36": "#2dfa26", 
                   "PB28": "#ad16db", 
@@ -41,6 +43,9 @@ catalog,picks = prepare_sp_analysis(catalog,picks,cat_columns_level=0)
 
 picks["ts-tp"] = picks["tt_S"] - picks["tt_P"]
 picks['ts-tp'] = picks['ts-tp'].astype(float)
+picks.to_csv(csv_output_path,index=False)
+# print(picks)
+# exit()
 stats_by_station = picks.groupby('station')['ts-tp'].describe()
 
 

@@ -8,6 +8,7 @@ mydata = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/Enveru
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
 output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp/vp_ok.png"
+output_folder_mean = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp"
 
 data = pd.read_csv(mydata)
 formations = pd.read_csv(formations)
@@ -77,6 +78,7 @@ ax_rl1,lg1_rl1,lg2_rl1 = well_fig(data_rl1,formations,form_rl1,
          data_color="gray",
          form_linestyle = "dashed",
          smooth_interval=precision,
+         
          )
 
 ax_1,lg1_1,lg2_1 = well_fig(data1,formations,form_r1,
@@ -85,6 +87,7 @@ ax_1,lg1_1,lg2_1 = well_fig(data1,formations,form_r1,
          xlims=(1.5,6.5),
          form_linestyle = "dashed",
          smooth_interval=precision,
+         output_mean=os.path.join(output_folder_mean,"R1.csv")
          )
 text_loc2 = [0.5, 0.98]
 ax_1.text(text_loc2[0], text_loc2[1], 
@@ -101,6 +104,7 @@ ax_2,lg1_2,lg2_2 = well_fig(data2,formations,form_r2,
          xlims=(1.5,6.5),
          form_linestyle="dashed",
          smooth_interval=precision,
+         output_mean=os.path.join(output_folder_mean,"R2.csv")
          )
 ax_2.text(text_loc2[0], text_loc2[1], 
          "R2", 
@@ -110,13 +114,14 @@ ax_2.text(text_loc2[0], text_loc2[1],
          fontsize="large", 
          fontweight="normal",
          bbox=box)
-print("R3")
+# print("R3")
 ax_3,lg1_3,lg2_3 = well_fig(data3,formations,form_r3,
          ax=axes[3],
          ylims=(-2,6),
          xlims=(1.5,6.5),
          form_linestyle="dashed",
          smooth_interval=precision,
+         output_mean=os.path.join(output_folder_mean,"R3.csv")
          )
 ax_3.text(text_loc2[0], text_loc2[1], 
          "R3", 
