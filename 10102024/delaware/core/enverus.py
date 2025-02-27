@@ -1257,7 +1257,7 @@ def z_fig(df,formations,
         
         ax.plot(avg_vel, z_values, 'red', 
             linewidth=2.5, linestyle='-', 
-            label="Vp in "+name)
+            label="Vp mean")
         
         vp = np.linspace(2,7,100)
         z1 = vp*(sp_25/(vp_vs-1))+ elevation_km
@@ -1271,7 +1271,7 @@ def z_fig(df,formations,
         legend_line2 = plt.Line2D(
             [0], [0], color="red", 
             lw=1.5, 
-            linestyle="--", label="Vp in basement",
+            linestyle="--", label="Vp mean",
         )
         well_legend_handles.append(legend_line2)
                 
