@@ -216,6 +216,7 @@ class VelModel:
         """
         # Filter data based on zmin and zmax and sort by depth
         filtered_data = self.data.sort_values(by="Depth (km)").reset_index(drop=True)
+        # print(filtered_data)
         
         # Initialize variables to hold the weighted sum and total depth
         weighted_sum = 0.0
@@ -232,6 +233,7 @@ class VelModel:
             interval_end = min(depth_end, zmax) if zmax is not None else depth_end
             
             # print(interval_start,interval_end)
+            # print("aca",depth_end, zmax)
             # Only consider intervals that fall within the zmin-zmax range
             if interval_start < interval_end:
                 interval_depth = interval_end - interval_start
@@ -247,9 +249,10 @@ class VelModel:
             weighted_sum += last_velocity * interval_depth
             total_depth += interval_depth
             
-        v = weighted_sum / total_depth
-        v = round(v,2)
-        return v if total_depth > 0 else None
+        # v = weighted_sum / total_depth
+        # v = round(v,2)
+        # return v if total_depth > 0 else None
+        return round(weighted_sum / total_depth, 2) if total_depth > 0 else None
 
 
 

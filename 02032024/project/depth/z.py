@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import string
 import matplotlib.pyplot as plt
-from delaware.core.enverus import plot_velocity_logs,z_fig
+from delaware.core.enverus import z_fig
 
 mydata = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
@@ -18,6 +18,16 @@ custom_palette = {"PB36": {"color":"#26fafa","region":1,"vp/vs":1.66},
                   "WB03": {"color":"gray","region":3,"vp/vs":1.72}, 
                   "PB24": {"color":"#0ea024","region":3,"vp/vs":1.73}, 
                   }
+
+
+# custom_palette = {"PB36": {"color":"#26fafa","region":1,"vp/vs":1.725}, 
+#                   "PB35": {"color":"#2dfa26","region":1,"vp/vs":1.725}, 
+#                   "PB28": {"color":"#ad16db","region":1,"vp/vs":1.725}, 
+#                   "PB37": {"color":"#1a3be3","region":1,"vp/vs":1.725}, 
+#                   "SA02": {"color":"#f1840f","region":2,"vp/vs":1.69}, 
+#                   "WB03": {"color":"gray","region":3,"vp/vs":1.61}, 
+#                   "PB24": {"color":"#0ea024","region":3,"vp/vs":1.61}, 
+#                   }
 
 picks = pd.read_csv(sp_path )
 picks = picks[picks["station"].isin(list(custom_palette.keys()))]

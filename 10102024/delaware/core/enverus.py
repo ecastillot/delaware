@@ -1067,7 +1067,8 @@ def z_fig(df,formations,
     vel_legend_handles = []
     for key, style in vel_model_style.items():
         legend_line = plt.Line2D(
-            [0], [0], color=style["color"], lw=style["linewidth"], linestyle=style["linestyle"], label=key
+            [0], [0], color=style["color"], lw=style["linewidth"],
+            linestyle=style["linestyle"], label=key
         )
         vel_legend_handles.append(legend_line)
     
@@ -1078,11 +1079,12 @@ def z_fig(df,formations,
     ax.axhline(y=elevation_km, color='black',
             linestyle='-', linewidth=1)
     
-    z_values = np.linspace(0,12,100)
+    # print(elevation_km)
+    z_values = np.linspace(elevation_km,12,100)
     # Add velocity model lines to the plot.
     for key, style in vel_model_style.items():
         vel_model = style["vel_model"]
-        
+        vel_model.data["Depth (km)"].iloc[0] = elevation_km
         v_mean_db1d = [vel_model.get_average_velocity(phase_hint="P", zmax=z) \
                                                     for z in z_values]
         v_mean_db1d = np.array(v_mean_db1d)
@@ -1090,28 +1092,20 @@ def z_fig(df,formations,
         ax.plot(v_mean_db1d, z_values,
                 color=style["color"], 
                     linewidth=style["linewidth"], 
-                    linestyle=style["linestyle"], 
-                label='DB1D')
-        # print(vel_model)
-        # exit()
-        # data2plot = vel_model.data.copy()
-        
-        # if key == "DB1D":
-        #     data2plot.loc[0,"Depth (km)"] = elevation_km
-            
-        
-        # data2plot = data2plot[data2plot["Depth (km)"] >= elevation_km]
-        # ax.step(data2plot["VP (km/s)"], 
-        #             data2plot["Depth (km)"], 
-        #             color=style["color"], 
-        #             linewidth=style["linewidth"], 
-        #             linestyle=style["linestyle"], 
-        #             # label=key
-        #             )
+                    linestyle=style["linestyle"])
     
     wells_data = {}
     well_legend_handles = []
     grouped_data = df.groupby("well_name")
+    
+    # #elevation data
+    # elevation_data = {}
+    # for i,(well_name,single_data) in enumerate(grouped_data):
+    #     single_data = single_data.sort_values("TVD[km]")
+    #     elevation_km = -round(single_data["elevation[km]"].iloc[0], 1)
+    #     elevation_data[well_name] = elevation_km
+    
+    
     colors = plt.cm.tab10.colors[:grouped_data.ngroups]
     for i,(well_name,single_data) in enumerate(grouped_data):
         print("Well:", well_name)
@@ -1136,12 +1130,12 @@ def z_fig(df,formations,
         #         # label=well_name
         #         )
         
-        legend_line = plt.Line2D(
-            [0], [0], color=color, 
-            lw=1.5, 
-            linestyle="-", label=well_name,
-        )
-        well_legend_handles.append(legend_line)
+        # legend_line = plt.Line2D(
+        #     [0], [0], color=color, 
+        #     lw=1.5, 
+        #     linestyle="-", label=well_name,
+        # )
+        # well_legend_handles.append(legend_line)
     
         # drop inf
         # Replace inf values with NaN
@@ -1228,7 +1222,7 @@ def z_fig(df,formations,
         legend_line = plt.Line2D(
             [0], [0], color="red", 
             lw=2.5, 
-            linestyle="-", label="mean",
+            linestyle="-", label="Vp average",
         )
         well_legend_handles.append(legend_line)
         

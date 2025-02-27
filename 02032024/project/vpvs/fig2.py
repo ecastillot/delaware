@@ -7,7 +7,7 @@ import pandas as pd
 from project.vpvs.utils import plot_vij_histogram,plot_vij_histogram_station
 import glob
 from matplotlib.lines import Line2D
-
+import re
 
 clusters_r = [1,2,3]
 
@@ -31,7 +31,9 @@ custom_palette = {
 #            "15":"purple","20":"black"}
 r_color = {
            "5":"yellow","10":"orange",
-           "15":"red","20":"purple"}
+           "15":"green","20":"blue",
+           "25":"purple","30":"black",
+           }
 
 # Share x-axis per column
 for col in range(2):  # Iterate over columns (0 and 1)
@@ -69,7 +71,7 @@ for i,cluster in enumerate(clusters_r):
     ax = plot_vij_histogram(iqr_cat,cluster,
                        bins= np.arange(1.4,1.9,0.025),
                     ax=axes[i][0],
-                    max="red",
+                    max="black",
                     #    output=output
                     )
     text_loc = [0.05, 0.2]
@@ -84,7 +86,8 @@ for i,cluster in enumerate(clusters_r):
 
 for n,(key,val) in enumerate(custom_palette.items()):
     query = glob.glob(os.path.join(global_path,"stations",f"{key}*.csv"))
-    for path in query:
+    sorted_files = sorted(query, key=lambda x: int(re.search(r'_(\d+)\.csv$', x).group(1)))
+    for path in sorted_files:
         basename = os.path.basename(path).split(".")[0]
         station,r = basename.split("_")
         
@@ -96,7 +99,7 @@ for n,(key,val) in enumerate(custom_palette.items()):
         Q3 = data['v_ij'].quantile(0.90)
         iqr_data = data[(data['v_ij'] >= Q1) & (data['v_ij'] <= Q3)]
         
-        if (r=="15") or(r=="20"):
+        if (r=="20") or(r=="25") or(r=="30"):
             max = r_color[r]
         else:
             max = None
@@ -118,16 +121,16 @@ legend_elements = [Line2D([0], [0], color=color,
                 lw=2, label=f"{key} km") \
                     for key, color in r_color.items()]
 
-legend_max = [Line2D([0], [0], color="red", 
+legend_max = [Line2D([0], [0], color="black", 
                 lw=2, linestyle="--",label=f"Max. Value")\
                     ]
 
 fig.legend(handles=legend_elements, 
         #    loc='lower right', , 
         # loc='lower center',
-           ncol=len(r_color), 
+           ncol= int(len(r_color)/2), 
         #    loc=(0.5, 0.035),
-           loc=(0.5, 1-0.1),
+           loc=(0.55, 1-0.12),
            frameon=False,title="Radius")
 
 fig.legend(handles=legend_max, 

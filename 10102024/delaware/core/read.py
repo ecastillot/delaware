@@ -106,7 +106,8 @@ class EQPicks():
             picks_data = picks.data        
             picks_data = pd.merge(picks_data,cat_info,on=["ev_id"])
             # print(picks_data.columns)
-            picks_data = get_distance_in_dataframe(data=picks_data,lat1_name="src_latitude",
+            picks_data = get_distance_in_dataframe(data=picks_data,
+                                                   lat1_name="src_latitude",
                                           lon1_name="src_longitude",
                                           lat2_name="station_latitude",
                                           lon2_name="station_longitude",
