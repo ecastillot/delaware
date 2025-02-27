@@ -213,7 +213,7 @@ fig.legend(handles=lg2_1, loc="upper left", title="Average Velocity Model",
 # Finalize layout and save or display the plot.
 fig.tight_layout()
 fig.subplots_adjust(bottom=0.26)
-# fig.savefig(output_fig, dpi=300, bbox_inches='tight')
+fig.savefig(output_fig, dpi=300, bbox_inches='tight')
 plt.show()
 
 # stations = pd.read_csv(stations_path)
