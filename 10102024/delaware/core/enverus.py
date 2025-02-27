@@ -804,8 +804,8 @@ def well_fig(df,formations,
     vel_model_style = {
         "DB1D": {
             "linewidth": 1.5,
-            "color": "black",
-            "linestyle": ":",
+            "color": "blue",
+            "linestyle": "--",
             "vel_model": db1d_velmodel,
         },
         "Sheng (2022)": {
@@ -1051,15 +1051,15 @@ def z_fig(df,formations,
     # Define line styles for velocity models.
     vel_model_style = {
         "DB1D": {
-            "linewidth": 1.5,
-            "color": "black",
-            "linestyle": ":",
+            "linewidth": 1,
+            "color": "blue",
+            "linestyle": "-",
             "vel_model": db1d_velmodel,
         },
         "Sheng (2022)": {
-            "linewidth": 1.5,
+            "linewidth": 1,
             "color": "black",
-            "linestyle": "--",
+            "linestyle": "-",
             "vel_model": sheng_velmodel,
         },
     }

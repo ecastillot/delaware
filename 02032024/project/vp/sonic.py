@@ -143,10 +143,13 @@ ax_rr1,lg1_rr1,lg2_rr1 = well_fig(data_rr1,formations,form_rr1,
 
 # Sort and add legend for formations.
 global_legend_handles = {k: v for d in [lg1_1,lg1_2,lg1_3] for k, v in d.items()}
-fig.legend(handles=list(global_legend_handles.values()), loc="upper left",
+fig.legend(handles=list(global_legend_handles.values()), 
+           loc="upper left",title="Formations",
            fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
 # Add velocity model legend to the figure.
-fig.legend(handles=lg2_3, loc="upper left", fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
+fig.legend(handles=lg2_3, loc="upper left", 
+           title="Velocity Model",
+           fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
 
 # Finalize layout and save or display the plot.
 fig.tight_layout()

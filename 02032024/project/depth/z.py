@@ -10,13 +10,13 @@ stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/station
 output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/depth/z.png"
 sp_path ="/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp/fig_1/fig_1_picks.csv"
 
-custom_palette = {"PB36": {"color":"#26fafa","region":1,"vp/vs":1.66}, 
+custom_palette = {"PB36": {"color":"#26fafa","region":1,"vp/vs":1.72}, 
                   "PB35": {"color":"#2dfa26","region":1,"vp/vs":1.69}, 
-                  "PB28": {"color":"#ad16db","region":1,"vp/vs":1.76}, 
-                  "PB37": {"color":"#1a3be3","region":1,"vp/vs":1.65}, 
-                  "SA02": {"color":"#f1840f","region":2,"vp/vs":1.73}, 
-                  "WB03": {"color":"gray","region":3,"vp/vs":1.72}, 
-                  "PB24": {"color":"#0ea024","region":3,"vp/vs":1.73}, 
+                  "PB28": {"color":"#ad16db","region":1,"vp/vs":1.70}, 
+                  "PB37": {"color":"#1a3be3","region":1,"vp/vs":1.70}, 
+                  "SA02": {"color":"#f1840f","region":2,"vp/vs":1.72}, 
+                  "WB03": {"color":"gray","region":3,"vp/vs":1.65}, 
+                  "PB24": {"color":"#0ea024","region":3,"vp/vs":1.65}, 
                   }
 
 
@@ -203,11 +203,12 @@ for i,station in enumerate(order):
 
 
 # # Sort and add legend for formations.
-# global_legend_handles = {k: v for d in [lg1_1,lg1_2,lg1_3] for k, v in d.items()}
-# fig.legend(handles=list(global_legend_handles.values()), loc="upper left",
-#            fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
+global_legend_handles = {k: v for d in [lg1_1] for k, v in d.items()}
+fig.legend(handles=list(global_legend_handles.values()), loc="upper left", title="Formations", 
+           fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
 # # Add velocity model legend to the figure.
-# fig.legend(handles=lg2_3, loc="upper left", fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
+fig.legend(handles=lg2_1, loc="upper left", title="Average Velocity Model",
+           fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
 
 # Finalize layout and save or display the plot.
 fig.tight_layout()
