@@ -1304,6 +1304,7 @@ def z_fig(df,formations,
 
     return ax,global_legend_handles,vel_legend_handles
 
+
 if __name__ == "__main__":
     
     # 1 

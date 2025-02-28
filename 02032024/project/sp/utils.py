@@ -31,6 +31,11 @@ def prepare_sp_analysis(cat, picks, cat_columns_level=1):
     # Convert arrival and origin times to datetime for time-based calculations
     picks["time"] = pd.to_datetime(picks["time"],format="mixed")
     cat["origin_time"] = pd.to_datetime(cat["origin_time"],format="mixed")
+    # print(cat.info())
+    # print(cat[cat["ev_id"]=="texnet2023yvik"][ ["yr","mon","day","hr","min_","sec",
+    #                                           "origin_time","ev_id"]])
+    # print(picks[picks["ev_id"]=="texnet2023yvik"])
+    # exit()
     
 
     # Define the essential columns to keep in each DataFrame
