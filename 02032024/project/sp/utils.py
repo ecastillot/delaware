@@ -108,7 +108,9 @@ def plot_times_by_station(data,title=None,show: bool = True,
     # grouped = data.groupby('station')['ev_id']
     if ax is None:
         fig,ax = plt.subplots(1,1,figsize=(10, 6))
-    
+    else:
+        fig = None
+        
     sns.boxplot(data=data,x="station",y="ts-tp",ax=ax,**plot_kwargs)
     
     # Calculate the number of samples for each station

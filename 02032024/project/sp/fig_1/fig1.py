@@ -41,12 +41,13 @@ order = order["station"].to_list()
 # print(catalog.info(),picks.info())
 catalog,picks = prepare_sp_analysis(catalog,picks,cat_columns_level=0)
 
-print(picks[picks["tt_P"]<0])
-exit()
+# print(picks[picks["tt_P"]<0])
+# exit()
 
 picks["ts-tp"] = picks["tt_S"] - picks["tt_P"]
 picks['ts-tp'] = picks['ts-tp'].astype(float)
-picks.to_csv(csv_output_path,index=False)
+# picks.to_csv(csv_output_path,index=False)
+
 # print(picks)
 # exit()
 stats_by_station = picks.groupby('station')['ts-tp'].describe()

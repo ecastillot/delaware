@@ -38,7 +38,10 @@ def compute_vij(arrivals):
 def plot_vij_histogram_station(vij_df, color="black", bins=20, output=None,
                                ax=None,legend=False,
                                mode=None,median=None,mean=None,
-                               max=None):
+                               max=None,
+                               x_label=True,
+                               y_label=True):
+
     """
     Plots a histogram of the v_ij values.
 
@@ -98,8 +101,10 @@ def plot_vij_histogram_station(vij_df, color="black", bins=20, output=None,
 
     # Add labels and title
     # ax.set_title(f"R{cluster}", fontsize=16)
-    ax.set_xlabel(r"${v_p}/{v_s}$", fontsize=14)
-    ax.set_ylabel("Norm. Counts", fontsize=14)
+    if x_label:
+        ax.set_xlabel(r"${v_p}/{v_s}$", fontsize=14)
+    if y_label:
+        ax.set_ylabel("Norm. Counts", fontsize=14)
 
     if legend:
         ax.legend(loc="upper right")
