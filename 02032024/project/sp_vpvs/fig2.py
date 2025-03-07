@@ -22,7 +22,7 @@ stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/station
 global_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vpvs"
 
 # Output path for combined figure
-output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/combined_figure.png"
+output_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/sp_vpvs/combined_figure.png"
 
 # Custom palette for Figure 1
 custom_palette = {
@@ -56,7 +56,7 @@ picks["ts-tp"] = picks["ts-tp"].astype(float)
 # Create main figure with two subplots (1 for Figure 1, 1 for Figure 2 right column)
 # Create main figure with GridSpec
 fig = plt.figure(figsize=(12, 8))
-gs = gridspec.GridSpec(2, 3, height_ratios=[2, 1])
+gs = gridspec.GridSpec(2, 3, height_ratios=[2, 1], wspace=0.1)
 ax1 = fig.add_subplot(gs[0, :]) 
 
 text_loc = [0.02, 0.92]
@@ -77,9 +77,9 @@ ax1.text(text_loc[0], text_loc[1],
                 bbox=box)
 
 # Arrow annotation for Figure 1
-fig.text(0.15, 0.35, "W", ha="center", va="center", fontsize=12, fontweight="bold")
-fig.text(0.95, 0.35, "E", ha="center", va="center", fontsize=12, fontweight="bold")
-arrow = mpatches.FancyArrow(0.15, 0.32, 0.8, 0, width=0.001, transform=fig.transFigure, color="black")
+fig.text(0.15, 0.38, "W", ha="center", va="center", fontsize=12, fontweight="bold")
+fig.text(0.87, 0.38, "E", ha="center", va="center", fontsize=12, fontweight="bold")
+arrow = mpatches.FancyArrow(0.15, 0.35, 0.7, 0, width=0.001, transform=fig.transFigure, color="black")
 fig.patches.append(arrow)
 
 
@@ -160,11 +160,11 @@ fig.legend(handles=legend_elements,
            loc="lower left", 
            ncol=6, frameon=False, 
            title="Radius", 
-           bbox_to_anchor=(0.1, -0.1))
+           bbox_to_anchor=(0.1, -0.04))
 fig.legend(handles=legend_max,
            loc="lower center", 
            frameon=False, 
-           bbox_to_anchor=(0.8, -0.1))
+           bbox_to_anchor=(0.8, -0.04))
 
 # Adjust layout and save
 plt.subplots_adjust(hspace=0.4)
