@@ -45,10 +45,10 @@ while df['z_new'].isna().any():
 
 print(df)
 
-df_z = df[["ev_id","longitude","latitude","z_new","S-P"]]
+df_z = df[["ev_id","longitude","latitude","z_new","S-P","station","region"]]
 df_z["Author"] = "S-P Depth Reloc"
 df_z.rename(columns={"z_new":"depth"}, inplace=True)
-df_depth = df[["ev_id","longitude","latitude","z_ori","S-P"]]
+df_depth = df[["ev_id","longitude","latitude","z_ori","S-P","station","region"]]
 df_depth["Author"] = "TexNet HighRes"
 df_depth.rename(columns={"z_ori":"depth"}, inplace=True)
 

@@ -13,40 +13,40 @@ out = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/events
 proj = "EPSG:3857"
 author= "texnet"
 
-# #events
-# events = get_texnet_high_resolution_catalog(events_path,xy_epsg=proj,
-#                                             author=author)
-# data = events.data
+#events
+events = get_texnet_high_resolution_catalog(events_path,xy_epsg=proj,
+                                            author=author)
+data = events.data
 
-# data = data[["ev_id","origin_time","latitude","longitude","depth","magnitude"]]
+data = data[["ev_id","origin_time","latitude","longitude","depth","magnitude"]]
 
-# relocz_data = pd.read_csv(relocz_path,parse_dates=["origin_time"])
-# relocz_data = relocz_data[["ev_id","z"]]
-# relocz_data = relocz_data.rename(columns={"z":"depth"})
+relocz_data = pd.read_csv(relocz_path,parse_dates=["origin_time"])
+relocz_data = relocz_data[["ev_id","z","station","region"]]
+relocz_data = relocz_data.rename(columns={"z":"depth"})
 
-# data = pd.merge(data,relocz_data,on="ev_id",how="left",suffixes=('_TexNet_GrowClust','_S-P_ZReloc'))
+data = pd.merge(data,relocz_data,on="ev_id",how="left",suffixes=('_TexNet_GrowClust','_S-P_ZReloc'))
 
-# # Applying the get_xy function to each row of the DataFrame
-# data = latlon2yx_in_km(data, proj)
-# data.to_csv(out,index=False)
-# print(data.info())
+# Applying the get_xy function to each row of the DataFrame
+data = latlon2yx_in_km(data, proj)
+data.to_csv(out,index=False)
+print(data.info())
 
 #stations
-stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-custom_palette = {"PB35": "#26fafa", 
-                  "PB36": "#2dfa26", 
-                  "PB28": "#ad16db", 
-                  "PB37": "#1a3be3", 
-                  "WB03": "#ffffff", 
-                  "SA02": "#f1840f", 
-                  "PB24": "#0ea024", 
-                  }
-stations = pd.read_csv(stations_path)
-stations_columns = ["network","station","latitude","longitude","elevation"]
-stations = stations[stations_columns]
-stations = stations[stations["station"].isin(list(custom_palette.keys()))]
-stations = latlon2yx_in_km(stations, proj)
+# stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
+# custom_palette = {"PB35": "#26fafa", 
+#                   "PB36": "#2dfa26", 
+#                   "PB28": "#ad16db", 
+#                   "PB37": "#1a3be3", 
+#                   "WB03": "#ffffff", 
+#                   "SA02": "#f1840f", 
+#                   "PB24": "#0ea024", 
+#                   }
+# stations = pd.read_csv(stations_path)
+# stations_columns = ["network","station","latitude","longitude","elevation"]
+# stations = stations[stations_columns]
+# stations = stations[stations["station"].isin(list(custom_palette.keys()))]
+# stations = latlon2yx_in_km(stations, proj)
 
-out = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/stations.csv"
-stations.to_csv(out,index=False)
-print(stations)
+# out = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/stations.csv"
+# stations.to_csv(out,index=False)
+# print(stations)

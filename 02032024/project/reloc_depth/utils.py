@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import string
 from obspy.geodetics.base import gps2dist_azimuth
 from pyproj import Transformer
-
+from scipy.interpolate import griddata
 
 #### Transformation
 def single_yx_in_km2latlon(y: float, x: float, xy_epsg: str = "EPSG:3116"):
