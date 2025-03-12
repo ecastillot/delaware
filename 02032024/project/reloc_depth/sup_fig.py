@@ -72,7 +72,7 @@ axes[0].set_ylabel("Depth", fontsize=12)
 axes[0].set_xlim(-104.8, -103.8)
 axes[0].set_ylim(15, -2)  # Invert the y-axes[0]is for depth
 axes[0].grid(True, which='major', linestyle='--', linewidth=0.8, alpha=0.7)  # Major grid
-axes[0].set_title("Longitude vs Depth", fontsize=14)
+axes[0].set_title("Depth vs Longitude", fontsize=14)
 axes[0].set_xlabel("Longitude", fontsize=14)
 axes[0].set_ylabel("Depth", fontsize=14)
 axes[0].tick_params(axis='both', labelsize=14)
