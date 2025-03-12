@@ -85,6 +85,13 @@ axes[0].plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_p
 # exit()
 sns.scatterplot(x="longitude", y="depth_from_surface", color="gray", 
                 data=highres, label="TexNet HighRes", ax=axes[0], s=20, alpha=0.5)
+sns.scatterplot(x="longitude", y="depth_from_surface", color="darkorange", marker="+",
+                data=reloc, 
+                label="Relative Reloc from S-P Depth Reloc", 
+                ax=axes[0], 
+                s=20,
+                # alpha=0.2
+                )
 sns.scatterplot(x="longitude", y="depth_from_surface", color="darkorange", 
                 data=sp, label="S-P Depth Reloc", ax=axes[0], s=20, alpha=0.2)
 
@@ -110,7 +117,7 @@ axes[1].hist(highres["depth_from_surface"],
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
-axes[1].hist(sp["depth_from_surface"], bins=50, color="darkorange",
+axes[1].hist(df["z_new_from_surface"], bins=50, color="darkorange",
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
@@ -160,9 +167,7 @@ for handle, text, label in zip(legend.legend_handles, legend.get_texts(), labels
 plt.tight_layout()
 
 # Save the plot
-fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/sup_fig_z.png")
+fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/fig_depth.png")
 
 # Show the plot
 plt.show()
-exit()
-
