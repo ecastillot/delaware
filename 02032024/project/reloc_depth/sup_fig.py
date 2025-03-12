@@ -123,7 +123,7 @@ axes[0].legend(loc="lower left", fontsize=14,markerscale=2)
 plt.tight_layout()
 
 # Save the plot
-fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/sup_fig_z.png")
+fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/sup_fig_depth.png")
 
 # Show the plot
 plt.show()
