@@ -139,7 +139,7 @@ frame_range = df['month'].unique()  # Use unique months as frames
 ani = animate(df, ax, frame_range,cmap,norm,time_text)
 
 out = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/seismic_animation.mp4"
-ani.save(out, writer='ffmpeg', fps=30)  # Save as video
+ani.save(out, writer='ffmpeg', fps=2)  # Save as video
 plt.show()
 
 # sudo apt-get install ffmpeg
