@@ -162,6 +162,8 @@ for handle, text, label in zip(legend.legend_handles, legend.get_texts(), labels
     if label == "Stations":
         # text.set_fontsize(10)  # Decrease text size
         handle.set_sizes([50])  # Reduce marker size (adjust value as needed)
+    elif label == "S-P Depth Reloc":
+        handle.set_linewidth(2)  # Increase line thickness (adjust as needed)
     elif label == "Relative Reloc from S-P Depth Reloc":
         handle.set_linewidth(2)  # Increase line thickness (adjust as needed)
 # Adjust layout to avoid overlap
