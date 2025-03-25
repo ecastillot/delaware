@@ -170,7 +170,7 @@ for handle, text, label in zip(legend.legend_handles, legend.get_texts(), labels
 plt.tight_layout()
 
 # Save the plot
-fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/fig_depth.png")
+fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/fig_depthh.png")
 
 # Show the plot
 plt.show()
