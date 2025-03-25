@@ -93,6 +93,7 @@ sns.scatterplot(x="longitude", y="depth_from_surface", color="darkorange", marke
                 # alpha=0.2
                 )
 sns.scatterplot(x="longitude", y="depth_from_surface", color="darkorange", 
+                edgecolor="red",
                 data=sp, label="S-P Depth Reloc", ax=axes[0], s=20, alpha=0.2)
 
 axes[0].scatter(stations["station_longitude"], stations["elevation"], 
