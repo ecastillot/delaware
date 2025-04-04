@@ -13,6 +13,13 @@ cross_plot_data = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/da
 cross_elv_data = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/basement/cross_elevation_plot_data_31.7_-104.8_31.7_-103.8.csv")  # Update with actual file path
 cross_elv_data["Elevation"] = cross_elv_data["Elevation"]*-1/1e3
 
+# elev =  np.interp(cross_plot_data["Longitude"], 
+#                     cross_elv_data["Longitude"], 
+#                     cross_elv_data["Elevation"]) 
+# cross_plot_data["Elevation"] = elev + abs(cross_plot_data["Elevation"])
+# print(elev)
+# print(abs(cross_plot_data["Elevation"]))
+
 # Load your DataFrame (replace this with your actual DataFrame)
 df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/reloc_events.csv")  # Replace with actual loading method if necessary
 
