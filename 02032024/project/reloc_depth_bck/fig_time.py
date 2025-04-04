@@ -21,8 +21,8 @@ def load_data():
 # Function to preprocess and prepare the data
 def preprocess_data(df, cross_elv_data):
     df["origin_time_numeric"] = df['origin_time'].astype(np.int64)  # Seconds since the earliest event
-    # df["z_ori_from_surface"] = df["z_ori"] + np.interp(df["longitude"], cross_elv_data["Longitude"], cross_elv_data["Elevation"])
-    # df["z_new_from_surface"] = df["z_new"] + np.interp(df["longitude"], cross_elv_data["Longitude"], cross_elv_data["Elevation"])
+    df["z_ori_from_surface"] = df["z_ori"] + np.interp(df["longitude"], cross_elv_data["Longitude"], cross_elv_data["Elevation"])
+    df["z_new_from_surface"] = df["z_new"] + np.interp(df["longitude"], cross_elv_data["Longitude"], cross_elv_data["Elevation"])
     df['month'] = df['origin_time'].dt.to_period('M')
     return df.sort_values('month')
 

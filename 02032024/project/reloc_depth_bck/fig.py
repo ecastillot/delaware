@@ -16,6 +16,21 @@ cross_elv_data["Elevation"] = cross_elv_data["Elevation"]*-1/1e3
 # Load your DataFrame (replace this with your actual DataFrame)
 df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/reloc_events.csv")  # Replace with actual loading method if necessary
 
+# df["z_ori"]
+df["z_ori_from_sea_level"] = df["z_ori"] 
+# df["z_ori_from_sea_level"] = df["z_ori"] + np.interp(df["longitude"], 
+#                                                    cross_elv_data["Longitude"], 
+#                                                    cross_elv_data["Elevation"])
+df["z_new_from_sea_level"] = df["z_new"] + np.interp(df["longitude"], 
+                                                   cross_elv_data["Longitude"], 
+                                                   cross_elv_data["Elevation"])
+x = df[["ev_id","z_ori","z_new","z_ori_from_sea_level","z_new_from_sea_level","Author_ori","Author_new"]]
+# print(x[x["ev_id"]=="texnet2021mvfp"])
+# # print(np.interp(df["longitude"], 
+# #                 cross_elv_data["Longitude"], 
+# #                 cross_elv_data["Elevation"]))
+# exit()
+
 color_regions = {1:"magenta",2:"blue",3:"green"}
 station_regions = {"PB35":1,"PB36":1,"PB28":1,"PB37":1,"SA02":2,"WB03":3,"PB24":3}
 stations = stations[stations["station"].isin(list(station_regions.keys()))]
@@ -25,21 +40,24 @@ stations["elevation"] = np.interp(stations["longitude"],
                                                    cross_elv_data["Longitude"], 
                                                    cross_elv_data["Elevation"])
 
+
 from_sea_level = True
 if from_sea_level:
-    z_label = "_from_sea_level"
+        add = "_from_sea_level"
 else:
-    z_label = "_from_surface"
-
-highres = df.copy()
-sp = df[df["Author_new"]=="S-P Depth Reloc"].copy()
-reloc = df[df["Author_new"]!="S-P Depth Reloc"].copy()
+        add = ""
 
 
-highres.rename(columns={"z_ori"+z_label:"depth"+z_label}, inplace=True)
-sp.rename(columns={"z_new"+z_label:"depth"+z_label}, inplace=True)
-reloc.rename(columns={"z_new"+z_label:"depth"+z_label}, inplace=True)
+highres = df[["ev_id","longitude","latitude","z_ori"+add,"Author_ori"]]
+sp = df[df["Author_new"]=="S-P Depth Reloc"]
+reloc = df[df["Author_new"]!="S-P Depth Reloc"]
 
+highres.rename(columns={"z_ori"+add:"depth"+add}, inplace=True)
+sp.rename(columns={"z_new"+add:"depth"+add}, inplace=True)
+reloc.rename(columns={"z_new"+add:"depth"+add}, inplace=True)
+
+# print(highres)
+# exit()
 
 
 fig = plt.figure(figsize=(14, 8))
@@ -76,7 +94,15 @@ axes[0].plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_p
 # exit()
 sns.scatterplot(x="longitude", y="depth_from_sea_level", color="gray", 
                 data=highres, label="TexNet HighRes", ax=axes[0], s=20, alpha=0.5)
+sns.scatterplot(x="longitude", y="depth_from_sea_level", color="darkorange", marker="+",
+                data=reloc, 
+                label="Relative Reloc from S-P Depth Reloc", 
+                ax=axes[0], 
+                s=20,
+                # alpha=0.2
+                )
 sns.scatterplot(x="longitude", y="depth_from_sea_level", color="darkorange", 
+                edgecolor="red",linewidth=0.25,
                 data=sp, label="S-P Depth Reloc", ax=axes[0], s=20, alpha=0.2)
 
 axes[0].scatter(stations["station_longitude"], stations["elevation"], 
@@ -101,7 +127,7 @@ axes[1].hist(highres["depth_from_sea_level"],
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
-axes[1].hist(sp["depth_from_sea_level"], bins=50, color="darkorange",
+axes[1].hist(df["z_new_from_sea_level"], bins=50, color="darkorange",
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
@@ -145,15 +171,15 @@ for handle, text, label in zip(legend.legend_handles, legend.get_texts(), labels
     if label == "Stations":
         # text.set_fontsize(10)  # Decrease text size
         handle.set_sizes([50])  # Reduce marker size (adjust value as needed)
+    elif label == "S-P Depth Reloc":
+        handle.set_linewidth(2)  # Increase line thickness (adjust as needed)
     elif label == "Relative Reloc from S-P Depth Reloc":
         handle.set_linewidth(2)  # Increase line thickness (adjust as needed)
 # Adjust layout to avoid overlap
 plt.tight_layout()
 
 # Save the plot
-fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/sup_fig_z.png")
+fig.savefig("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/fig_depth_sea_level.png")
 
 # Show the plot
 plt.show()
-exit()
-

@@ -48,19 +48,6 @@ while df['z_new'].isna().any():
 
 
 df['Author_ori'] = "TexNet HighRes"
-
-cross_elv_data = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/basement/cross_elevation_plot_data_31.7_-104.8_31.7_-103.8.csv")  # Update with actual file path
-cross_elv_data["Elevation"] = cross_elv_data["Elevation"]*-1/1e3
-df["z_from_surface"] = df["z_new"]
-df["z_from_sea_level"] = df["z_new"] + np.interp(df["longitude"], 
-                                                   cross_elv_data["Longitude"], 
-                                                   cross_elv_data["Elevation"])
-
-df = df.rename(columns={"depth_from_surface":"z_ori_from_surface",
-                        "depth_from_sea_level":"z_ori_from_sea_level",
-                        "z_from_surface":"z_new_from_surface",
-                        "z_from_sea_level":"z_new_from_sea_level"})
-
 # df_rel = df[["ev_id","longitude","latitude","z_new","S-P","station","region","Author_new"]]
 # # df_rel["Author"] = "S-P Depth Reloc"
 # df_rel.rename(columns={"z_new":"depth"}, inplace=True)

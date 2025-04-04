@@ -16,6 +16,14 @@ cross_elv_data["Elevation"] = cross_elv_data["Elevation"]*-1/1e3
 # Load your DataFrame (replace this with your actual DataFrame)
 df = pd.read_csv("/home/emmanuel/ecastillo/dev/delaware/02032024/project/reloc_depth/reloc_events.csv")  # Replace with actual loading method if necessary
 
+# df["z_ori"]
+df["z_ori_from_surface"] = df["z_ori"] + np.interp(df["longitude"], 
+                                                   cross_elv_data["Longitude"], 
+                                                   cross_elv_data["Elevation"])
+df["z_new_from_surface"] = df["z_new"] + np.interp(df["longitude"], 
+                                                   cross_elv_data["Longitude"], 
+                                                   cross_elv_data["Elevation"])
+
 color_regions = {1:"magenta",2:"blue",3:"green"}
 station_regions = {"PB35":1,"PB36":1,"PB28":1,"PB37":1,"SA02":2,"WB03":3,"PB24":3}
 stations = stations[stations["station"].isin(list(station_regions.keys()))]
@@ -25,20 +33,21 @@ stations["elevation"] = np.interp(stations["longitude"],
                                                    cross_elv_data["Longitude"], 
                                                    cross_elv_data["Elevation"])
 
-from_sea_level = True
-if from_sea_level:
-    z_label = "_from_sea_level"
+
+from_surface = True
+if from_surface:
+        add = "_from_surface"
 else:
-    z_label = "_from_surface"
-
-highres = df.copy()
-sp = df[df["Author_new"]=="S-P Depth Reloc"].copy()
-reloc = df[df["Author_new"]!="S-P Depth Reloc"].copy()
+        add = ""
 
 
-highres.rename(columns={"z_ori"+z_label:"depth"+z_label}, inplace=True)
-sp.rename(columns={"z_new"+z_label:"depth"+z_label}, inplace=True)
-reloc.rename(columns={"z_new"+z_label:"depth"+z_label}, inplace=True)
+highres = df[["ev_id","longitude","latitude","z_ori"+add,"Author_ori"]]
+sp = df[df["Author_new"]=="S-P Depth Reloc"]
+reloc = df[df["Author_new"]!="S-P Depth Reloc"]
+
+highres.rename(columns={"z_ori"+add:"depth"+add}, inplace=True)
+sp.rename(columns={"z_new"+add:"depth"+add}, inplace=True)
+reloc.rename(columns={"z_new"+add:"depth"+add}, inplace=True)
 
 
 
@@ -52,13 +61,13 @@ axes.append(fig.add_subplot(gs[0, 8:10], sharey=axes[0]))
 
 # First axis
 
-sns.kdeplot(x="longitude", y="depth_from_sea_level",  
+sns.kdeplot(x="longitude", y="depth_from_surface",  
             data=sp[sp["region"]==1], ax=axes[0],
             color="magenta", fill=True, alpha=0.3)
-sns.kdeplot(x="longitude", y="depth_from_sea_level",  
-            data=sp[(sp["region"]==2) & (sp["depth_from_sea_level"]>4)], ax=axes[0],
+sns.kdeplot(x="longitude", y="depth_from_surface",  
+            data=sp[(sp["region"]==2) & (sp["depth_from_surface"]>4)], ax=axes[0],
             color="blue", fill=True, alpha=0.3)
-sns.kdeplot(x="longitude", y="depth_from_sea_level",  
+sns.kdeplot(x="longitude", y="depth_from_surface",  
             data=sp[sp["region"]==3], ax=axes[0],
             color="green", fill=True, alpha=0.3)
 
@@ -74,9 +83,9 @@ axes[0].plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_p
 
 # print(df)
 # exit()
-sns.scatterplot(x="longitude", y="depth_from_sea_level", color="gray", 
+sns.scatterplot(x="longitude", y="depth_from_surface", color="gray", 
                 data=highres, label="TexNet HighRes", ax=axes[0], s=20, alpha=0.5)
-sns.scatterplot(x="longitude", y="depth_from_sea_level", color="darkorange", 
+sns.scatterplot(x="longitude", y="depth_from_surface", color="darkorange", 
                 data=sp, label="S-P Depth Reloc", ax=axes[0], s=20, alpha=0.2)
 
 axes[0].scatter(stations["station_longitude"], stations["elevation"], 
@@ -96,25 +105,25 @@ axes[0].tick_params(axis='both', labelsize=14)
 
 axes[0].set_xticklabels(axes[0].get_xticklabels(), ha='right')  # Rotate labels by 45 degrees
 
-axes[1].hist(highres["depth_from_sea_level"],
+axes[1].hist(highres["depth_from_surface"],
              bins=50, color="gray",
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
-axes[1].hist(sp["depth_from_sea_level"], bins=50, color="darkorange",
+axes[1].hist(sp["depth_from_surface"], bins=50, color="darkorange",
             #  histtype="step",
              alpha=0.5, 
              orientation="horizontal",density=True)
 
-axes[1].hist(sp[sp["region"]==1]["depth_from_sea_level"], bins=20, color="magenta",
+axes[1].hist(sp[sp["region"]==1]["depth_from_surface"], bins=20, color="magenta",
              histtype="step",
              alpha=0.7, label="Region 1",
              orientation="horizontal",density=True)
-axes[1].hist(sp[sp["region"]==2]["depth_from_sea_level"], bins=20, color="blue",
+axes[1].hist(sp[sp["region"]==2]["depth_from_surface"], bins=20, color="blue",
              histtype="step",label="Region 2",
              alpha=0.7, 
              orientation="horizontal",density=True)
-axes[1].hist(sp[sp["region"]==3]["depth_from_sea_level"], bins=20, color="green",
+axes[1].hist(sp[sp["region"]==3]["depth_from_surface"], bins=20, color="green",
              histtype="step",label="Region 3",
              alpha=0.7, 
              orientation="horizontal",density=True)
