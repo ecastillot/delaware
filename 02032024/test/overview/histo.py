@@ -67,5 +67,5 @@ ax2.set_ylim(1,6)
 ax2.tick_params(labelsize=15)
 
 
-fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "hist.jpg"), bbox_inches = "tight", dpi = 300)
+fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "hist.png"), bbox_inches = "tight", dpi = 300)
 plt.show()
