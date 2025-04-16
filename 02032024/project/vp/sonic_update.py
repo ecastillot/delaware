@@ -139,6 +139,7 @@ ax_rl1,lg1_rl1,lg2_rl1 = well_fig(data_rl1,formations,form_rl1,
          smooth_interval=precision,
          
          )
+ax_rl1.set_ylabel("Depth [km]", fontsize=14)
 # exit()
 marker_0 = ax_rl1.plot(text_loc2[0], text_loc2[1],
           marker='P', markersize=16,
@@ -225,6 +226,7 @@ fig.legend(handles=lg2_3, loc="upper left",
            fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
 
 # Finalize layout and save or display the plot.
+
 fig.tight_layout()
 fig.subplots_adjust(bottom=0.26)
 fig.savefig(output_fig, dpi=300, bbox_inches='tight')
