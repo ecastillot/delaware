@@ -8,7 +8,7 @@ from delaware.core.enverus import plot_velocity_logs,well_fig
 mydata = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
 formations = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/env_csv-FormationTops-332ba_2024-12-23.csv"
 stations_path = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/stations/delaware_onlystations_160824.csv"
-output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp/vp_ok.png"
+output_fig = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp/vp_okk.png"
 output_folder_mean = "/home/emmanuel/ecastillo/dev/delaware/02032024/project/vp"
 
 data = pd.read_csv(mydata)
@@ -216,7 +216,7 @@ log_handles = [marker_0[0],marker_1[0], marker_2[0], marker_3[0], marker_4[0]]
 labels = ['0', '1','2','3','4']
 fig.legend(handles=log_handles, loc="upper left", 
            labels=labels,
-           title="Sonic Logs",
+           title="Groups of sonic logs ",
            fontsize=10, ncol=3, bbox_to_anchor=(0.61, 0.2))
 
 # Add velocity model legend to the figure.
