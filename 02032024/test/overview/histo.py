@@ -1,5 +1,5 @@
-from delaware.core.event.events import get_texnet_high_resolution_catalog
-from delaware.core.event.picks import read_picks
+# from delaware.core.event.events import get_texnet_high_resolution_catalog
+# from delaware.core.event.picks import read_picks
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from obspy import UTCDateTime
@@ -39,7 +39,7 @@ ax.hist(data["origin_time"], range=(starttime.datetime, endtime.datetime),
          label = f"Events = {len(data['magnitude'])}")
 ax.set_ylabel("Count", size=18,color="black")
 ax.set_xlabel("Date", size=18,color="red")
-ax.set_title("Number of events", size=18, weight='bold')  # Fixed title syntax
+# ax.set_title("Number of events", size=18, weight='bold')  # Fixed title syntax
 
 ax.autoscale(enable=True, axis='x', tight=True)  # Use ax instead of fig.gca()
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
@@ -63,7 +63,7 @@ ax2.set_ylabel('Mw', size=20,color="green")
 ax2.spines["right"].set_edgecolor('green')
 ax2.tick_params(axis='y', colors='green')
 ax2.yaxis.offsetText.set_fontsize(20)
-ax2.set_ylim(0,6)
+ax2.set_ylim(1,6)
 ax2.tick_params(labelsize=15)
 
 
