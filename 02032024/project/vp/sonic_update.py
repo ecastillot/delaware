@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import string
 import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors
 from delaware.core.enverus import plot_velocity_logs,well_fig
 
 mydata = "/home/emmanuel/ecastillo/dev/delaware/10102024/data_git/enverus/EnverusData_AOI/wells_aoi_all.csv"
@@ -41,8 +42,8 @@ data1 = data[data["well_name"].isin(well_r1)]
 data2 = data[data["well_name"].isin(well_r2)]
 data3 = data[data["well_name"].isin(well_r3)]
 
-
-stratigraphy = {
+##################################stratigraphy
+strata = {
     "Delaware Mountain Group": [
         "Brushy Canyon",
         "Cherry Canyon",
@@ -80,7 +81,28 @@ stratigraphy = {
         "Woodford Base"
     ]
 }
+# Choose a better spaced colormap: Set1 + Dark2 (as fallback)
+set1 = plt.cm.get_cmap('Set1').colors  # 9 very distinct colors
+dark2 = plt.cm.get_cmap('Dark2').colors  # 8 darker distinct colors
+combined_colors = list(set1) + list(dark2)
+color_list = [mcolors.to_hex(c) for c in combined_colors]
 
+# New structure
+formation_dict = {}
+
+for i, (group, form) in enumerate(strata.items()):
+    color = color_list[i % len(color_list)]
+    for formation in form:
+        formation_lowercase = formation.lower()
+        formation_dict[formation_lowercase] = {
+            "data": group,
+            "color": color
+        }
+stratigraphy = formation_dict
+
+#####################################333
+# print(stratigraphy)
+# exit()
 
 fig, axes = plt.subplots(1, 5, 
                         sharey=True, 
@@ -94,15 +116,6 @@ for col in range(cols):  # Iterate over columns first
                     facecolor='white', 
                     alpha=1)
         text_loc = [0.05, 0.99]
-        # axes[col].text(text_loc[0], text_loc[1], 
-        #         f"{string.ascii_lowercase[n]})", 
-        #         horizontalalignment='left', 
-        #         verticalalignment="top", 
-        #         transform=axes[ col].transAxes, 
-        #         fontsize="large", 
-        #         fontweight="normal",
-        #         # bbox=box
-        #         )
         axes[col].annotate(f"({string.ascii_lowercase[n]})",
                            xy=(-0.1, 1.05),  # Outside top-left in axes coordinates
                            xycoords='axes fraction',
@@ -113,9 +126,12 @@ for col in range(cols):  # Iterate over columns first
         )
         n += 1
 
+text_loc2 = [5.9, -1.75]
+
 precision = 0.1
 ax_rl1,lg1_rl1,lg2_rl1 = well_fig(data_rl1,formations,form_rl1,
          ax=axes[0],
+        stratigraphy=stratigraphy,
          ylims=(-2,6),
          xlims=(1.5,6.5),
          data_color="gray",
@@ -123,8 +139,14 @@ ax_rl1,lg1_rl1,lg2_rl1 = well_fig(data_rl1,formations,form_rl1,
          smooth_interval=precision,
          
          )
+# exit()
+marker_0 = ax_rl1.plot(text_loc2[0], text_loc2[1],
+          marker='P', markersize=16,
+             linestyle='None', color='#c859b2',
+             label="0")
 
 ax_1,lg1_1,lg2_1 = well_fig(data1,formations,form_r1,
+         stratigraphy=stratigraphy,
          ax=axes[1],
          ylims=(-2,6),
          xlims=(1.5,6.5),
@@ -132,16 +154,14 @@ ax_1,lg1_1,lg2_1 = well_fig(data1,formations,form_r1,
          smooth_interval=precision,
          output_mean=os.path.join(output_folder_mean,"R1.csv")
          )
-text_loc2 = [0.05, 0.25]
-ax_1.text(text_loc2[0], text_loc2[1], 
-         "R1", 
-         horizontalalignment='left', 
-         verticalalignment="top", 
-         transform=ax_1.transAxes, 
-         fontsize="large", 
-         fontweight="normal",
-         bbox=box)
+
+marker_1 = ax_1.plot(text_loc2[0], text_loc2[1],
+          marker='P', markersize=16,
+             linestyle='None', color='#10f60d',
+             label="1")
+
 ax_2,lg1_2,lg2_2 = well_fig(data2,formations,form_r2,
+         stratigraphy=stratigraphy,
          ax=axes[2],
          ylims=(-2,6),
          xlims=(1.5,6.5),
@@ -149,16 +169,14 @@ ax_2,lg1_2,lg2_2 = well_fig(data2,formations,form_r2,
          smooth_interval=precision,
          output_mean=os.path.join(output_folder_mean,"R2.csv")
          )
-# ax_2.text(text_loc2[0], text_loc2[1], 
-#          "R2", 
-#          horizontalalignment='left', 
-#          verticalalignment="top", 
-#          transform=ax_2.transAxes, 
-#          fontsize="large", 
-#          fontweight="normal",
-#          bbox=box)
+marker_2 = ax_2.plot(text_loc2[0], text_loc2[1],
+          marker='P', markersize=16,
+             linestyle='None', color='#866ce4',
+             label="2")
+
 # print("R3")
 ax_3,lg1_3,lg2_3 = well_fig(data3,formations,form_r3,
+         stratigraphy=stratigraphy,
          ax=axes[3],
          ylims=(-2,6),
          xlims=(1.5,6.5),
@@ -166,15 +184,13 @@ ax_3,lg1_3,lg2_3 = well_fig(data3,formations,form_r3,
          smooth_interval=precision,
          output_mean=os.path.join(output_folder_mean,"R3.csv")
          )
-ax_3.text(text_loc2[0], text_loc2[1], 
-         "R3", 
-         horizontalalignment='left', 
-         verticalalignment="top", 
-         transform=ax_3.transAxes, 
-         fontsize="large", 
-         fontweight="normal",
-         bbox=box)
+marker_3 = ax_3.plot(text_loc2[0], text_loc2[1],
+          marker='P', markersize=16,
+             linestyle='None', color='#17e6ed',
+             label="3")
+
 ax_rr1,lg1_rr1,lg2_rr1 = well_fig(data_rr1,formations,form_rr1,
+         stratigraphy=stratigraphy,
          ax=axes[4],
          ylims=(-2,6),
          xlims=(1.5,6.5),
@@ -182,13 +198,27 @@ ax_rr1,lg1_rr1,lg2_rr1 = well_fig(data_rr1,formations,form_rr1,
          form_linestyle = "dashed",
          smooth_interval=precision,
          )
-
+marker_4 = ax_rr1.plot(text_loc2[0], text_loc2[1],
+          marker='P', markersize=16,
+             linestyle='None', color='#ffe415',
+             label="4")
 
 # Sort and add legend for formations.
 global_legend_handles = {k: v for d in [lg1_1,lg1_2,lg1_3] for k, v in d.items()}
+#ordering legends
+global_legend_handles = {k: global_legend_handles[k] for k in strata if k in global_legend_handles}
 fig.legend(handles=list(global_legend_handles.values()), 
            loc="upper left",title="Formations",
-           fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
+           fontsize=10, ncol=3, bbox_to_anchor=(0.05, 0.2))
+
+
+log_handles = [marker_0[0],marker_1[0], marker_2[0], marker_3[0], marker_4[0]]
+labels = ['0', '1','2','3','4']
+fig.legend(handles=log_handles, loc="upper left", 
+           labels=labels,
+           title="Sonic Logs",
+           fontsize=10, ncol=3, bbox_to_anchor=(0.61, 0.2))
+
 # Add velocity model legend to the figure.
 fig.legend(handles=lg2_3, loc="upper left", 
            title="Velocity Model",
