@@ -105,13 +105,13 @@ ax2.set_ylabel("Count",
                color="black")
 ax2.set_xlabel("Date", 
             #    size=18,
-               color="red")
+               color="black")
 # ax.set_title("Number of events", size=18, weight='bold')  # Fixed title syntax
 
 ax2.autoscale(enable=True, axis='x', tight=True)  # Use ax instead of fig.gca()
 ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-ax2.grid(True, which="major", linestyle="--", alpha=0.7,color="red")
-ax2.tick_params(axis='x', colors='red',
+ax2.grid(True, which="major", linestyle="--", alpha=0.7,color="black")
+ax2.tick_params(axis='x', colors='black',
                 # labelsize=18
                 )
 ax2.tick_params(axis='y', colors='black',
@@ -120,23 +120,24 @@ ax2.tick_params(axis='y', colors='black',
 ax2.grid(False, axis="y")
 
 fig.autofmt_xdate()  # Corrected this line
-ax2.spines["bottom"].set_edgecolor('red')
+ax2.spines["bottom"].set_edgecolor('darkorange')
 ax2.yaxis.set_major_locator(MaxNLocator(integer=True))
 ax2.legend(loc='upper left', fontsize=12)
 
 ax2_r = ax2.twinx()
 norm = mpl.colors.Normalize(vmin=0, vmax=15)
 ev = ax2_r.scatter(data["origin_time"], data["magnitude"],
-                   s=data["m"], c='green', edgecolor=None,
+                   s=data["m"], c='darkorange', edgecolor=None,
                    alpha=0.3)
 #cb = fig.colorbar(ev, orientation='vertical')
 #cb.ax.set_ylabel('Profundidad (km)', size=20)
 #cb.ax.tick_params(labelsize=20)
 ax2_r.set_ylabel('Mw', 
                 #  size=20,
-                 color="green")
-ax2_r.spines["right"].set_edgecolor('green')
-ax2_r.tick_params(axis='y', colors='green')
+                 color="darkorange")
+ax2_r.spines["right"].set_edgecolor('darkorange')
+ax2_r.spines["right"].set_linewidth(2)
+ax2_r.tick_params(axis='y', colors='darkorange')
 # ax2_r.yaxis.offsetText.set_fontsize(20)
 ax2_r.set_ylim(1,6)
 ax2_r.tick_params(labelsize=15)
@@ -145,7 +146,7 @@ ax2_r.tick_params(labelsize=15)
 axes = [ax0, ax1, ax2]
 
 # Auto-labeling with letters (a), (b), (c), ...
-for n, ax in enumerate(axes,3):
+for n, ax in enumerate(axes,0):
     ax.annotate(f"({string.ascii_lowercase[n]})",
                 xy=(-0.1, 1.05),  # Slightly outside top-left
                 xycoords='axes fraction',
