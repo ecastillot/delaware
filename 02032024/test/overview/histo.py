@@ -66,6 +66,14 @@ ax2.tick_params(axis='y', colors='darkorange')
 ax2.yaxis.offsetText.set_fontsize(20)
 ax2.set_ylim(1,6)
 ax2.tick_params(labelsize=15)
+ax2.tick_params(
+    axis='y',        # y-axis
+    which='major',   # major ticks (you can also do 'minor')
+    width=4,       # make ticks thicker
+    length=10,       # make ticks longer
+    color='darkorange',  # tick color
+    labelsize=15     # tick label font size
+)
 
 
 fig.savefig(os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "hist.png"), bbox_inches = "tight", dpi = 300)

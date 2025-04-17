@@ -133,7 +133,7 @@ ev = ax2_r.scatter(data["origin_time"], data["magnitude"],
 #cb.ax.set_ylabel('Profundidad (km)', size=20)
 #cb.ax.tick_params(labelsize=20)
 ax2_r.set_ylabel('Mw', 
-                #  size=20,
+                 size=14,
                  color="darkorange")
 ax2_r.spines["right"].set_edgecolor('darkorange')
 ax2_r.spines["right"].set_linewidth(2)
@@ -141,6 +141,15 @@ ax2_r.tick_params(axis='y', colors='darkorange')
 # ax2_r.yaxis.offsetText.set_fontsize(20)
 ax2_r.set_ylim(1,6)
 ax2_r.tick_params(labelsize=15)
+ax2_r.tick_params(
+    axis='y',        # y-axis
+    which='major',   # major ticks (you can also do 'minor')
+    width=2.5,       # make ticks thicker
+    length=10,       # make ticks longer
+    color='darkorange',  # tick color
+    labelsize=15     # tick label font size
+)
+
 
 # Store all axes in a list (order matters!)
 axes = [ax0, ax1, ax2]
