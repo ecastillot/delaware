@@ -67,19 +67,29 @@ box = dict(boxstyle='round',
 # --- Plot Figure 1 (Top, Spanning All Columns) ---
 plot_times_by_station(picks, order=order, palette=custom_palette, 
                       ylim=(0, 2), show=False, ax=ax1)
-ax1.text(text_loc[0], text_loc[1], 
-                f"{string.ascii_lowercase[0]})", 
-                horizontalalignment='left', 
-                verticalalignment="top", 
-                transform=ax1.transAxes, 
-                fontsize="large", 
+# ax1.text(text_loc[0], text_loc[1], 
+#                 f"{string.ascii_lowercase[0]})", 
+#                 horizontalalignment='left', 
+#                 verticalalignment="top", 
+#                 transform=ax1.transAxes, 
+#                 fontsize="large", 
+#                 fontweight="normal",
+#                 bbox=box)
+
+ax1.annotate(f"({string.ascii_lowercase[0]})",
+                xy=(-0.1, 1.05),  # Slightly outside top-left
+                xycoords='axes fraction',
+                ha='left',
+                va='bottom',
+                fontsize="large",
                 fontweight="normal",
-                bbox=box)
+                # bbox=box
+                )
 
 # Arrow annotation for Figure 1
-fig.text(0.15, 0.38, "W", ha="center", va="center", fontsize=12, fontweight="bold")
-fig.text(0.87, 0.38, "E", ha="center", va="center", fontsize=12, fontweight="bold")
-arrow = mpatches.FancyArrow(0.15, 0.35, 0.7, 0, width=0.001, transform=fig.transFigure, color="black")
+fig.text(0.15, 0.4, "W", ha="center", va="center", fontsize=12, fontweight="bold")
+fig.text(0.87, 0.4, "E", ha="center", va="center", fontsize=12, fontweight="bold")
+arrow = mpatches.FancyArrow(0.15, 0.37, 0.7, 0, width=0.001, transform=fig.transFigure, color="black")
 fig.patches.append(arrow)
 
 
@@ -143,14 +153,23 @@ for n, (key, val) in enumerate(custom_palette_fig2.items()):
         ax.tick_params(labelleft=False)  # Hide labels but keep grid
 
     text_loc = [0.05, 0.92]
-    ax.text(text_loc[0], text_loc[1], 
-                f"{string.ascii_lowercase[n+1]})", 
-                horizontalalignment='left', 
-                verticalalignment="top", 
-                transform=ax.transAxes, 
-                fontsize="large", 
+    # ax.text(text_loc[0], text_loc[1], 
+    #             f"{string.ascii_lowercase[n+1]})", 
+    #             horizontalalignment='left', 
+    #             verticalalignment="top", 
+    #             transform=ax.transAxes, 
+    #             fontsize="large", 
+    #             fontweight="normal",
+    #             bbox=box)
+    ax.annotate(f"({string.ascii_lowercase[n+1]})",
+                xy=(-0.1, 1.05),  # Slightly outside top-left
+                xycoords='axes fraction',
+                ha='left',
+                va='bottom',
+                fontsize="large",
                 fontweight="normal",
-                bbox=box)
+                # bbox=box
+                )
 
 # Add legends
 legend_elements = [Line2D([0], [0], color=color, lw=2, label=f"{key} km") for key, color in r_color.items()]
@@ -158,16 +177,16 @@ legend_max = [Line2D([0], [0], color="black", lw=2, linestyle="--", label="Max. 
 
 fig.legend(handles=legend_elements,
            loc="lower left", 
-           ncol=6, frameon=False, 
+           ncol=6, frameon=True, 
            title="Radius", 
            bbox_to_anchor=(0.1, -0.04))
 fig.legend(handles=legend_max,
            loc="lower center", 
-           frameon=False, 
+           frameon=True, 
            bbox_to_anchor=(0.8, -0.04))
 
 # Adjust layout and save
-plt.subplots_adjust(hspace=0.4)
+plt.subplots_adjust(hspace=0.55)
 plt.savefig(output_path, dpi=300, 
             bbox_inches="tight")
 plt.show()
