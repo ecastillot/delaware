@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import string
+from matplotlib import colors as mcolors
 import matplotlib.pyplot as plt
 from delaware.core.enverus import z_fig
 
@@ -100,12 +101,72 @@ order = order["station"].to_list()
 #          (formations["API_UWI_12"] == form_r3[:-3] )
 # formations = formations[cond]
 
+##################################stratigraphy
+strata = {
+    "Delaware Mountain Group": [
+        "Brushy Canyon",
+        "Cherry Canyon",
+        "Bell Canyon"
+    ],
+    "Bone Spring Group": [
+        "Avalon Upper",
+        "Avalon Middle",
+        "Avalon Lower",
+        "1st Bone Spring",
+        "2nd Bone Spring",
+        "2nd Bone Spring Sand",
+        "3rd Bone Spring",
+        "3rd Bone Spring Sand"
+    ],
+    "Wolfcamp Group": [
+        "Wolfcamp A",
+        "Wolfcamp A Lower",
+        "Wolfcamp B Upper",
+        "Wolfcamp B Lower",
+        "Wolfcamp C",
+        "Wolfcamp D",
+        "Wolfcamp XY",
+        "Wolfcamp Base"
+    ],
+    "Pennsylvanian Group": [
+        "Penn Shale",
+        "Penn Lower"
+    ],
+    "Mississippian Group": [
+        "Miss Lime"
+    ],
+    "Woodford Group": [
+        "Woodford",
+        "Woodford Base"
+    ]
+}
+# Choose a better spaced colormap: Set1 + Dark2 (as fallback)
+set1 = plt.cm.get_cmap('Set1').colors  # 9 very distinct colors
+dark2 = plt.cm.get_cmap('Dark2').colors  # 8 darker distinct colors
+combined_colors = list(set1) + list(dark2)
+color_list = [mcolors.to_hex(c) for c in combined_colors]
+
+# New structure
+formation_dict = {}
+
+for i, (group, form) in enumerate(strata.items()):
+    color = color_list[i % len(color_list)]
+    for formation in form:
+        formation_lowercase = formation.lower()
+        formation_dict[formation_lowercase] = {
+            "data": group,
+            "color": color
+        }
+stratigraphy = formation_dict
+
+#####################################333
+
 
 stats_by_station = picks.groupby('station')['ts-tp'].describe()
 fig, axes = plt.subplots(1, len(stats_by_station), 
                         sharey=True, 
                         figsize=(12, 8))
-        
+axes[0].set_ylabel("Depth [km]", fontsize=14)
 # rows, cols = 1,axes.shape[0]  # Get the number of rows and columns
 # n = 0
 # for col in range(cols):  # Iterate over columns first
@@ -144,6 +205,7 @@ for i,station in enumerate(order):
                                  formations,
                                  form,
                                  sp_t1, sp_t2,vpvs,
+                stratigraphy=stratigraphy,                 
                 ax=axes[i],
                 z_color=custom_palette[station]["color"],
                 ylims=(-2,14),
@@ -204,11 +266,16 @@ for i,station in enumerate(order):
 
 # # Sort and add legend for formations.
 global_legend_handles = {k: v for d in [lg1_1] for k, v in d.items()}
-fig.legend(handles=list(global_legend_handles.values()), loc="upper left", title="Formations", 
-           fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
+# fig.legend(handles=list(global_legend_handles.values()), loc="upper left", title="Formations", 
+#            fontsize=8, ncol=5, bbox_to_anchor=(0.05, 0.2))
+global_legend_handles = {k: global_legend_handles[k] for k in strata if k in global_legend_handles}
+fig.legend(handles=list(global_legend_handles.values()), 
+           loc="upper left",title="Formations",
+           fontsize=10, ncol=3, bbox_to_anchor=(0.1, 0.2))
+
 # # Add velocity model legend to the figure.
 fig.legend(handles=lg2_1, loc="upper left", title="Average Velocity Model",
-           fontsize=10, ncol=1, bbox_to_anchor=(0.8, 0.2))
+           fontsize=10, ncol=1, bbox_to_anchor=(0.7, 0.2))
 
 # Finalize layout and save or display the plot.
 fig.tight_layout()

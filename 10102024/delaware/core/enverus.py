@@ -1045,6 +1045,7 @@ def z_fig(df,formations,
              formation_well_name,
              sp_25, sp_75,vp_vs,
              ax,
+             stratigraphy=None,
              z_color="gray",
              depth="Depth[km]",
     vel="Vp[km/s]",
@@ -1183,28 +1184,41 @@ def z_fig(df,formations,
     global_legend_handles = {}
     # Plot formation boundaries for the well.
     if formations is not None:
-        
-        global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
-        if formations_key_order is None:
-            formations_key_order = "FormationName"
-        formations_order = formations.copy().drop_duplicates("FormationName")
-        formations_order = formations_order.sort_values(formations_key_order, ignore_index=True)
-        formations_order = formations_order["FormationName"].tolist()
-        
-        single_formation = formations[formations["API_UWI_12"] == formation_well_name[:-3]]
-        single_formation = single_formation.sort_values("TVD_Top", ignore_index=True)
-        
-        for _, f in single_formation.iterrows():
-            depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
-            formation_name = f["FormationName"]
-            color = global_formation_colors.get(formation_name, "gray")
-            ax.axhline(y=depth_f, color=color, linestyle=form_linestyle, linewidth=1)
+        if stratigraphy is None:
+            print("No stratigraphy attribute")
+        else:
+            # global_formation_colors = assign_global_colors(formations["FormationName"].drop_duplicates())
+            if formations_key_order is None:
+                formations_key_order = "FormationName"
+            formations_order = formations.copy().drop_duplicates("FormationName")
+            formations_order = formations_order.sort_values(formations_key_order, ignore_index=True)
+            formations_order = formations_order["FormationName"].tolist()
             
-            # Add the formation to the legend if not already present.
-            global_legend_handles[formation_name] = plt.Line2D([0], [0], color=color, lw=2,
-                                                               linestyle=form_linestyle, 
-                                                               label=formation_name)
-     
+            single_formation = formations[formations["API_UWI_12"] == formation_well_name[:-3]]
+            single_formation = single_formation.sort_values("TVD_Top", ignore_index=True)
+            
+            for _, f in single_formation.iterrows():
+                depth_f = (f["TVD_Top"] * 0.0003048) + elevation_km
+                formation_name = f["FormationName"]
+                
+                match = next((word for word in list(stratigraphy.keys()) if \
+                                word.lower() in formation_name.lower() or\
+                                formation_name.lower() in word.lower()), None)
+                
+                if match is None:
+                    print(f"No formation {formation_name} in your stratigraphy")
+                    continue
+                
+                # color = global_formation_colors.get(formation_name, "gray")
+                global_name = stratigraphy[match]["data"]
+                color = stratigraphy[match]["color"]
+                ax.axhline(y=depth_f, color=color, linestyle=form_linestyle, linewidth=1)
+                
+                # Add the formation to the legend if not already present.
+                global_legend_handles[global_name] = plt.Line2D([0], [0], color=color, lw=2,
+                                                                linestyle=form_linestyle, 
+                                                                label=global_name)
+        
      
     if mean:
         # Define common depth bins (from min to max depth across all wells)
