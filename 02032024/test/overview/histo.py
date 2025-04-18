@@ -29,6 +29,8 @@ output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi.csv"
 
 data = pd.read_csv(output,parse_dates=["origin_time"])
 
+data = data[data["magnitude"]>=2]
+
 data["m"] = 2*(2**(np.array(data["magnitude"])))
 
 # print(events.__str__(True))
@@ -51,7 +53,7 @@ ax.grid(False, axis="y")
 fig.autofmt_xdate()  # Corrected this line
 ax.spines["bottom"].set_edgecolor('black')
 ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-ax.legend(loc='upper left', fontsize=18)
+# ax.legend(loc='upper left', fontsize=18)
 
 ax2 = ax.twinx()
 norm = mpl.colors.Normalize(vmin=0, vmax=15)
@@ -64,7 +66,7 @@ ax2.spines["right"].set_edgecolor('darkorange')
 ax2.spines["right"].set_linewidth(2)
 ax2.tick_params(axis='y', colors='darkorange')
 ax2.yaxis.offsetText.set_fontsize(20)
-ax2.set_ylim(1,6)
+ax2.set_ylim(2,6)
 ax2.tick_params(labelsize=15)
 ax2.tick_params(
     axis='y',        # y-axis

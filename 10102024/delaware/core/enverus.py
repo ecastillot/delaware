@@ -809,12 +809,12 @@ def well_fig(df,formations,
             "linestyle": "--",
             "vel_model": db1d_velmodel,
         },
-        "Sheng (2022)": {
-            "linewidth": 1.5,
-            "color": "black",
-            "linestyle": "--",
-            "vel_model": sheng_velmodel,
-        },
+        # "Sheng (2022)": {
+        #     "linewidth": 1.5,
+        #     "color": "black",
+        #     "linestyle": "--",
+        #     "vel_model": sheng_velmodel,
+        # },
     }
     # Create legend elements for velocity models.
     vel_legend_handles = []
@@ -982,7 +982,7 @@ def well_fig(df,formations,
         legend_line = plt.Line2D(
             [0], [0], color="red", 
             lw=2.5, 
-            linestyle="-", label="mean",
+            linestyle="-", label="Median",
         )
         well_legend_handles.append(legend_line)
         
@@ -996,7 +996,7 @@ def well_fig(df,formations,
                     guess[depth], 
                     color="red",
                     linewidth=1.5, 
-                    linestyle="--",
+                    linestyle=":",
                     # label="basement"
                     )
         
@@ -1008,7 +1008,7 @@ def well_fig(df,formations,
         legend_line2 = plt.Line2D(
             [0], [0], color="red", 
             lw=1.5, 
-            linestyle="--", label="Vp in basement",
+            linestyle=":", label="Vp extension",
         )
         well_legend_handles.append(legend_line2)
                 
@@ -1073,12 +1073,12 @@ def z_fig(df,formations,
             "linestyle": "-",
             "vel_model": db1d_velmodel,
         },
-        "Sheng (2022)": {
-            "linewidth": 1,
-            "color": "black",
-            "linestyle": "-",
-            "vel_model": sheng_velmodel,
-        },
+        # "Sheng (2022)": {
+        #     "linewidth": 1,
+        #     "color": "black",
+        #     "linestyle": "-",
+        #     "vel_model": sheng_velmodel,
+        # },
     }
     # Create legend elements for velocity models.
     vel_legend_handles = []
