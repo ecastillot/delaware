@@ -68,7 +68,8 @@ axes[0].plot(cross_elv_data["Longitude"], cross_elv_data["Elevation"] ,
         label="Elevation", 
         # linewidth=2
         )
-axes[0].plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_plot_data["Elevation"], 
+axes[0].plot(cross_plot_data["Longitude"],  cross_plot_data["Elevation"], 
+# axes[0].plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_plot_data["Elevation"], 
         color="red", linestyle="--",
         label="Basement")
 

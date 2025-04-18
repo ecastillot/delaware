@@ -42,7 +42,8 @@ def create_base_plot(df, cross_elv_data, cross_plot_data, stations,starttime=Non
 
     # Plot Longitude vs Depth on the single axis
     ax.plot(cross_elv_data["Longitude"], cross_elv_data["Elevation"], color="black", linestyle="-", label="Elevation")
-    ax.plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_plot_data["Elevation"], color="red", linestyle="--", label="Basement")
+    # ax.plot(cross_plot_data["Longitude"], cross_elv_data["Elevation"] + cross_plot_data["Elevation"], color="red", linestyle="--", label="Basement")
+    ax.plot(cross_plot_data["Longitude"], cross_plot_data["Elevation"], color="red", linestyle="--", label="Basement")
 
     # Plot stations on top of the static part of the plot
     ax.scatter(stations["station_longitude"], stations["elevation"], 
