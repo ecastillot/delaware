@@ -53,13 +53,13 @@ def create_base_plot(df, cross_elv_data, cross_plot_data, stations,starttime=Non
     # Set axis labels and other static plot properties
     # Set labels and title for the plot
     ax.set_xlabel("Longitude", fontsize=12)
-    ax.set_ylabel("Depth", fontsize=12)
+    ax.set_ylabel("Depth [km]", fontsize=12)
     ax.set_xlim(-104.8, -103.8)
     ax.set_ylim(15, -2)  # Invert the y-axis for depth
     ax.grid(True, which='major', linestyle='--', linewidth=0.8, alpha=0.7)  # Major grid
     ax.set_title("Depth vs Longitude", fontsize=14)
     ax.set_xlabel("Longitude", fontsize=14)
-    ax.set_ylabel("Depth", fontsize=14)
+    ax.set_ylabel("Depth [km]", fontsize=14)
     ax.tick_params(axis='both', labelsize=14)
     
     # Add dynamic text annotation for the time frame (initially empty)
