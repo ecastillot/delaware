@@ -30,7 +30,7 @@ result_label = "TexNet"
 output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_original.csv"
 sta_path = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_stations.csv"
 
-fig_out = os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview", "map_usgs_updated.png")
+fig_out = os.path.join(r"/home/emmanuel/ecastillo/dev/delaware/02032024/test", "map_usgs_updated.png")
 
 
 # #FOr comparison
@@ -47,15 +47,16 @@ fig = plt.figure(figsize=(14,8))
 box = dict(boxstyle='round', facecolor='white', alpha=1)
 text_loc = [0.05, 0.92]
 
-grd = fig.add_gridspec(ncols=2, nrows=2, 
+grd = fig.add_gridspec(ncols=2, nrows=6, 
                        width_ratios=[1.5, 1], 
-                       height_ratios=[0.7, 0.7]
+                    #    height_ratios=[0.7, 0.7]
+                        height_ratios=[1, 1, 1, 1, 1, 1]  # Six rows
                        )
 
 # Panel A: Map View
-ax0 = fig.add_subplot(grd[:, 0])
+ax0 = fig.add_subplot(grd[:3, 0])
 ax0.plot(data["longitude"], data["latitude"], 'k.', markersize=6, alpha=0.6)
-ax0.set_aspect('equal', adjustable='box')
+# ax0.set_aspect('equal', adjustable='box')
 ax0.set_xlim(np.array(x) + np.array([-0.05, 0.05]))
 ax0.set_ylim(np.array(y) + np.array([-0.05, 0.05]))
 ax0.set_xlabel("Longitude (°)")
@@ -66,16 +67,15 @@ ax0.plot(x[0] - 1, y[0] - 1, 'k.', markersize=5, label=f"{result_label}")
 ax0.legend(loc="lower left")
 
 # Panel B: Longitude vs Depth
-ax1 = fig.add_subplot(grd[0, 1])
+ax1 = fig.add_subplot(grd[3:6, 0], sharex=ax0)
 ax1.plot(data["longitude"], data["depth"], 'k.', markersize=2,
          alpha=1.0
-         , rasterized=True
+        #  , rasterized=True
          )
+# ax0.set_aspect('equal', adjustable='box')
 ax1.set_xlim(np.array(x))
 ax1.set_ylim([0, 12])
 ax1.invert_yaxis()
-# ax1.set_prop_cycle(None)
-# ax1.plot(x[0] - 10, 31, 'k.', markersize=10)
 ax1.grid(True, which='minor', linestyle='--', linewidth=0.5, alpha=0.5)
 ax1.grid(True, which='major', linestyle='--', linewidth=1.5)
 ax1.set_xlabel("Longitude (°)")
@@ -92,7 +92,7 @@ output = "/home/emmanuel/ecastillo/dev/delaware/02032024/test/overview/aoi_origi
 data = pd.read_csv(output,parse_dates=["origin_time"])
 print(data)
 data["m"] = 2*(1.1**(np.array(data["magnitude"])))
-ax2 = fig.add_subplot(grd[1, 1])
+ax2 = fig.add_subplot(grd[1:5, 1])
 ax2.hist(data["origin_time"], range=(starttime.datetime, endtime.datetime), 
          bins = mdates.drange(starttime.datetime, endtime.datetime, 
                               pd.Timedelta(weeks=4)), 
@@ -141,7 +141,7 @@ ev = ax2_r.scatter(data["origin_time"], data["magnitude"],
 #cb = fig.colorbar(ev, orientation='vertical')
 #cb.ax.set_ylabel('Profundidad (km)', size=20)
 #cb.ax.tick_params(labelsize=20)
-ax2_r.set_ylabel('Mw', 
+ax2_r.set_ylabel('Magnitude', 
                  size=14,
                  color="darkorange")
 ax2_r.spines["right"].set_edgecolor('darkorange')
@@ -158,6 +158,11 @@ ax2_r.tick_params(
     color='darkorange',  # tick color
     labelsize=15     # tick label font size
 )
+ax2.tick_params(labelbottom=True)
+ax2.set_xlabel("Date", 
+            #    size=18,
+               color="black")
+
 # Store all axes in a list (order matters!)
 axes = [ax0, ax1, ax2]
 
@@ -175,6 +180,6 @@ for n, ax in enumerate(axes):
 
 # fig.tight_layout(pad=2.0)  # Increase padding between subplots
 fig.tight_layout()
-# fig.subplots_adjust(bottom=0.1)  # Adjust this value to push things up
+fig.subplots_adjust(bottom=0.1)  # Adjust this value to push things up
 fig.savefig(fig_out, bbox_inches="tight", dpi=300)
 plt.show()
