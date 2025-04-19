@@ -995,7 +995,7 @@ def well_fig(df,formations,
         ax.step(guess['Vp_mean[km/s]'], 
                     guess[depth], 
                     color="red",
-                    linewidth=1.5, 
+                    linewidth=2, 
                     linestyle=":",
                     # label="basement"
                     )
@@ -1007,7 +1007,7 @@ def well_fig(df,formations,
         
         legend_line2 = plt.Line2D(
             [0], [0], color="red", 
-            lw=1.5, 
+            lw=2, 
             linestyle=":", label="Vp extension",
         )
         well_legend_handles.append(legend_line2)
